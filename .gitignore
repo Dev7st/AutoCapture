@@ -1,3 +1,4 @@
+# Python
 __pycache__/
 *.pyc
 *.pyo
@@ -15,11 +16,24 @@ config.json
 # 로그
 *.log
 
-# 캡처 파일
-출결관리/
+# 캡처 파일 (날짜 폴더)
+[0-9][0-9][0-9][0-9][0-9][0-9]/
+**/[0-9][0-9][0-9][0-9][0-9][0-9]/
 
-# InsightFace 모델 (로컬)
+# 이미지 파일
+*.png
+*.jpg
+*.jpeg
+
+# CSV 로그
+*_log.csv
+
+# 학원 전용 경로 (혹시 모를 실수 방지)
+IBM 비대면/
+
+# InsightFace 모델 (로컬 저장 시)
 models/
+.insightface/
 
 # IDE
 .vscode/
