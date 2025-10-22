@@ -7,21 +7,64 @@
 ## 1. 프로젝트 구조 규칙
 
 ### 1.1 폴더 구조
+
+**프로젝트 루트: `capture/`**
+
 ```
-attendance_capture/
-├─ docs/              # 문서만
-├─ core/              # 핵심 비즈니스 로직만
-├─ gui/               # GUI 관련 코드만
-├─ utils/             # 유틸리티 함수만
-└─ tests/             # 테스트 코드만 (선택)
+capture/                                    # 프로젝트 루트
+├─ docs/                                    # 📁 문서
+│  ├─ requirements.md                       # 요구사항 명세서
+│  ├─ rules.md                              # 개발 규칙
+│  ├─ architecture.md                       # 기술 설계서
+│  └─ tasks.md                              # Task 체크리스트
+│
+├─ features/                                # 📁 핵심 기능 (비즈니스 로직)
+│  ├─ __init__.py
+│  ├─ capture.py                            # 화면 캡처
+│  ├─ face_detection.py                     # 얼굴 감지
+│  ├─ file_manager.py                       # 파일 저장
+│  ├─ logger.py                             # CSV 로깅
+│  └─ scheduler.py                          # 스케줄링
+│
+├─ gui/                                     # 📁 GUI
+│  ├─ __init__.py
+│  ├─ main_window.py                        # 메인 윈도우
+│  └─ dialogs.py                            # 초기 설정 다이얼로그
+│
+├─ utils/                                   # 📁 유틸리티
+│  ├─ __init__.py
+│  ├─ config.py                             # 설정 관리
+│  └─ monitor.py                            # 모니터 선택
+│
+├─ assets/                                  # 📁 리소스
+│  └─ icons/                                # 아이콘 (시스템 트레이 등)
+│     └─ .gitkeep                           # 빈 폴더 유지용
+│
+├─ tests/                                   # 📁 테스트 (선택)
+│  ├─ __init__.py
+│  ├─ test_capture.py
+│  └─ test_face_detection.py
+│
+├─ main.py                                  # 프로그램 진입점
+├─ __init__.py                              # 패키지 초기화
+├─ .gitignore                               # Git 제외 파일
+├─ requirements.txt                         # Python 패키지 목록
+└─ README.md                                # 프로젝트 소개
 ```
 
-### 1.2 파일 분리 원칙
+### 1.2 폴더별 역할
+- **features/**: 핵심 비즈니스 로직만
+- **gui/**: GUI 관련 코드만
+- **utils/**: 유틸리티 함수만
+- **assets/**: 이미지, 아이콘 등 리소스
+- **tests/**: 테스트 코드만 (선택)
+
+### 1.3 파일 분리 원칙
 - **하나의 파일 = 하나의 클래스** (가능한 한)
 - 파일 크기: 최대 500줄
 - 관련 없는 기능은 별도 파일로 분리
 
-### 1.3 __init__.py
+### 1.4 __init__.py
 - 모든 폴더에 `__init__.py` 필수
 - 외부로 노출할 것만 `__all__`에 정의
 
@@ -121,7 +164,7 @@ from PIL import Image
 from insightface.app import FaceAnalysis
 
 # 3. 내부 모듈
-from core.capture import ScreenCapture
+from features.capture import ScreenCapture
 from utils.config import Config
 ```
 
@@ -129,9 +172,91 @@ from utils.config import Config
 - **최대 50줄**
 - 50줄 넘으면 분리
 
+**분리 방법:**
+1. 논리적 단위로 쪼개기
+2. Helper 함수로 추출
+3. Private 메서드로 분리
+
+**예시:**
+```python
+# ❌ 나쁜 예: 100줄 함수
+def process_capture():
+    # 화면 캡처 (20줄)
+    monitor = get_monitor()
+    screenshot = capture(monitor)
+    # ... 20줄
+    
+    # 얼굴 감지 (30줄)
+    model = load_model()
+    faces = detect(screenshot)
+    # ... 30줄
+    
+    # 파일 저장 (20줄)
+    path = generate_path()
+    save(screenshot, path)
+    # ... 20줄
+    
+    # 로그 기록 (30줄)
+    log_data = prepare_log()
+    write_log(log_data)
+    # ... 30줄
+
+# ✅ 좋은 예: 분리
+def process_capture():
+    """메인 캡처 프로세스"""
+    image = _capture_screen()       # 20줄 → 별도 함수
+    faces = _detect_faces(image)    # 30줄 → 별도 함수
+    _save_image(image)              # 20줄 → 별도 함수
+    _log_result(faces)              # 30줄 → 별도 함수
+
+def _capture_screen():
+    """화면 캡처 (Private 함수)"""
+    monitor = get_monitor()
+    screenshot = capture(monitor)
+    return screenshot
+
+def _detect_faces(image):
+    """얼굴 감지 (Private 함수)"""
+    model = load_model()
+    faces = detect(image)
+    return faces
+```
+
 ### 3.6 클래스 길이
 - **최대 500줄**
 - 500줄 넘으면 분리
+
+**분리 방법:**
+1. 책임별로 클래스 분리
+2. Mixin 클래스 활용
+3. 별도 모듈로 추출
+
+**예시:**
+```python
+# ❌ 나쁜 예: 하나의 거대 클래스
+class FaceDetector:
+    def __init__(self): pass
+    def detect(self): pass           # 100줄
+    def preprocess(self): pass       # 100줄
+    def postprocess(self): pass      # 100줄
+    def save_result(self): pass      # 100줄
+    def load_model(self): pass       # 100줄
+    # ... 총 500줄 초과
+
+# ✅ 좋은 예: 책임별 분리
+class FaceDetector:
+    """얼굴 감지만 담당"""
+    def __init__(self): pass
+    def detect(self): pass
+
+class ImagePreprocessor:
+    """이미지 전처리 담당"""
+    def preprocess(self): pass
+
+class ResultSaver:
+    """결과 저장 담당"""
+    def save(self): pass
+```
 
 ---
 
@@ -193,11 +318,34 @@ image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 ```
 
 ### 4.4 TODO 주석
+
+**위치:** 해당 코드 바로 위 또는 함수/클래스 docstring 다음
+
 ```python
-# TODO: GPU 메모리 부족 시 자동으로 CPU 모드 전환
-# FIXME: 가끔 얼굴 감지가 실패하는 버그 수정 필요
-# HACK: 임시 해결책, 나중에 리팩토링 필요
+# 함수 시작 부분 (docstring 다음)
+def detect_faces(image):
+    """얼굴을 감지합니다."""
+    # TODO: GPU 메모리 부족 시 자동으로 CPU 모드 전환
+    # FIXME: 가끔 얼굴 감지가 실패하는 버그 수정 필요
+    pass
+
+# 해당 코드 바로 위
+result = risky_operation()
+# FIXME: 가끔 실패하는 버그 수정 필요
+process(result)
+
+# 클래스 시작 부분
+class FaceDetector:
+    """얼굴 감지 클래스"""
+    # TODO: 다중 GPU 지원 추가
+    pass
 ```
+
+**TODO 주석 종류:**
+- `TODO`: 나중에 구현할 기능
+- `FIXME`: 알려진 버그, 반드시 수정 필요
+- `HACK`: 임시 해결책, 나중에 리팩토링 필요
+- `NOTE`: 중요한 설명
 
 ---
 
@@ -347,7 +495,7 @@ date_folder.mkdir(parents=True, exist_ok=True)
 save_path = "C:/IBM 비대면" + "/" + "251020"
 ```
 
-### 8.2 파일 저장
+### 8.2 파일 저장 (with 문)
 ```python
 # ✅ 좋은 예: with 문 사용
 with open(file_path, 'w', encoding='utf-8') as f:
@@ -359,6 +507,11 @@ f.write(content)
 f.close()
 ```
 
+**with 문 장점:**
+- 파일이 자동으로 닫힘 (메모리 누수 방지)
+- 예외 발생 시에도 안전하게 닫힘
+- 코드 간결
+
 ### 8.3 인코딩 명시
 ```python
 # CSV 파일은 UTF-8-BOM (Excel 호환)
@@ -368,40 +521,77 @@ with open(log_path, 'w', encoding='utf-8-sig') as f:
 
 ---
 
-## 9. Git 커밋 규칙
+## 9. Git 전략
 
-### 9.1 커밋 메시지 형식
+### 9.1 브랜치 전략 (GitHub Flow)
+이 프로젝트는 **GitHub Flow** 전략을 사용합니다.
+
+**브랜치 구조:**
+- `main`: 항상 배포 가능한 안정적인 버전
+- `feature/*`: 기능 개발용 임시 브랜치
+
+**작업 흐름:**
+```bash
+# 1. 새 기능 시작
+git checkout -b feature/face-detection
+
+# 2. 해당 브랜치에서 개발 + 테스트
+git add .
+git commit -m "feat: 얼굴 감지 구현"
+git commit -m "test: 얼굴 감지 테스트 추가"
+
+# 3. 완료되면 main에 병합
+git checkout main
+git merge feature/face-detection
+
+# 4. feature 브랜치 삭제
+git branch -d feature/face-detection
+
+# 5. 큰 단위 완료 시 태그
+git tag v0.1.0
+git push origin main --tags
+```
+
+**feature 브랜치 네이밍:**
+- `feature/face-detection` - 얼굴 감지 기능
+- `feature/gui-main-window` - GUI 메인 윈도우
+- `feature/scheduler` - 스케줄러 기능
+
+### 9.2 커밋 메시지 형식
 ```
 <type>: <subject>
 
 <body> (선택사항)
 ```
 
-### 9.2 Type 종류
-- `feat`: 새 기능
+**Type 종류:**
+- `feat`: 새 기능 추가
 - `fix`: 버그 수정
 - `docs`: 문서 수정
 - `style`: 코드 포맷팅 (기능 변경 없음)
 - `refactor`: 리팩토링
-- `test`: 테스트 추가
+- `test`: 테스트 추가/수정
 - `chore`: 기타 (빌드, 설정 등)
 
-### 9.3 예시
+**예시:**
 ```bash
 # ✅ 좋은 예
 feat: InsightFace 얼굴 감지 기능 구현
 fix: 듀얼 모니터 인덱스 오류 수정
 docs: README에 설치 방법 추가
+refactor: FaceDetector 클래스 분리
 
 # ❌ 나쁜 예
 update
 fixed bug
 asdf
+수정함
 ```
 
-### 9.4 커밋 단위
+### 9.3 커밋 단위
 - **작은 단위로 자주 커밋**
 - 하나의 기능/수정 = 하나의 커밋
+- 의미 있는 단위로 분리
 
 ---
 
@@ -495,22 +685,19 @@ GPU 메모리를 해제하는 기능이야."
 - **Python 3.10.11** 고정
 
 ### 14.2 가상환경
+
+**venv 사용 시:**
 ```bash
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 14.3 IDE 설정 (VSCode/Cursor)
-```json
-// .vscode/settings.json
-{
-    "python.linting.enabled": true,
-    "python.linting.pylintEnabled": true,
-    "python.formatting.provider": "black",
-    "editor.formatOnSave": true,
-    "editor.rulers": [120]
-}
+**conda 사용 시:**
+```bash
+conda create -n capture python=3.10.11
+conda activate capture
+pip install -r requirements.txt
 ```
 
 ---
@@ -553,13 +740,22 @@ def calculate():
 - [ ] 에러 처리 했는가?
 - [ ] 변수명이 명확한가?
 - [ ] 함수가 50줄 이하인가?
+- [ ] 클래스가 500줄 이하인가?
 - [ ] Import 순서가 맞는가?
 - [ ] 테스트 했는가?
 - [ ] Git 커밋 메시지가 명확한가?
+- [ ] feature 브랜치에서 작업했는가?
 
 ---
 
 **이 규칙을 따라 일관성 있는 코드를 작성합시다! 🚀**
 
-**문서 버전**: 1.0  
-**최종 수정일**: 2025-10-21
+**문서 버전**: 2.0  
+**최종 수정일**: 2025-10-21  
+**주요 변경사항**:
+- 폴더 구조 수정 (core → features, src 삭제)
+- 함수/클래스 길이 초과 시 분리 방법 추가
+- TODO 주석 위치 명확화
+- Git 전략을 GitHub Flow로 명확히 정의
+- Conda 가상환경 추가
+- IDE 설정 제거 (Cursor 사용)
