@@ -134,6 +134,9 @@ class ScreenCapture:
     def get_monitor_info(self) -> dict:
         """
         모니터 정보를 반환합니다.
+
+        듀얼 모니터 환경에서 캡처 영역 계산 및 
+        디버깅 로그 기록 시 사용됩니다.
         
         Returns:
             dict: {width, height, left, top}
