@@ -29,8 +29,8 @@
 - [x] 프로젝트 폴더 구조 생성 (`features/`, `gui/`, `utils/`)
 - [x] `requirements.txt` 작성
 - [x] Git 저장소 초기화 및 `.gitignore` 설정
-- [ ] 가상환경 생성 (Python 3.10.11)
-- [ ] 기본 라이브러리 설치 (InsightFace, mss, Pillow 등)
+- [x] 가상환경 생성 (Python 3.10.11)
+- [x] 기본 라이브러리 설치 (InsightFace, mss, Pillow 등)
 
 ### 1.2 초기 설정 GUI
 - [ ] `gui/dialogs.py` 생성
