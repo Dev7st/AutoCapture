@@ -10,6 +10,14 @@ __pycache__/
 dist/
 build/
 
+# 가상환경 (Virtual Environment)
+venv/
+env/
+.venv/
+ENV/
+.conda/
+*.conda
+
 # 설정 파일
 config.json
 
