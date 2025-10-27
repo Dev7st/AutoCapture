@@ -1,0 +1,66 @@
+# 출결 관리 자동 캡처 프로그램
+
+## 📚 참고 문서
+개발 시 다음 문서들을 참고하세요:
+- `docs/requirements.md`: 프로젝트 요구사항 명세서
+- `docs/rules.md`: 개발 규칙 (필수 준수!)
+- `docs/architecture.md`: 기술 설계서
+- `docs/tasks.md`: 작업 목록
+
+## 🔧 코딩 규칙 (docs/rules.md 기반)
+
+### 네이밍
+- **파일명**: `snake_case.py`
+- **클래스명**: `PascalCase`
+- **함수/메서드명**: `snake_case` (동사로 시작)
+- **변수명**: `snake_case`
+- **상수명**: `UPPER_SNAKE_CASE`
+
+### 필수 사항
+- **Docstring**: 모든 클래스와 함수에 필수
+- **Type Hints**: 모든 함수 시그니처에 필수
+- **에러 처리**: 모든 외부 호출에 try-except 사용
+
+### 코드 제약
+- 함수 길이: 최대 50줄
+- 클래스 길이: 최대 500줄
+- 줄 길이: 최대 120자
+
+### Import 순서
+1. 표준 라이브러리
+2. 외부 라이브러리
+3. 내부 모듈
+
+### 파일 I/O
+- `pathlib.Path` 사용 (문자열 경로 조합 금지)
+- `with` 문 사용
+- UTF-8-BOM 인코딩 (CSV)
+
+### 에러 처리 패턴
+```python
+try:
+    result = risky_operation()
+except SpecificError as e:
+    logger.error(f"작업 실패: {e}")
+    raise
+```
+
+## 🐍 Python
+- **버전**: Python 3.10.11 고정
+- **가상환경**: conda 사용
+
+## 📁 프로젝트 구조
+```
+capture/
+├─ features/     # 핵심 비즈니스 로직
+├─ gui/          # GUI (tkinter)
+└─ utils/        # 유틸리티
+```
+
+## 📦 주요 라이브러리
+- tkinter (GUI)
+- mss (화면 캡처)
+- Pillow (이미지 처리)
+- numpy (배열 처리)
+- insightface (얼굴 감지)
+- onnxruntime-gpu (GPU 가속)
