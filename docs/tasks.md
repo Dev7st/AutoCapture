@@ -33,7 +33,7 @@
 - [x] 기본 라이브러리 설치 (InsightFace, mss, Pillow 등)
 
 ### 1.2 초기 설정 GUI
-- [ ] `gui/dialogs.py` 생성
+- [x] `gui/dialogs.py` 생성
 - [ ] `InitDialog` 클래스 구현
 - [ ] 모니터 선택 UI (드롭다운)
 - [ ] 저장 경로 선택 UI (폴더 선택 버튼)
