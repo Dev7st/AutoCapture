@@ -133,3 +133,81 @@
 
 ---
 
+# ✨ 파이썬 타입 힌트 (Type Hint)
+
+## 📌 1. 타입 힌트란 무엇인가요?
+
+파이썬은 **동적 타입 언어**이지만, 타입 힌트는 코드의 **가독성과 유지보수성**을 높이기 위해 개발자가 변수, 함수 매개변수, 반환 값 등에 **원하는 데이터 타입(유형)을 명시적으로 표시**하는 기능입니다.
+
+  * **역할:** 코드를 실행하는 **런타임(Runtime)에는 아무런 영향**을 주지 않습니다. 대신, 개발 도구나 외부 도구(**Mypy** 등 정적 타입 검사기)가 코드를 분석하여 잠재적인 오류를 미리 감지하는 데 도움을 줍니다.
+  * **목적:** 개발자가 코드를 더 쉽게 이해하고, 협업하며, 버그 발생 가능성을 줄이는 데 있습니다.
+
+## 📝 2. 기본 사용 예시
+
+타입 힌트는 콜론(`:`)과 화살표(`->`)를 사용하여 명시합니다.
+
+### 가. 변수 (Variables)
+
+변수 이름 뒤에 콜론(`:`)을 붙여 타입을 명시합니다.
+
+```python
+age: int = 30
+name: str = "Alice"
+is_active: bool = True
+price: float = 19.99
+```
+
+### 나. 함수 (Functions)
+
+  * **매개변수:** 매개변수 이름 뒤에 `: Type`을 붙입니다.
+  * **반환 값:** 매개변수 목록을 닫는 괄호 뒤에 `-> Type`을 붙입니다.
+
+<!-- end list -->
+
+```python
+def add_numbers(a: int, b: int) -> int:
+    """두 정수를 더하여 결과를 반환합니다."""
+    return a + b
+
+def greet(name: str) -> str:
+    """이름을 받아 환영 메시지를 반환합니다."""
+    return f"안녕하세요, {name}님!"
+
+def process_data(data: str):
+    """반환 값이 없을 경우 -> None을 명시할 수 있습니다."""
+    print(f"데이터 처리 중: {data}")
+```
+
+## ⚙️ 3. `typing` 모듈을 사용한 복잡한 타입 정의
+
+리스트, 딕셔너리, 튜플 등 컬렉션 타입이나 복잡한 구조를 정의할 때는 내장된 `typing` 모듈을 사용합니다.
+
+| 타입 | 설명 | 예시 코드 |
+| :--- | :--- | :--- |
+| **List** | 리스트의 요소 타입 명시 | `data: List[int] = [1, 2, 3]` |
+| **Dict** | 키와 값의 타입 명시 | `user: Dict[str, str] = {"name": "Bob", "city": "Seoul"}` |
+| **Tuple** | 각 요소의 타입 명시 | `point: Tuple[float, float] = (10.5, 20.2)` |
+| **Optional** | 해당 타입이거나 `None`일 수 있음 | `maybe_name: Optional[str] = None` |
+| **Union** | 여러 타입 중 하나일 수 있음 | `value: Union[int, str]` (Python 3.10+에서는 `int | str`로 사용 가능) |
+
+```python
+from typing import List, Dict, Optional, Union
+
+# 정수 리스트
+def calculate_sum(numbers: List[int]) -> int:
+    return sum(numbers)
+
+# 문자열 키와 실수 값을 가지는 딕셔너리
+def get_config(key: str) -> Optional[float]:
+    config: Dict[str, float] = {"rate": 0.5, "factor": 1.2}
+    return config.get(key)
+```
+
+## ⚠️ 4. 핵심 정리 및 주의사항
+
+  * **파이썬 실행에 영향 없음:** 타입 힌트를 지키지 않아도 파이썬 코드는 실행됩니다. (예: `a: int = "hello"`)
+  * **정적 검사 도구 사용 권장:** 타입 힌트의 효과를 극대화하려면 **Mypy**와 같은 외부 정적 타입 검사 도구를 사용해야 합니다.
+  * **가독성 향상:** 코드의 의도를 명확하게 전달하여 이해하기 쉬운 코드를 만듭니다.
+
+  ---
+
