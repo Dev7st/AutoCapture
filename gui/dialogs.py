@@ -39,6 +39,8 @@ class InitDialog:
         {'monitor_id': 2, 'save_path': 'C:/IBM 비대면', 'mode': 'flexible', 'student_count': 21}
     """
 
+    # ==================== Public Methods ====================
+
     def __init__(self, parent: tk.Tk):
         """
         초기 설정 다이얼로그를 초기화합니다.
@@ -55,6 +57,7 @@ class InitDialog:
         self.monitor_names: List[str] = []
         self.save_path_var: Optional[tk.StringVar] = None
         self.mode_var: Optional[tk.StringVar] = None
+        self.student_count_var: Optional[tk.IntVar] = None
 
     def show(self) -> Optional[Dict]:
         """
@@ -100,6 +103,8 @@ class InitDialog:
 
         return self.result
 
+    # ==================== UI Setup ====================
+
     def _setup_ui(self) -> None:
         """
         UI 구성요소를 배치합니다.
@@ -124,8 +129,30 @@ class InitDialog:
         # 3. 캡처 모드 선택 영역
         self._create_mode_section(main_frame)
 
-        # TODO: 4. 출석 학생 수 입력 영역 (다음 단계)
+        # 4. 출석 학생 수 입력 영역
+        self._create_student_count_section(main_frame)
+
         # TODO: 5. 확인/취소 버튼 영역 (다음 단계)
+
+    def _center_window(self) -> None:
+        """다이얼로그를 화면 중앙에 배치합니다."""
+        self.dialog.update_idletasks()
+
+        # 화면 크기
+        screen_width = self.dialog.winfo_screenwidth()
+        screen_height = self.dialog.winfo_screenheight()
+
+        # 윈도우 크기
+        window_width = self.dialog.winfo_width()
+        window_height = self.dialog.winfo_height()
+
+        # 중앙 좌표 계산
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+
+        self.dialog.geometry(f"+{x}+{y}")
+
+    # ==================== Monitor Section ====================
 
     def _create_monitor_section(self, parent: ttk.Frame) -> None:
         """
@@ -200,6 +227,35 @@ class InitDialog:
         )
         help_label.pack(anchor=tk.W)
 
+    def _get_selected_monitor_id(self) -> int:
+        """
+        선택된 모니터의 ID를 반환합니다.
+
+        "모니터 1", "모니터 2" 형식에서 숫자를 추출합니다.
+
+        Returns:
+            int: 모니터 ID (기본값: 1)
+
+        Example:
+            >>> # monitor_var.get() == "모니터 2"
+            >>> id = self._get_selected_monitor_id()
+            >>> print(id)
+            2
+        """
+        if not self.monitor_var:
+            return 1
+
+        try:
+            # "모니터 1" -> 1 추출
+            monitor_name = self.monitor_var.get()
+            monitor_id = int(monitor_name.split()[-1])
+            return monitor_id
+        except (ValueError, IndexError):
+            # 파싱 실패 시 기본값 1 반환
+            return 1
+
+    # ==================== Save Path Section ====================
+
     def _create_save_path_section(self, parent: ttk.Frame) -> None:
         """
         저장 경로 선택 UI를 생성합니다.
@@ -273,6 +329,8 @@ class InitDialog:
                 f"폴더 선택 중 오류가 발생했습니다.\n{e}"
             )
 
+    # ==================== Mode Section ====================
+
     def _create_mode_section(self, parent: ttk.Frame) -> None:
         """
         캡처 모드 선택 UI를 생성합니다.
@@ -327,23 +385,140 @@ class InitDialog:
         )
         flexible_desc.pack(anchor=tk.W)
 
-    def _center_window(self) -> None:
-        """다이얼로그를 화면 중앙에 배치합니다."""
-        self.dialog.update_idletasks()
+    # ==================== Student Count Section ====================
 
-        # 화면 크기
-        screen_width = self.dialog.winfo_screenwidth()
-        screen_height = self.dialog.winfo_screenheight()
+    def _create_student_count_section(self, parent: ttk.Frame) -> None:
+        """
+        출석 학생 수 입력 UI를 생성합니다.
 
-        # 윈도우 크기
-        window_width = self.dialog.winfo_width()
-        window_height = self.dialog.winfo_height()
+        Args:
+            parent: 부모 프레임
+        """
+        # 섹션 프레임
+        section_frame = ttk.LabelFrame(
+            parent,
+            text="출석 학생 수",
+            padding="10 10 10 10"
+        )
+        section_frame.pack(fill=tk.X, pady=(0, 10))
 
-        # 중앙 좌표 계산
-        x = (screen_width - window_width) // 2
-        y = (screen_height - window_height) // 2
+        # 학생 수 변수 초기화 (기본값: 21명)
+        self.student_count_var = tk.IntVar(value=21)
 
-        self.dialog.geometry(f"+{x}+{y}")
+        # 입력 영역 생성
+        self._create_count_input_area(section_frame)
+
+        # 기준 인원 표시 영역 생성
+        self._create_threshold_display(section_frame)
+
+        # 안내 텍스트
+        help_label = ttk.Label(
+            section_frame,
+            text="출석한 학생 수를 입력하세요. (1~100명)",
+            font=("", 8),
+            foreground="gray"
+        )
+        help_label.pack(anchor=tk.W)
+
+    def _create_count_input_area(self, parent: ttk.LabelFrame) -> None:
+        """
+        학생 수 입력 영역을 생성합니다 (Entry + ▲▼ 버튼).
+
+        Args:
+            parent: 부모 프레임
+        """
+        # 입력 영역 (Entry + 버튼)
+        input_frame = ttk.Frame(parent)
+        input_frame.pack(fill=tk.X, pady=(0, 10))
+
+        # 안내 레이블
+        label = ttk.Label(input_frame, text="학생 수:")
+        label.pack(side=tk.LEFT, padx=(0, 5))
+
+        # 학생 수 입력 필드
+        count_entry = ttk.Entry(
+            input_frame,
+            textvariable=self.student_count_var,
+            width=10,
+            justify=tk.CENTER
+        )
+        count_entry.pack(side=tk.LEFT, padx=(0, 5))
+
+        # ▲ 버튼 (+1)
+        up_button = ttk.Button(
+            input_frame,
+            text="▲",
+            width=3,
+            command=self._increment_student_count
+        )
+        up_button.pack(side=tk.LEFT, padx=(0, 2))
+
+        # ▼ 버튼 (-1)
+        down_button = ttk.Button(
+            input_frame,
+            text="▼",
+            width=3,
+            command=self._decrement_student_count
+        )
+        down_button.pack(side=tk.LEFT)
+
+    def _create_threshold_display(self, parent: ttk.LabelFrame) -> None:
+        """
+        기준 인원 표시 영역을 생성합니다.
+
+        Args:
+            parent: 부모 프레임
+        """
+        # 기준 인원 표시 Label (학생 수 + 1)
+        self.threshold_label = ttk.Label(
+            parent,
+            text=f"기준 인원: {self.student_count_var.get() + 1}명 (학생 수 + 교사 1명)",
+            font=("", 9),
+            foreground="blue"
+        )
+        self.threshold_label.pack(anchor=tk.W, pady=(0, 5))
+
+        # 학생 수 변경 시 기준 인원 자동 업데이트
+        self.student_count_var.trace_add("write", self._update_threshold_label)
+
+    def _increment_student_count(self) -> None:
+        """
+        학생 수를 1 증가시킵니다.
+
+        최대값 100을 초과하지 않도록 제한합니다.
+        """
+        current_value = self.student_count_var.get()
+        if current_value < 100:
+            self.student_count_var.set(current_value + 1)
+
+    def _decrement_student_count(self) -> None:
+        """
+        학생 수를 1 감소시킵니다.
+
+        최소값 1 미만으로 내려가지 않도록 제한합니다.
+        """
+        current_value = self.student_count_var.get()
+        if current_value > 1:
+            self.student_count_var.set(current_value - 1)
+
+    def _update_threshold_label(self, *args) -> None:
+        """
+        학생 수가 변경될 때 기준 인원 레이블을 업데이트합니다.
+
+        Args:
+            *args: trace_add 콜백에서 전달되는 인자 (사용하지 않음)
+        """
+        try:
+            current_count = self.student_count_var.get()
+            threshold = current_count + 1
+            self.threshold_label.config(
+                text=f"기준 인원: {threshold}명 (학생 수 + 교사 1명)"
+            )
+        except Exception as e:
+            # 입력값이 정수가 아닌 경우 에러 로그
+            logger.error(f"학생 수 입력값 오류: {e}")
+
+    # ==================== Event Handlers ====================
 
     def on_ok(self) -> None:
         """
@@ -363,42 +538,17 @@ class InitDialog:
         # 캡처 모드 가져오기
         mode = self.mode_var.get() if self.mode_var else "flexible"
 
+        # 학생 수 가져오기
+        student_count = self.student_count_var.get() if self.student_count_var else 21
+
         # 결과 dict 생성 및 저장
         self.result = {
             'monitor_id': monitor_id,
             'save_path': save_path,
             'mode': mode,
-            # TODO: 나머지 설정값 추가 예정
-            'student_count': None
+            'student_count': student_count
         }
         self.dialog.destroy()
-
-    def _get_selected_monitor_id(self) -> int:
-        """
-        선택된 모니터의 ID를 반환합니다.
-
-        "모니터 1", "모니터 2" 형식에서 숫자를 추출합니다.
-
-        Returns:
-            int: 모니터 ID (기본값: 1)
-
-        Example:
-            >>> # monitor_var.get() == "모니터 2"
-            >>> id = self._get_selected_monitor_id()
-            >>> print(id)
-            2
-        """
-        if not self.monitor_var:
-            return 1
-
-        try:
-            # "모니터 1" -> 1 추출
-            monitor_name = self.monitor_var.get()
-            monitor_id = int(monitor_name.split()[-1])
-            return monitor_id
-        except (ValueError, IndexError):
-            # 파싱 실패 시 기본값 1 반환
-            return 1
 
     def on_cancel(self) -> None:
         """
