@@ -1,74 +1,185 @@
 ---
 alwaysApply: true
-description: "프로젝트 전역에 적용되는 기본 커서 룰 (구조/코딩 규칙 요약)"
+description: "프로젝트 전역에 적용되는 기본 규칙 (코딩 표준, 구조)"
 ---
 
-# 출결 관리 자동 캡처 프로그램 – 기본 커서 룰
+# 출결 관리 자동 캡처 프로그램 – 기본 규칙
 
-다음 규칙은 본 저장소 전역에 항상 적용됩니다. 상세 기준은 다음 문서를 참조하세요:
-- [docs/requirements.md](mdc:docs/requirements.md)
-- [docs/rules.md](mdc:docs/rules.md)
-- [docs/architecture.md](mdc:docs/architecture.md)
-- [docs/tasks.md](mdc:docs/tasks.md)
+상세 내용은 다음 문서를 참조하세요:
+- [docs/requirements.md](mdc:docs/requirements.md) - 프로젝트 요구사항 명세서
+- [docs/rules.md](mdc:docs/rules.md) - 개발 규칙 (필수 준수!)
+- [docs/architecture.md](mdc:docs/architecture.md) - 기술 설계서
+- [docs/tasks.md](mdc:docs/tasks.md) - 작업 목록
 
-## 코딩 규칙 요약
+## 📋 네이밍 규칙
 
-- 네이밍
-  - 파일명: `snake_case.py`
-  - 클래스명: `PascalCase`
-  - 함수/메서드명: `snake_case` (동사로 시작)
-  - 변수명: `snake_case`
-  - 상수명: `UPPER_SNAKE_CASE`
+- **파일명**: `snake_case.py`
+- **클래스명**: `PascalCase`
+- **함수/메서드명**: `snake_case` (동사로 시작)
+- **변수명**: `snake_case`
+- **상수명**: `UPPER_SNAKE_CASE`
+- **Private 메서드/변수**: `_leading_underscore`
 
-- 필수 사항
-  - 모든 클래스/함수에 Docstring 필수
-  - 모든 함수 시그니처에 Type Hints 필수
-  - 외부 호출은 반드시 `try-except`로 에러 처리
+## ✅ 필수 사항
 
-- 코드 제약
-  - 함수 길이 ≤ 50줄, 클래스 길이 ≤ 500줄, 한 줄 길이 ≤ 120자
+- **Docstring**: 모든 클래스와 함수에 필수
+  ```python
+  def function_name(param: str) -> int:
+      """
+      함수 설명.
 
-- Import 순서
-  1) 표준 라이브러리 2) 외부 라이브러리 3) 내부 모듈
+      Args:
+          param: 매개변수 설명
 
-- 파일 I/O
-  - 경로는 `pathlib.Path` 사용 (문자열 결합 금지)
-  - 파일 열기는 `with` 문 사용
-  - CSV는 UTF-8-BOM 인코딩 사용
+      Returns:
+          int: 반환값 설명
+      """
+  ```
 
-- 에러 처리 패턴 (요지)
-  - 특정 예외를 명시적으로 처리하고 로깅 후 재전파
+- **Type Hints**: 모든 함수 시그니처에 필수
+  ```python
+  def process_data(data: List[str]) -> Dict[str, int]:
+      pass
+  ```
 
-## Python/환경
+- **에러 처리**: 모든 외부 호출에 try-except 사용
+  ```python
+  try:
+      result = risky_operation()
+  except SpecificError as e:
+      logger.error(f"작업 실패: {e}")
+      raise
+  ```
 
-- Python 버전: 3.10.11 고정
-- 가상환경: conda 사용 권장
+## 📏 코드 제약
 
-## 프로젝트 구조 가이드
+- **함수 길이**: 최대 50줄
+  - 초과 시 helper 함수로 분리
+- **클래스 길이**: 최대 500줄
+  - 초과 시 책임별로 클래스 분리
+- **줄 길이**: 최대 120자
+
+## 📦 Import 순서
+
+```python
+# 1. 표준 라이브러리
+import os
+from datetime import datetime
+
+# 2. 외부 라이브러리
+import numpy as np
+from PIL import Image
+
+# 3. 내부 모듈
+from features.capture import ScreenCapture
+from utils.config import Config
+```
+
+## 💾 파일 I/O
+
+- **경로**: `pathlib.Path` 사용 (문자열 경로 조합 금지)
+  ```python
+  from pathlib import Path
+
+  # ✅ 좋은 예
+  save_path = Path("C:/IBM 비대면")
+  file_path = save_path / "251020" / "251020_1교시.png"
+
+  # ❌ 나쁜 예
+  file_path = "C:/IBM 비대면" + "/" + "251020" + "/" + "251020_1교시.png"
+  ```
+
+- **파일 열기**: `with` 문 사용
+  ```python
+  # ✅ 좋은 예
+  with open(file_path, 'w', encoding='utf-8') as f:
+      f.write(content)
+
+  # ❌ 나쁜 예
+  f = open(file_path, 'w')
+  f.write(content)
+  f.close()
+  ```
+
+- **CSV 인코딩**: UTF-8-BOM (Excel 호환)
+  ```python
+  with open(csv_path, 'w', encoding='utf-8-sig') as f:
+      writer = csv.writer(f)
+  ```
+
+## 🐍 Python 환경
+
+- **Python 버전**: 3.10.11 고정
+- **가상환경**: conda 사용 권장
+  ```bash
+  conda create -n capture python=3.10.11
+  conda activate capture
+  pip install -r requirements.txt
+  ```
+
+## 📁 프로젝트 구조
 
 ```
 capture/
-├─ features/     # 핵심 비즈니스 로직
-├─ gui/          # GUI (tkinter)
-└─ utils/        # 유틸리티
+├─ features/          # 핵심 비즈니스 로직
+│  ├─ capture.py      # 화면 캡처
+│  ├─ face_detection.py   # 얼굴 감지
+│  ├─ file_manager.py     # 파일 저장
+│  ├─ logger.py           # CSV 로깅
+│  └─ scheduler.py        # 스케줄링
+├─ gui/               # GUI (tkinter)
+│  ├─ main_window.py      # 메인 윈도우
+│  └─ dialogs.py          # 초기 설정 다이얼로그
+├─ utils/             # 유틸리티
+│  ├─ config.py           # 설정 관리
+│  └─ monitor.py          # 모니터 선택
+└─ main.py            # 프로그램 진입점
 ```
 
-## 주요 라이브러리
+## 📚 주요 라이브러리
 
-- tkinter (GUI), mss (화면 캡처), Pillow (이미지 처리), numpy (배열 처리),
-  insightface (얼굴 감지), onnxruntime-gpu (GPU 가속)
+- **tkinter** - GUI (내장)
+- **mss** - 화면 캡처
+- **Pillow** - 이미지 처리
+- **numpy** - 배열 처리
+- **insightface** - 얼굴 감지 (딥러닝)
+- **onnxruntime-gpu** - GPU 가속
 
-## Git 커밋 원칙 (요약)
+## 🔍 Private 메서드 그룹화
 
-- AI는 커밋 "명령어와 메시지"만 제안, 실제 실행은 사용자 수행
-- 파일별로 분리 커밋, 하나의 커밋은 하나의 책임만 포함
-- 커밋 메시지 형식
+메서드를 기능별로 섹션 주석으로 구분:
 
+```python
+class InitDialog:
+    # ==================== Public Methods ====================
+
+    def __init__(self, parent):
+        pass
+
+    def show(self):
+        pass
+
+    # ==================== UI Setup ====================
+
+    def _setup_ui(self):
+        pass
+
+    def _center_window(self):
+        pass
+
+    # ==================== Monitor Section ====================
+
+    def _create_monitor_section(self, parent):
+        pass
+
+    def _get_selected_monitor_id(self):
+        pass
+
+    # ==================== Event Handlers ====================
+
+    def on_ok(self):
+        pass
+
+    def on_cancel(self):
+        pass
 ```
-<type>: <subject>
-
-<body> (선택)
-```
-
-- type: feat, fix, docs, style, refactor, test, chore
-
