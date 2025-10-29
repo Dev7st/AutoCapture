@@ -54,6 +54,7 @@ class InitDialog:
         self.monitor_var: Optional[tk.StringVar] = None
         self.monitor_names: List[str] = []
         self.save_path_var: Optional[tk.StringVar] = None
+        self.mode_var: Optional[tk.StringVar] = None
 
     def show(self) -> Optional[Dict]:
         """
@@ -120,7 +121,9 @@ class InitDialog:
         # 2. 저장 경로 선택 영역
         self._create_save_path_section(main_frame)
 
-        # TODO: 3. 캡처 모드 선택 영역 (다음 단계)
+        # 3. 캡처 모드 선택 영역
+        self._create_mode_section(main_frame)
+
         # TODO: 4. 출석 학생 수 입력 영역 (다음 단계)
         # TODO: 5. 확인/취소 버튼 영역 (다음 단계)
 
@@ -270,6 +273,60 @@ class InitDialog:
                 f"폴더 선택 중 오류가 발생했습니다.\n{e}"
             )
 
+    def _create_mode_section(self, parent: ttk.Frame) -> None:
+        """
+        캡처 모드 선택 UI를 생성합니다.
+
+        Args:
+            parent: 부모 프레임
+        """
+        # 섹션 프레임
+        section_frame = ttk.LabelFrame(
+            parent,
+            text="캡처 모드 선택",
+            padding="10 10 10 10"
+        )
+        section_frame.pack(fill=tk.X, pady=(0, 10))
+
+        # 모드 변수 초기화 (기본값: flexible - 유연 모드)
+        self.mode_var = tk.StringVar(value="flexible")
+
+        # 정확 모드 라디오 버튼
+        exact_radio = ttk.Radiobutton(
+            section_frame,
+            text="정확 모드",
+            variable=self.mode_var,
+            value="exact"
+        )
+        exact_radio.pack(anchor=tk.W, pady=(0, 5))
+
+        # 정확 모드 설명
+        exact_desc = ttk.Label(
+            section_frame,
+            text="  → 얼굴 감지 정확도 우선 (느림, 높은 정확도)",
+            font=("", 8),
+            foreground="gray"
+        )
+        exact_desc.pack(anchor=tk.W, pady=(0, 10))
+
+        # 유연 모드 라디오 버튼
+        flexible_radio = ttk.Radiobutton(
+            section_frame,
+            text="유연 모드 (권장)",
+            variable=self.mode_var,
+            value="flexible"
+        )
+        flexible_radio.pack(anchor=tk.W, pady=(0, 5))
+
+        # 유연 모드 설명
+        flexible_desc = ttk.Label(
+            section_frame,
+            text="  → 속도와 정확도 균형 (빠름, 충분한 정확도)",
+            font=("", 8),
+            foreground="gray"
+        )
+        flexible_desc.pack(anchor=tk.W)
+
     def _center_window(self) -> None:
         """다이얼로그를 화면 중앙에 배치합니다."""
         self.dialog.update_idletasks()
@@ -303,12 +360,15 @@ class InitDialog:
         # 저장 경로 가져오기
         save_path = self.save_path_var.get() if self.save_path_var else "C:/IBM 비대면"
 
+        # 캡처 모드 가져오기
+        mode = self.mode_var.get() if self.mode_var else "flexible"
+
         # 결과 dict 생성 및 저장
         self.result = {
             'monitor_id': monitor_id,
             'save_path': save_path,
+            'mode': mode,
             # TODO: 나머지 설정값 추가 예정
-            'mode': None,
             'student_count': None
         }
         self.dialog.destroy()
