@@ -5,12 +5,16 @@
 """
 
 # 표준 라이브러리
+import logging
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, filedialog, messagebox
 from typing import Optional, Dict, List
 
 # 내부 모듈
 from utils.monitor import get_monitor_names, get_monitor_count
+
+# 로거 설정
+logger = logging.getLogger(__name__)
 
 
 class InitDialog:
@@ -49,6 +53,7 @@ class InitDialog:
         # UI 변수
         self.monitor_var: Optional[tk.StringVar] = None
         self.monitor_names: List[str] = []
+        self.save_path_var: Optional[tk.StringVar] = None
 
     def show(self) -> Optional[Dict]:
         """
@@ -112,7 +117,9 @@ class InitDialog:
         # 1. 모니터 선택 영역
         self._create_monitor_section(main_frame)
 
-        # TODO: 2. 저장 경로 선택 영역 (다음 단계)
+        # 2. 저장 경로 선택 영역
+        self._create_save_path_section(main_frame)
+
         # TODO: 3. 캡처 모드 선택 영역 (다음 단계)
         # TODO: 4. 출석 학생 수 입력 영역 (다음 단계)
         # TODO: 5. 확인/취소 버튼 영역 (다음 단계)
@@ -149,6 +156,7 @@ class InitDialog:
 
         except Exception as e:
             # 예외 발생 시 에러 메시지
+            logger.error(f"모니터 조회 실패: {e}")
             error_label = ttk.Label(
                 section_frame,
                 text=f"⚠️ 모니터 조회 실패: {e}",
@@ -189,6 +197,79 @@ class InitDialog:
         )
         help_label.pack(anchor=tk.W)
 
+    def _create_save_path_section(self, parent: ttk.Frame) -> None:
+        """
+        저장 경로 선택 UI를 생성합니다.
+
+        Args:
+            parent: 부모 프레임
+        """
+        # 섹션 프레임
+        section_frame = ttk.LabelFrame(
+            parent,
+            text="저장 경로 선택",
+            padding="10 10 10 10"
+        )
+        section_frame.pack(fill=tk.X, pady=(0, 10))
+
+        # 경로 입력 영역 (Entry + Button)
+        path_frame = ttk.Frame(section_frame)
+        path_frame.pack(fill=tk.X, pady=(0, 5))
+
+        # 저장 경로 변수 초기화 (기본값: C:/IBM 비대면)
+        self.save_path_var = tk.StringVar(value="C:/IBM 비대면")
+
+        # 경로 입력 필드
+        path_entry = ttk.Entry(
+            path_frame,
+            textvariable=self.save_path_var,
+            width=30
+        )
+        path_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
+
+        # [찾아보기...] 버튼
+        browse_button = ttk.Button(
+            path_frame,
+            text="찾아보기...",
+            command=self._browse_directory
+        )
+        browse_button.pack(side=tk.LEFT)
+
+        # 안내 텍스트
+        help_label = ttk.Label(
+            section_frame,
+            text="캡처한 이미지를 저장할 폴더를 선택하세요.",
+            font=("", 8),
+            foreground="gray"
+        )
+        help_label.pack(anchor=tk.W)
+
+    def _browse_directory(self) -> None:
+        """
+        폴더 선택 다이얼로그를 표시하고 선택된 경로를 업데이트합니다.
+        """
+        try:
+            # 현재 경로를 초기 디렉토리로 설정
+            initial_dir = self.save_path_var.get() if self.save_path_var else "C:/"
+
+            # 폴더 선택 다이얼로그 표시
+            selected_path = filedialog.askdirectory(
+                title="저장 경로 선택",
+                initialdir=initial_dir
+            )
+
+            # 경로가 선택되면 업데이트 (취소 시 빈 문자열 반환)
+            if selected_path:
+                self.save_path_var.set(selected_path)
+
+        except Exception as e:
+            # 예외 발생 시 에러 로그 및 사용자 알림
+            logger.error(f"폴더 선택 다이얼로그 실패: {e}")
+            messagebox.showerror(
+                "오류",
+                f"폴더 선택 중 오류가 발생했습니다.\n{e}"
+            )
+
     def _center_window(self) -> None:
         """다이얼로그를 화면 중앙에 배치합니다."""
         self.dialog.update_idletasks()
@@ -219,11 +300,14 @@ class InitDialog:
         # 선택된 모니터 ID 추출
         monitor_id = self._get_selected_monitor_id()
 
+        # 저장 경로 가져오기
+        save_path = self.save_path_var.get() if self.save_path_var else "C:/IBM 비대면"
+
         # 결과 dict 생성 및 저장
         self.result = {
             'monitor_id': monitor_id,
+            'save_path': save_path,
             # TODO: 나머지 설정값 추가 예정
-            'save_path': None,
             'mode': None,
             'student_count': None
         }
