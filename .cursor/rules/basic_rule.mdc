@@ -1,0 +1,74 @@
+---
+alwaysApply: true
+description: "프로젝트 전역에 적용되는 기본 커서 룰 (구조/코딩 규칙 요약)"
+---
+
+# 출결 관리 자동 캡처 프로그램 – 기본 커서 룰
+
+다음 규칙은 본 저장소 전역에 항상 적용됩니다. 상세 기준은 다음 문서를 참조하세요:
+- [docs/requirements.md](mdc:docs/requirements.md)
+- [docs/rules.md](mdc:docs/rules.md)
+- [docs/architecture.md](mdc:docs/architecture.md)
+- [docs/tasks.md](mdc:docs/tasks.md)
+
+## 코딩 규칙 요약
+
+- 네이밍
+  - 파일명: `snake_case.py`
+  - 클래스명: `PascalCase`
+  - 함수/메서드명: `snake_case` (동사로 시작)
+  - 변수명: `snake_case`
+  - 상수명: `UPPER_SNAKE_CASE`
+
+- 필수 사항
+  - 모든 클래스/함수에 Docstring 필수
+  - 모든 함수 시그니처에 Type Hints 필수
+  - 외부 호출은 반드시 `try-except`로 에러 처리
+
+- 코드 제약
+  - 함수 길이 ≤ 50줄, 클래스 길이 ≤ 500줄, 한 줄 길이 ≤ 120자
+
+- Import 순서
+  1) 표준 라이브러리 2) 외부 라이브러리 3) 내부 모듈
+
+- 파일 I/O
+  - 경로는 `pathlib.Path` 사용 (문자열 결합 금지)
+  - 파일 열기는 `with` 문 사용
+  - CSV는 UTF-8-BOM 인코딩 사용
+
+- 에러 처리 패턴 (요지)
+  - 특정 예외를 명시적으로 처리하고 로깅 후 재전파
+
+## Python/환경
+
+- Python 버전: 3.10.11 고정
+- 가상환경: conda 사용 권장
+
+## 프로젝트 구조 가이드
+
+```
+capture/
+├─ features/     # 핵심 비즈니스 로직
+├─ gui/          # GUI (tkinter)
+└─ utils/        # 유틸리티
+```
+
+## 주요 라이브러리
+
+- tkinter (GUI), mss (화면 캡처), Pillow (이미지 처리), numpy (배열 처리),
+  insightface (얼굴 감지), onnxruntime-gpu (GPU 가속)
+
+## Git 커밋 원칙 (요약)
+
+- AI는 커밋 "명령어와 메시지"만 제안, 실제 실행은 사용자 수행
+- 파일별로 분리 커밋, 하나의 커밋은 하나의 책임만 포함
+- 커밋 메시지 형식
+
+```
+<type>: <subject>
+
+<body> (선택)
+```
+
+- type: feat, fix, docs, style, refactor, test, chore
+
