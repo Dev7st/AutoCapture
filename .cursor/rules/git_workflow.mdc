@@ -1,0 +1,68 @@
+---
+alwaysApply: true
+description: "Git 커밋 및 브랜치 관리 규칙"
+---
+
+# Git 관리 규칙
+
+상세 내용은 [docs/rules.md](mdc:docs/rules.md)를 참조하세요.
+
+## 커밋 원칙 (중요!)
+
+- **사용자 확인**: AI는 커밋 메시지와 명령어만 제안, 실제 커밋은 사용자가 직접 수행
+- **파일별 분리**: 서로 다른 기능을 담당하는 파일은 별도 커밋으로 분리
+- **단일 책임**: 하나의 커밋은 하나의 기능/수정사항만 포함
+
+## 커밋 메시지 형식
+
+```
+<type>: <subject>
+
+<body> (선택사항)
+```
+
+**Type 종류:**
+- `feat`: 새 기능 추가
+- `fix`: 버그 수정
+- `docs`: 문서 수정
+- `style`: 코드 포맷팅
+- `refactor`: 리팩토링
+- `test`: 테스트 추가/수정
+- `chore`: 기타 (빌드, 설정 등)
+
+## 파일별 커밋 예시
+
+```bash
+# ✅ 좋은 예: 파일별 분리
+git add utils/monitor.py
+git commit -m "feat: 모니터 조회 함수 구현"
+
+git add gui/dialogs.py
+git commit -m "feat: 모니터 선택 UI 추가"
+
+# ❌ 나쁜 예: 여러 파일 한번에
+git add utils/monitor.py gui/dialogs.py
+git commit -m "feat: 모니터 기능 구현"
+```
+
+## AI 작업 후 Git 프로세스
+
+1. AI는 코드 작성 후 **커밋 메시지와 명령어만 제안**
+2. 사용자가 코드 확인 후 직접 커밋 실행
+3. 파일이 여러 개인 경우 **파일별로 커밋 명령어 분리 제공**
+
+## 브랜치 전략 (GitHub Flow)
+
+```bash
+# 1. 새 기능 시작
+git checkout -b feature/feature-name
+
+# 2. 개발 및 커밋
+git add specific_file.py
+git commit -m "feat: implement feature"
+
+# 3. 완료 후 main 병합
+git checkout main
+git merge feature/feature-name
+git branch -d feature/feature-name
+```
