@@ -132,7 +132,8 @@ class InitDialog:
         # 4. 출석 학생 수 입력 영역
         self._create_student_count_section(main_frame)
 
-        # TODO: 5. 확인/취소 버튼 영역 (다음 단계)
+        # 5. 확인/취소 버튼 영역
+        self._create_button_section(main_frame)
 
     def _center_window(self) -> None:
         """다이얼로그를 화면 중앙에 배치합니다."""
@@ -517,6 +518,37 @@ class InitDialog:
         except Exception as e:
             # 입력값이 정수가 아닌 경우 에러 로그
             logger.error(f"학생 수 입력값 오류: {e}")
+
+    # ==================== Button Section ====================
+
+    def _create_button_section(self, parent: ttk.Frame) -> None:
+        """
+        확인/취소 버튼 영역을 생성합니다.
+
+        Args:
+            parent: 부모 프레임
+        """
+        # 버튼 영역 프레임
+        button_frame = ttk.Frame(parent)
+        button_frame.pack(fill=tk.X, pady=(20, 0))
+
+        # 취소 버튼
+        cancel_button = ttk.Button(
+            button_frame,
+            text="취소",
+            width=10,
+            command=self.on_cancel
+        )
+        cancel_button.pack(side=tk.RIGHT, padx=(5, 0))
+
+        # 시작 버튼
+        ok_button = ttk.Button(
+            button_frame,
+            text="시작",
+            width=10,
+            command=self.on_ok
+        )
+        ok_button.pack(side=tk.RIGHT)
 
     # ==================== Event Handlers ====================
 
