@@ -14,7 +14,7 @@ An automated screenshot capture system for online class (Zoom) attendance verifi
 
 ## Development Environment
 
-**Python Version**: 3.10.11 (Fixed)
+**Python Version**: 3.10.11 (Fixed - Do not change)
 
 **Virtual Environment Setup**:
 ```bash
@@ -29,56 +29,115 @@ venv\Scripts\activate  # Windows
 pip install -r requirements.txt
 ```
 
+**Run the Application**:
+```bash
+# Make sure you're in the project root directory
+python main.py
+```
+
 **Key Dependencies**:
 - `insightface==0.7.3` - Face detection
-- `onnxruntime-gpu==1.16.3` - GPU acceleration
+- `onnxruntime-gpu==1.16.3` - GPU acceleration (requires CUDA 11.x)
 - `mss==9.0.1` - Screen capture
 - `Pillow==10.1.0` - Image processing
 - `numpy==1.24.3` - Array processing
-- `tkinter` - GUI (built-in)
+- `tkinter` - GUI (Python built-in)
 
 ## Architecture
+
+**Application Entry Point**:
+- `main.py` is the entry point (currently a placeholder stub)
+- **Startup Flow** (not yet implemented):
+  1. `main.py` launches → shows `InitDialog` (from `gui/dialogs.py`)
+  2. User configures: monitor selection, save path, capture mode, student count
+  3. `InitDialog` returns configuration dict
+  4. `MainWindow` (from `gui/main_window.py`) launches with configuration
+  5. `MainWindow` initializes all feature modules (ScreenCapture, FaceDetector, etc.)
+  6. `Scheduler` starts, waits for scheduled capture times
+  7. Application runs until user closes window
 
 **MVC-like Pattern**:
 ```
 capture/
+├─ main.py       # Entry point (launches InitDialog → MainWindow)
 ├─ features/     # Core business logic (Model + Controller)
-│  ├─ capture.py          # Screen capture
-│  ├─ face_detection.py   # Face detection (InsightFace)
-│  ├─ file_manager.py     # File saving
-│  ├─ logger.py           # CSV logging
-│  └─ scheduler.py        # Scheduling
+│  ├─ capture.py          # Screen capture (ScreenCapture class)
+│  ├─ face_detection.py   # Face detection (FaceDetector class with InsightFace)
+│  ├─ file_manager.py     # File saving (FileManager class)
+│  ├─ logger.py           # CSV logging (CSVLogger class)
+│  └─ scheduler.py        # Scheduling (CaptureScheduler class)
 ├─ gui/          # View layer
-│  ├─ main_window.py      # Main window
-│  └─ dialogs.py          # Initial setup dialog
+│  ├─ main_window.py      # Main window (MainWindow class)
+│  └─ dialogs.py          # Initial setup dialog (InitDialog class)
 └─ utils/        # Utilities
-   ├─ config.py           # Configuration management
-   └─ monitor.py          # Monitor detection
+   ├─ config.py           # Configuration management (Config class)
+   └─ monitor.py          # Monitor detection (utility functions)
 ```
 
 **Key Design Principles**:
 - Loose coupling between layers
 - Each module independently testable
-- Unidirectional data flow
+- Unidirectional data flow (GUI → Features → External Libraries)
 - Single responsibility per class
 
 ## Core Workflow
 
-**Capture Process**:
-1. Scheduler triggers at scheduled time
-2. ScreenCapture captures selected monitor
-3. FaceDetector detects faces in captured image using GPU
-4. Compare face count with threshold (student count + 1 teacher)
-5. If threshold met: Save image, log to CSV, show success alert
-6. If failed: Wait 10 seconds, retry until time window ends
+**Data Flow Architecture**:
+```
+InitDialog (startup)
+    ↓ (returns config dict)
+MainWindow launches
+    ↓ (initializes all modules)
+Scheduler starts
+    ↓ (waits for scheduled time)
+Scheduler triggers capture callback
+    ↓
+ScreenCapture.capture() → Image (numpy array)
+    ↓
+FaceDetector.detect(image) → Face count (int)
+    ↓
+Compare with threshold
+    ↓ (if threshold met)
+FileManager.save_image() → File path
+    ↓
+CSVLogger.log_event() → CSV entry
+    ↓
+MainWindow.update_status() → UI update
+    ↓
+MainWindow.show_alert() → Success notification
+```
+
+**Capture Process Details**:
+1. **Scheduler triggers** at scheduled time (e.g., 09:30 for period 1)
+2. **ScreenCapture** captures selected monitor → image in memory
+3. **FaceDetector** detects faces in captured image using GPU (GTX 960)
+4. **Compare** face count with threshold (student count + 1 teacher)
+5. **If threshold met**:
+   - Save image (already captured) to file
+   - Log event to CSV
+   - Show success alert
+   - Stop detection for this period
+6. **If failed**:
+   - Discard image
+   - Wait 10 seconds
+   - Retry from step 2 (only if still within capture window)
+
+**CRITICAL**: Do NOT re-capture after detection. The image captured in step 2 is saved in step 5 if conditions are met.
 
 **Two Capture Modes**:
 - **Exact Mode**: Detected count must exactly match threshold
+  - Example: 22 detected = 22 threshold ✓ | 21 detected = 22 threshold ✗
 - **Flexible Mode (Recommended)**: Detected count ≥ threshold × 0.9
+  - Example: 20 detected ≥ 19.8 (22 × 0.9) ✓
   - Accounts for poor lighting, camera angles, low webcam quality
   - Default mode due to real-world student webcam environment variability
 
-## Coding Standards (from .cursorrules)
+**State Management**:
+- Configuration stored in `config.json` (via `utils/config.py`)
+- Runtime state managed by `MainWindow` class
+- Each period has independent state: 대기중 → 감지중 → 완료 | 건너뛰기 | 시간 초과
+
+## Coding Standards
 
 **Naming Conventions**:
 - Files: `snake_case.py`
@@ -192,12 +251,13 @@ python -m pytest --cov=features tests/
 
 ## Important Reference Documents
 
-When making changes, always consult:
-- `docs/requirements.md` - Complete requirements specification
-- `docs/rules.md` - Detailed coding rules (must follow)
-- `docs/architecture.md` - Technical design and class structures
-- `docs/tasks.md` - Task checklist
-- `.cursorrules` - Quick reference for coding standards
+When making changes, always consult these documents:
+- `docs/requirements.md` - Complete requirements specification (what to build)
+- `docs/architecture.md` - Technical design and class structures (how to build)
+- `docs/rules.md` - Detailed coding rules (how to write code - MUST follow)
+- `docs/tasks.md` - Development task checklist and progress tracking
+
+**Note**: The `.cursorrules` file has been removed and replaced by this CLAUDE.md file.
 
 ## Performance Targets
 
@@ -234,11 +294,13 @@ When making changes, always consult:
 - First run downloads ~100MB model to `~/.insightface/models/buffalo_l/`
 - GPU context: `ctx_id=0` (for GTX 960)
 - Fallback to CPU if GPU unavailable (show warning to user)
+- Model provides 95-99% accuracy, far superior to Haar Cascade (60-70%)
 
 **Dual Monitor Context**:
 - School computer has 2 monitors
 - Zoom typically on secondary monitor
 - Must capture entire monitor including Windows taskbar (for timestamp proof)
+- User selects monitor via InitDialog at startup
 
 **Student Count Logic**:
 - Input: Student count (excluding teacher)
@@ -246,7 +308,36 @@ When making changes, always consult:
 - Example: 21 students → Threshold 22 people
 - Flexible mode: Threshold × 0.9 = 19.8 → 20 people minimum
 
+**Class Schedule** (8 periods + checkout):
+- Period 1-8: Capture window is minutes 30-45 of period start hour
+  - Period 1 (09:30 start) → Capture 09:30-09:45
+  - Period 2 (10:30 start) → Capture 10:30-10:45
+  - ... (continues for all 8 periods)
+- Checkout: 18:30-18:32 (2-minute window)
+- Lunch break (13:30-14:30): No capture
+- Retry interval: Every 10 seconds within capture window
+
+**File Naming Rules**:
+- Within capture window retry: Overwrite existing file
+  - `251020_1교시.png` → `251020_1교시.png` (overwrite)
+- After capture window retry: Save as modified
+  - `251020_1교시.png` (exists) → `251020_1교시_수정.png` (new file)
+- This preserves original capture while allowing manual corrections
+
+## Development Progress Tracking
+
+For current development status and task progress, see `docs/tasks.md`.
+
+When implementing new features, follow the specifications in `docs/architecture.md` for class structures and `docs/rules.md` for coding standards.
+
 ---
 
-**Document Version**: 1.0
-**Last Updated**: 2025-10-29
+**Document Version**: 2.0
+**Last Updated**: 2025-10-30
+**Major Changes**:
+- Removed .cursorrules references (file deleted)
+- Added application entry point and startup flow
+- Added data flow architecture diagram
+- Added state management details
+- Reorganized based on requirements.md, architecture.md, and rules.md
+- Removed development status details (moved to tasks.md to avoid frequent updates)
