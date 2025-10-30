@@ -36,7 +36,7 @@ class InitDialog:
         >>> dialog = InitDialog(parent)
         >>> result = dialog.show()
         >>> print(result)
-        {'monitor_id': 2, 'save_path': 'C:/IBM 비대면', 'mode': 'flexible', 'student_count': 21}
+        {'monitor_id': 2, 'save_path': 'C:/IBM 비대면', 'mode': 'flexible', 'student_count': 1}
     """
 
     # ==================== Public Methods ====================
@@ -85,7 +85,7 @@ class InitDialog:
         # 다이얼로그 윈도우 생성
         self.dialog = tk.Toplevel(self.parent)
         self.dialog.title("초기 설정")
-        self.dialog.geometry("400x500")
+        self.dialog.geometry("850x1250")
         self.dialog.resizable(False, False)
 
         # 모달 설정 (부모 윈도우 비활성화)
@@ -117,7 +117,7 @@ class InitDialog:
         5. 확인/취소 버튼
         """
         # 메인 프레임 (패딩 추가)
-        main_frame = ttk.Frame(self.dialog, padding="20 20 20 20")
+        main_frame = ttk.Frame(self.dialog, padding="60 60 60 60")
         main_frame.pack(fill=tk.BOTH, expand=True)
 
         # 1. 모니터 선택 영역
@@ -166,9 +166,11 @@ class InitDialog:
         section_frame = ttk.LabelFrame(
             parent,
             text="캡처 모니터 선택",
-            padding="10 10 10 10"
+            padding="30 30 30 30"
         )
-        section_frame.pack(fill=tk.X, pady=(0, 10))
+        # LabelFrame 제목 폰트 설정
+        section_frame.configure(labelwidget=ttk.Label(parent, text="캡처 모니터 선택", font=("", 16, "bold")))
+        section_frame.pack(fill=tk.X, pady=(0, 50))
 
         # 모니터 목록 조회
         try:
@@ -199,9 +201,10 @@ class InitDialog:
         # 모니터 선택 레이블
         info_label = ttk.Label(
             section_frame,
-            text=f"감지된 모니터: {monitor_count}개"
+            text=f"감지된 모니터: {monitor_count}개",
+            font=("", 18)
         )
-        info_label.pack(anchor=tk.W, pady=(0, 5))
+        info_label.pack(anchor=tk.W, pady=(0, 20))
 
         # 모니터 선택 콤보박스
         self.monitor_var = tk.StringVar()
@@ -215,15 +218,16 @@ class InitDialog:
             textvariable=self.monitor_var,
             values=self.monitor_names,
             state="readonly",
-            width=30
+            width=30,
+            font=("", 16)
         )
-        monitor_combo.pack(anchor=tk.W, pady=(0, 5))
+        monitor_combo.pack(anchor=tk.W, pady=(0, 20))
 
         # 안내 텍스트
         help_label = ttk.Label(
             section_frame,
             text="Zoom 화면이 표시되는 모니터를 선택하세요.",
-            font=("", 8),
+            font=("", 14),
             foreground="gray"
         )
         help_label.pack(anchor=tk.W)
@@ -268,13 +272,15 @@ class InitDialog:
         section_frame = ttk.LabelFrame(
             parent,
             text="저장 경로 선택",
-            padding="10 10 10 10"
+            padding="30 30 30 30"
         )
-        section_frame.pack(fill=tk.X, pady=(0, 10))
+        # LabelFrame 제목 폰트 설정
+        section_frame.configure(labelwidget=ttk.Label(parent, text="저장 경로 선택", font=("", 16, "bold")))
+        section_frame.pack(fill=tk.X, pady=(0, 50))
 
         # 경로 입력 영역 (Entry + Button)
         path_frame = ttk.Frame(section_frame)
-        path_frame.pack(fill=tk.X, pady=(0, 5))
+        path_frame.pack(fill=tk.X, pady=(0, 20))
 
         # 저장 경로 변수 초기화 (기본값: C:/IBM 비대면)
         self.save_path_var = tk.StringVar(value="C:/IBM 비대면")
@@ -283,9 +289,10 @@ class InitDialog:
         path_entry = ttk.Entry(
             path_frame,
             textvariable=self.save_path_var,
-            width=30
+            width=30,
+            font=("", 16)
         )
-        path_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 5))
+        path_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 15))
 
         # [찾아보기...] 버튼
         browse_button = ttk.Button(
@@ -299,7 +306,7 @@ class InitDialog:
         help_label = ttk.Label(
             section_frame,
             text="캡처한 이미지를 저장할 폴더를 선택하세요.",
-            font=("", 8),
+            font=("", 14),
             foreground="gray"
         )
         help_label.pack(anchor=tk.W)
@@ -343,45 +350,59 @@ class InitDialog:
         section_frame = ttk.LabelFrame(
             parent,
             text="캡처 모드 선택",
-            padding="10 10 10 10"
+            padding="30 30 30 30"
         )
-        section_frame.pack(fill=tk.X, pady=(0, 10))
+        # LabelFrame 제목 폰트 설정
+        section_frame.configure(labelwidget=ttk.Label(parent, text="캡처 모드 선택", font=("", 16, "bold")))
+        section_frame.pack(fill=tk.X, pady=(0, 50))
 
         # 모드 변수 초기화 (기본값: flexible - 유연 모드)
         self.mode_var = tk.StringVar(value="flexible")
 
         # 정확 모드 라디오 버튼
-        exact_radio = ttk.Radiobutton(
+        # ttk.Radiobutton은 font를 직접 지원하지 않으므로 tk.Radiobutton 사용
+        # 배경색을 시스템 기본 버튼 배경색으로 설정
+        exact_radio = tk.Radiobutton(
             section_frame,
             text="정확 모드",
             variable=self.mode_var,
-            value="exact"
+            value="exact",
+            font=("", 16),
+            bg="#f0f0f0",
+            activebackground="#f0f0f0",
+            highlightthickness=0,
+            borderwidth=0
         )
-        exact_radio.pack(anchor=tk.W, pady=(0, 5))
+        exact_radio.pack(anchor=tk.W, pady=(0, 12))
 
         # 정확 모드 설명
         exact_desc = ttk.Label(
             section_frame,
             text="  → 얼굴 감지 정확도 우선 (느림, 높은 정확도)",
-            font=("", 8),
+            font=("", 14),
             foreground="gray"
         )
-        exact_desc.pack(anchor=tk.W, pady=(0, 10))
+        exact_desc.pack(anchor=tk.W, pady=(0, 25))
 
         # 유연 모드 라디오 버튼
-        flexible_radio = ttk.Radiobutton(
+        flexible_radio = tk.Radiobutton(
             section_frame,
             text="유연 모드 (권장)",
             variable=self.mode_var,
-            value="flexible"
+            value="flexible",
+            font=("", 16),
+            bg="#f0f0f0",
+            activebackground="#f0f0f0",
+            highlightthickness=0,
+            borderwidth=0
         )
-        flexible_radio.pack(anchor=tk.W, pady=(0, 5))
+        flexible_radio.pack(anchor=tk.W, pady=(0, 12))
 
         # 유연 모드 설명
         flexible_desc = ttk.Label(
             section_frame,
             text="  → 속도와 정확도 균형 (빠름, 충분한 정확도)",
-            font=("", 8),
+            font=("", 14),
             foreground="gray"
         )
         flexible_desc.pack(anchor=tk.W)
@@ -399,12 +420,14 @@ class InitDialog:
         section_frame = ttk.LabelFrame(
             parent,
             text="출석 학생 수",
-            padding="10 10 10 10"
+            padding="30 30 30 30"
         )
-        section_frame.pack(fill=tk.X, pady=(0, 10))
+        # LabelFrame 제목 폰트 설정
+        section_frame.configure(labelwidget=ttk.Label(parent, text="출석 학생 수", font=("", 16, "bold")))
+        section_frame.pack(fill=tk.X, pady=(0, 50))
 
-        # 학생 수 변수 초기화 (기본값: 21명)
-        self.student_count_var = tk.IntVar(value=21)
+        # 학생 수 변수 초기화 (기본값: 1명)
+        self.student_count_var = tk.IntVar(value=1)
 
         # 입력 영역 생성
         self._create_count_input_area(section_frame)
@@ -416,7 +439,7 @@ class InitDialog:
         help_label = ttk.Label(
             section_frame,
             text="출석한 학생 수를 입력하세요. (1~100명)",
-            font=("", 8),
+            font=("", 14),
             foreground="gray"
         )
         help_label.pack(anchor=tk.W)
@@ -430,20 +453,21 @@ class InitDialog:
         """
         # 입력 영역 (Entry + 버튼)
         input_frame = ttk.Frame(parent)
-        input_frame.pack(fill=tk.X, pady=(0, 10))
+        input_frame.pack(fill=tk.X, pady=(0, 20))
 
         # 안내 레이블
-        label = ttk.Label(input_frame, text="학생 수:")
-        label.pack(side=tk.LEFT, padx=(0, 5))
+        label = ttk.Label(input_frame, text="학생 수:", font=("", 18))
+        label.pack(side=tk.LEFT, padx=(0, 15))
 
         # 학생 수 입력 필드
         count_entry = ttk.Entry(
             input_frame,
             textvariable=self.student_count_var,
             width=10,
-            justify=tk.CENTER
+            justify=tk.CENTER,
+            font=("", 18)
         )
-        count_entry.pack(side=tk.LEFT, padx=(0, 5))
+        count_entry.pack(side=tk.LEFT, padx=(0, 15))
 
         # ▲ 버튼 (+1)
         up_button = ttk.Button(
@@ -452,7 +476,7 @@ class InitDialog:
             width=3,
             command=self._increment_student_count
         )
-        up_button.pack(side=tk.LEFT, padx=(0, 2))
+        up_button.pack(side=tk.LEFT, padx=(0, 8))
 
         # ▼ 버튼 (-1)
         down_button = ttk.Button(
@@ -474,10 +498,10 @@ class InitDialog:
         self.threshold_label = ttk.Label(
             parent,
             text=f"기준 인원: {self.student_count_var.get() + 1}명 (학생 수 + 교사 1명)",
-            font=("", 9),
+            font=("", 16),
             foreground="blue"
         )
-        self.threshold_label.pack(anchor=tk.W, pady=(0, 5))
+        self.threshold_label.pack(anchor=tk.W, pady=(0, 20))
 
         # 학생 수 변경 시 기준 인원 자동 업데이트
         self.student_count_var.trace_add("write", self._update_threshold_label)
@@ -530,23 +554,30 @@ class InitDialog:
         """
         # 버튼 영역 프레임
         button_frame = ttk.Frame(parent)
-        button_frame.pack(fill=tk.X, pady=(20, 0))
+        button_frame.pack(fill=tk.X, pady=(60, 0))
+
+        # 버튼 스타일 설정
+        style = ttk.Style()
+        # padding: (left, top, right, bottom) - 위 패딩을 줄여서 텍스트를 중앙으로
+        style.configure("Large.TButton", font=("", 16, "bold"), padding=(15, 8, 15, 8))
 
         # 취소 버튼
         cancel_button = ttk.Button(
             button_frame,
             text="취소",
-            width=10,
-            command=self.on_cancel
+            width=18,
+            command=self.on_cancel,
+            style="Large.TButton"
         )
-        cancel_button.pack(side=tk.RIGHT, padx=(5, 0))
+        cancel_button.pack(side=tk.RIGHT, padx=(15, 0))
 
         # 시작 버튼
         ok_button = ttk.Button(
             button_frame,
             text="시작",
-            width=10,
-            command=self.on_ok
+            width=18,
+            command=self.on_ok,
+            style="Large.TButton"
         )
         ok_button.pack(side=tk.RIGHT)
 
@@ -625,7 +656,7 @@ class InitDialog:
         mode = self.mode_var.get() if self.mode_var else "flexible"
 
         # 학생 수 가져오기
-        student_count = self.student_count_var.get() if self.student_count_var else 21
+        student_count = self.student_count_var.get() if self.student_count_var else 1
 
         # 결과 dict 생성 및 저장
         self.result = {
