@@ -550,6 +550,57 @@ class InitDialog:
         )
         ok_button.pack(side=tk.RIGHT)
 
+    # ==================== Validation ====================
+
+    def _validate_inputs(self) -> bool:
+        """
+        사용자 입력값의 유효성을 검증합니다.
+
+        Returns:
+            bool: 모든 입력이 유효하면 True, 그렇지 않으면 False
+
+        Validation Rules:
+            - 학생 수: 1~100 범위
+            - 저장 경로: 비어있지 않음
+            - 모니터: 선택됨
+        """
+        # 1. 학생 수 검증 (1~100)
+        try:
+            student_count = self.student_count_var.get()
+            if student_count < 1 or student_count > 100:
+                messagebox.showerror(
+                    "입력 오류",
+                    "학생 수는 1~100명 사이여야 합니다."
+                )
+                return False
+        except Exception as e:
+            logger.error(f"학생 수 검증 실패: {e}")
+            messagebox.showerror(
+                "입력 오류",
+                "학생 수가 올바르지 않습니다."
+            )
+            return False
+
+        # 2. 저장 경로 검증 (비어있지 않음)
+        save_path = self.save_path_var.get() if self.save_path_var else ""
+        if not save_path or save_path.strip() == "":
+            messagebox.showerror(
+                "입력 오류",
+                "저장 경로를 선택해주세요."
+            )
+            return False
+
+        # 3. 모니터 선택 검증
+        if not self.monitor_var or not self.monitor_var.get():
+            messagebox.showerror(
+                "입력 오류",
+                "캡처 모니터를 선택해주세요."
+            )
+            return False
+
+        # 모든 검증 통과
+        return True
+
     # ==================== Event Handlers ====================
 
     def on_ok(self) -> None:
@@ -559,7 +610,10 @@ class InitDialog:
         입력값을 검증하고, 유효한 경우 결과를 저장한 후
         다이얼로그를 닫습니다.
         """
-        # TODO: 입력값 검증 로직 추가 예정
+        # 입력값 검증
+        if not self._validate_inputs():
+            # 검증 실패 시 다이얼로그 유지 (early return)
+            return
 
         # 선택된 모니터 ID 추출
         monitor_id = self._get_selected_monitor_id()
