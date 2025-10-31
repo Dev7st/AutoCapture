@@ -7,11 +7,10 @@
 # 표준 라이브러리
 import logging
 import os
-import subprocess
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from datetime import datetime
-from typing import Optional, Dict, Callable
+from typing import Optional, Dict
 
 # 로거 설정
 logger = logging.getLogger(__name__)
@@ -119,7 +118,7 @@ class MainWindow:
         3. 교시별 상태 영역 (1~8교시 + 퇴실)
         4. 하단 버튼 영역 (저장 경로/폴더 열기)
         """
-        # 메인 프레임 (스크롤 가능)
+        # 메인 프레임
         main_frame = ttk.Frame(self.root, padding="30 30 30 30")
         main_frame.pack(fill=tk.BOTH, expand=True)
 
@@ -141,7 +140,9 @@ class MainWindow:
 
         이벤트 루프를 시작하고 윈도우가 닫힐 때까지 대기합니다.
         """
+        logger.info("메인 윈도우 실행 시작")
         self.root.mainloop()
+        logger.info("메인 윈도우 종료")
 
     # ==================== Info Section ====================
 
@@ -274,27 +275,30 @@ class MainWindow:
         Args:
             now: 현재 시간
         """
-        current_hour = now.hour
-        current_minute = now.minute
+        try:
+            current_hour = now.hour
+            current_minute = now.minute
 
-        for period, (end_hour, end_minute) in self.period_end_times.items():
-            # 현재 상태 확인
-            current_status = self.period_status_vars.get(period)
-            if not current_status:
-                continue
+            for period, (end_hour, end_minute) in self.period_end_times.items():
+                # 현재 상태 확인
+                current_status = self.period_status_vars.get(period)
+                if not current_status:
+                    continue
 
-            status_text = current_status.get()
+                status_text = current_status.get()
 
-            # 이미 완료, 건너뛰기, 시간 초과 상태면 변경하지 않음
-            if "✅" in status_text or "⏭️" in status_text or "⏰" in status_text:
-                continue
+                # 이미 완료, 건너뛰기, 시간 초과 상태면 변경하지 않음
+                if "✅" in status_text or "⏭️" in status_text or "⏰" in status_text:
+                    continue
 
-            # 현재 시간이 캡처 종료 시간을 지났는지 확인
-            if (current_hour > end_hour or
-                (current_hour == end_hour and current_minute > end_minute)):
-                # 대기중 상태만 시간 초과로 변경 (감지중은 그대로 유지)
-                if "🕒" in status_text:
-                    self.update_period_status(period, "⏰ 시간 초과")
+                # 현재 시간이 캡처 종료 시간을 지났는지 확인
+                if (current_hour > end_hour or
+                    (current_hour == end_hour and current_minute > end_minute)):
+                    # 대기중 상태만 시간 초과로 변경 (감지중은 그대로 유지)
+                    if "🕒" in status_text:
+                        self.update_period_status(period, "⏰ 시간 초과")
+        except Exception as e:
+            logger.error(f"시간 초과 교시 체크 실패: {e}")
 
     # ==================== Personnel Section ====================
 
@@ -472,13 +476,10 @@ class MainWindow:
 
         최대값 100을 초과하지 않도록 제한합니다.
         """
-        try:
-            current_value = self.student_count_var.get()
-            if current_value < 100:
-                self.student_count_var.set(current_value + 1)
-                logger.info(f"학생 수 증가: {current_value} → {current_value + 1}")
-        except Exception as e:
-            logger.error(f"학생 수 증가 실패: {e}")
+        current_value = self.student_count_var.get()
+        if current_value < 100:
+            self.student_count_var.set(current_value + 1)
+            logger.info(f"학생 수 증가: {current_value} → {current_value + 1}")
 
     def _decrement_student_count(self) -> None:
         """
@@ -486,13 +487,10 @@ class MainWindow:
 
         최소값 1 미만으로 내려가지 않도록 제한합니다.
         """
-        try:
-            current_value = self.student_count_var.get()
-            if current_value > 1:
-                self.student_count_var.set(current_value - 1)
-                logger.info(f"학생 수 감소: {current_value} → {current_value - 1}")
-        except Exception as e:
-            logger.error(f"학생 수 감소 실패: {e}")
+        current_value = self.student_count_var.get()
+        if current_value > 1:
+            self.student_count_var.set(current_value - 1)
+            logger.info(f"학생 수 감소: {current_value} → {current_value - 1}")
 
     def _update_threshold_label(self, *args) -> None:
         """
@@ -534,16 +532,13 @@ class MainWindow:
         Args:
             event: tkinter 이벤트 객체 (사용하지 않음)
         """
-        try:
-            mode_text = self.mode_var.get()
-            # 내부 모드 값으로 변환
-            if "유연" in mode_text:
-                self.mode = "flexible"
-            else:
-                self.mode = "exact"
-            logger.info(f"캡처 모드 변경: {mode_text} ({self.mode})")
-        except Exception as e:
-            logger.error(f"캡처 모드 변경 실패: {e}")
+        mode_text = self.mode_var.get()
+        # 내부 모드 값으로 변환
+        if "유연" in mode_text:
+            self.mode = "flexible"
+        else:
+            self.mode = "exact"
+        logger.info(f"캡처 모드 변경: {mode_text} ({self.mode})")
 
     def _on_student_count_entered(self, event=None) -> None:
         """
@@ -552,11 +547,8 @@ class MainWindow:
         Args:
             event: tkinter 이벤트 객체 (사용하지 않음)
         """
-        try:
-            student_count = self.student_count_var.get()
-            logger.info(f"학생 수 직접 입력: {student_count}명")
-        except Exception as e:
-            logger.error(f"학생 수 입력 처리 실패: {e}")
+        student_count = self.student_count_var.get()
+        logger.info(f"학생 수 직접 입력: {student_count}명")
 
     # ==================== Period Section ====================
 
@@ -731,9 +723,15 @@ class MainWindow:
             >>> window.update_period_status(2, "🔍 감지중 (20명)")
             >>> window.update_period_status(3, "⏰ 시간 초과")
         """
-        if period in self.period_status_vars:
-            self.period_status_vars[period].set(status)
-            logger.info(f"{period}교시 상태 변경: {status}")
+        try:
+            if period in self.period_status_vars:
+                self.period_status_vars[period].set(status)
+                period_name = "퇴실" if period == 0 else f"{period}교시"
+                logger.info(f"{period_name} 상태 변경: {status}")
+            else:
+                logger.warning(f"존재하지 않는 교시 번호: {period}")
+        except Exception as e:
+            logger.error(f"교시 상태 업데이트 실패 (교시 {period}): {e}")
 
     def on_skip_button(self, period: int) -> None:
         """
@@ -744,14 +742,11 @@ class MainWindow:
         Args:
             period: 교시 번호
         """
-        try:
-            period_name = "퇴실" if period == 0 else f"{period}교시"
-            logger.info(f"건너뛰기 버튼 클릭: {period_name}")
+        period_name = "퇴실" if period == 0 else f"{period}교시"
+        logger.info(f"건너뛰기 버튼 클릭: {period_name}")
 
-            # TODO: Scheduler.skip_period(period) 호출
-            self.update_period_status(period, "⏭️ 건너뛰기")
-        except Exception as e:
-            logger.error(f"건너뛰기 처리 실패 (교시 {period}): {e}")
+        # TODO: Scheduler.skip_period(period) 호출
+        self.update_period_status(period, "⏭️ 건너뛰기")
 
     def on_retry_button(self, period: int) -> None:
         """
@@ -762,14 +757,11 @@ class MainWindow:
         Args:
             period: 교시 번호
         """
-        try:
-            period_name = "퇴실" if period == 0 else f"{period}교시"
-            logger.info(f"재시도 버튼 클릭: {period_name}")
+        period_name = "퇴실" if period == 0 else f"{period}교시"
+        logger.info(f"재시도 버튼 클릭: {period_name}")
 
-            # TODO: 캡처 시간대 확인 후 즉시 캡처 시도
-            self.update_period_status(period, "🔍 감지중")
-        except Exception as e:
-            logger.error(f"재시도 처리 실패 (교시 {period}): {e}")
+        # TODO: 캡처 시간대 확인 후 즉시 캡처 시도
+        self.update_period_status(period, "🔍 감지중")
 
     # ==================== Bottom Buttons ====================
 
