@@ -567,6 +567,11 @@ git push origin main --tags
 - `test`: 테스트 추가/수정
 - `chore`: 기타 (빌드, 설정 등)
 
+**중요: 커밋 및 PR 메시지 작성 시**
+- ❌ "Generated with Claude Code" 또는 유사한 AI 도구 서명 문구를 **절대 포함하지 않음**
+- ❌ "Co-Authored-By: Claude" 같은 AI 크레딧 추가 금지
+- ✅ 순수하게 사용자가 요청한 내용만 제안
+
 **예시:**
 ```bash
 # ✅ 좋은 예

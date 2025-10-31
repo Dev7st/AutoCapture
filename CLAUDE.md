@@ -206,6 +206,11 @@ git branch -d feature/feature-name
 - Separate commits per file when different features
 - One commit = One feature/fix
 
+**CRITICAL: NO AI Attribution**:
+- ❌ NEVER include "Generated with Claude Code" or similar AI tool signatures
+- ❌ NEVER add "Co-Authored-By: Claude" or similar AI credits
+- ✅ Only suggest what the user requested, nothing more
+
 ## Testing Commands
 
 **Run Tests** (when implemented):
