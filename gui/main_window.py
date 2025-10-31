@@ -845,10 +845,11 @@ class MainWindow:
                     "오류",
                     f"저장 폴더가 존재하지 않습니다.\n\n{self.save_path}"
                 )
+                logger.warning(f"저장 폴더가 존재하지 않음: {self.save_path}")
                 return
 
             # Windows 탐색기로 폴더 열기
-            subprocess.Popen(f'explorer "{self.save_path}"')
+            os.startfile(self.save_path)
             logger.info(f"저장 폴더 열기: {self.save_path}")
 
         except Exception as e:
