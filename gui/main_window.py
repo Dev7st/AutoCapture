@@ -59,7 +59,7 @@ class MainWindow:
         """
         self.root = tk.Tk()
         self.root.title("출결 관리 자동 캡처 시스템")
-        self.root.geometry("900x1200")
+        self.root.geometry("750x820")
         self.root.resizable(False, False)
 
         # 설정값 저장
@@ -158,9 +158,9 @@ class MainWindow:
         section_frame = ttk.LabelFrame(
             parent,
             text="현재 정보",
-            padding="20 20 20 20"
+            padding="15 15 15 15"
         )
-        section_frame.pack(fill=tk.X, pady=(0, 20))
+        section_frame.pack(fill=tk.X, pady=(0, 15))
 
         # 날짜 표시
         self.date_var = tk.StringVar(value="날짜: 로딩 중...")
@@ -253,10 +253,19 @@ class MainWindow:
 
         TODO: Phase 3에서 모니터 선택 다이얼로그 구현
         """
-        messagebox.showinfo(
-            "개발 중",
-            "모니터 변경 기능은 Phase 3에서 구현 예정입니다."
-        )
+        try:
+            logger.info("모니터 변경 버튼 클릭")
+            messagebox.showinfo(
+                "개발 중",
+                "모니터 변경 기능은 Phase 3에서 구현 예정입니다."
+            )
+            # TODO: 모니터 선택 다이얼로그 표시 후
+            # self.monitor_id = selected_monitor_id
+            # self.monitor_var.set(f"캡처 모니터: 모니터 {self.monitor_id}")
+            # logger.info(f"모니터 변경: 모니터 {self.monitor_id}")
+        except Exception as e:
+            logger.error(f"모니터 변경 처리 실패: {e}")
+            messagebox.showerror("오류", f"모니터 변경 중 오류가 발생했습니다.\n{e}")
 
     def _check_timeout_periods(self, now: datetime) -> None:
         """
@@ -302,9 +311,9 @@ class MainWindow:
         section_frame = ttk.LabelFrame(
             parent,
             text="👥 출석 관리",
-            padding="20 20 20 20"
+            padding="15 15 15 15"
         )
-        section_frame.pack(fill=tk.X, pady=(0, 20))
+        section_frame.pack(fill=tk.X, pady=(0, 15))
 
         # 캡처 모드 선택
         self._create_mode_selector(section_frame)
@@ -359,6 +368,9 @@ class MainWindow:
         else:
             mode_combo.current(1)  # 정확 모드
 
+        # 모드 변경 시 로깅
+        mode_combo.bind("<<ComboboxSelected>>", self._on_mode_changed)
+
     def _create_student_count_input(self, parent: ttk.LabelFrame) -> None:
         """
         출석 학생 수 입력 UI를 생성합니다.
@@ -390,6 +402,10 @@ class MainWindow:
             font=("", 12)
         )
         count_entry.pack(side=tk.LEFT, padx=(0, 10))
+
+        # 직접 입력 시 로깅
+        count_entry.bind("<Return>", self._on_student_count_entered)
+        count_entry.bind("<FocusOut>", self._on_student_count_entered)
 
         # 증감 버튼 생성
         self._create_count_buttons(input_frame)
@@ -456,9 +472,13 @@ class MainWindow:
 
         최대값 100을 초과하지 않도록 제한합니다.
         """
-        current_value = self.student_count_var.get()
-        if current_value < 100:
-            self.student_count_var.set(current_value + 1)
+        try:
+            current_value = self.student_count_var.get()
+            if current_value < 100:
+                self.student_count_var.set(current_value + 1)
+                logger.info(f"학생 수 증가: {current_value} → {current_value + 1}")
+        except Exception as e:
+            logger.error(f"학생 수 증가 실패: {e}")
 
     def _decrement_student_count(self) -> None:
         """
@@ -466,9 +486,13 @@ class MainWindow:
 
         최소값 1 미만으로 내려가지 않도록 제한합니다.
         """
-        current_value = self.student_count_var.get()
-        if current_value > 1:
-            self.student_count_var.set(current_value - 1)
+        try:
+            current_value = self.student_count_var.get()
+            if current_value > 1:
+                self.student_count_var.set(current_value - 1)
+                logger.info(f"학생 수 감소: {current_value} → {current_value - 1}")
+        except Exception as e:
+            logger.error(f"학생 수 감소 실패: {e}")
 
     def _update_threshold_label(self, *args) -> None:
         """
@@ -479,12 +503,60 @@ class MainWindow:
         """
         try:
             student_count = self.student_count_var.get()
+
+            # 범위 검증 및 수정
+            if student_count < 1:
+                student_count = 1
+                self.student_count_var.set(1)
+            elif student_count > 100:
+                student_count = 100
+                self.student_count_var.set(100)
+
             threshold = student_count + 1
             self.threshold_label.config(
                 text=f"기준 인원: {threshold}명 (학생 {student_count}명 + 강사 1명)"
             )
         except Exception as e:
             logger.error(f"기준 인원 업데이트 실패: {e}")
+            # 잘못된 값일 경우 기본값으로 설정
+            try:
+                self.student_count_var.set(1)
+                self.threshold_label.config(
+                    text="기준 인원: 2명 (학생 1명 + 강사 1명)"
+                )
+            except:
+                pass
+
+    def _on_mode_changed(self, event=None) -> None:
+        """
+        캡처 모드 변경 시 호출되는 콜백 함수.
+
+        Args:
+            event: tkinter 이벤트 객체 (사용하지 않음)
+        """
+        try:
+            mode_text = self.mode_var.get()
+            # 내부 모드 값으로 변환
+            if "유연" in mode_text:
+                self.mode = "flexible"
+            else:
+                self.mode = "exact"
+            logger.info(f"캡처 모드 변경: {mode_text} ({self.mode})")
+        except Exception as e:
+            logger.error(f"캡처 모드 변경 실패: {e}")
+
+    def _on_student_count_entered(self, event=None) -> None:
+        """
+        학생 수 직접 입력 후 Enter 또는 포커스 아웃 시 호출되는 콜백 함수.
+
+        Args:
+            event: tkinter 이벤트 객체 (사용하지 않음)
+        """
+        try:
+            student_count = self.student_count_var.get()
+            logger.info(f"학생 수 직접 입력: {student_count}명")
+        except Exception as e:
+            logger.error(f"학생 수 입력 처리 실패: {e}")
 
     # ==================== Period Section ====================
 
@@ -501,9 +573,9 @@ class MainWindow:
         section_frame = ttk.LabelFrame(
             parent,
             text="📊 교시별 캡처 상태",
-            padding="20 20 20 20"
+            padding="15 10 15 10"
         )
-        section_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 20))
+        section_frame.pack(fill=tk.X, expand=False, pady=(0, 15))
 
         # 교시 정보 (교시 번호, 시작 시간, 종료 시간, 캡처 시간대)
         periods = [
@@ -544,7 +616,7 @@ class MainWindow:
         """
         # 교시 행 프레임
         row_frame = ttk.Frame(parent)
-        row_frame.pack(fill=tk.X, pady=(0, 15))
+        row_frame.pack(fill=tk.X, pady=(0, 8))
 
         # 교시 정보 및 캡처 시간대 표시
         self._create_period_info_labels(row_frame, period, start_time, end_time, capture_window)
@@ -672,11 +744,14 @@ class MainWindow:
         Args:
             period: 교시 번호
         """
-        period_name = "퇴실" if period == 0 else f"{period}교시"
-        logger.info(f"건너뛰기 버튼 클릭: {period_name}")
+        try:
+            period_name = "퇴실" if period == 0 else f"{period}교시"
+            logger.info(f"건너뛰기 버튼 클릭: {period_name}")
 
-        # TODO: Scheduler.skip_period(period) 호출
-        self.update_period_status(period, "⏭️ 건너뛰기")
+            # TODO: Scheduler.skip_period(period) 호출
+            self.update_period_status(period, "⏭️ 건너뛰기")
+        except Exception as e:
+            logger.error(f"건너뛰기 처리 실패 (교시 {period}): {e}")
 
     def on_retry_button(self, period: int) -> None:
         """
@@ -687,11 +762,14 @@ class MainWindow:
         Args:
             period: 교시 번호
         """
-        period_name = "퇴실" if period == 0 else f"{period}교시"
-        logger.info(f"재시도 버튼 클릭: {period_name}")
+        try:
+            period_name = "퇴실" if period == 0 else f"{period}교시"
+            logger.info(f"재시도 버튼 클릭: {period_name}")
 
-        # TODO: 캡처 시간대 확인 후 즉시 캡처 시도
-        self.update_period_status(period, "🔍 감지중")
+            # TODO: 캡처 시간대 확인 후 즉시 캡처 시도
+            self.update_period_status(period, "🔍 감지중")
+        except Exception as e:
+            logger.error(f"재시도 처리 실패 (교시 {period}): {e}")
 
     # ==================== Bottom Buttons ====================
 
@@ -708,19 +786,19 @@ class MainWindow:
         button_frame = ttk.Frame(parent)
         button_frame.pack(fill=tk.X)
 
-        # [📁 저장 경로 설정] 버튼
+        # [저장 경로 설정] 버튼
         path_button = ttk.Button(
             button_frame,
-            text="📁 저장 경로 설정",
+            text="저장 경로 설정",
             width=20,
             command=self._on_set_save_path
         )
         path_button.pack(side=tk.LEFT, padx=(0, 10))
 
-        # [📂 저장 폴더 열기] 버튼
+        # [저장 폴더 열기] 버튼
         open_button = ttk.Button(
             button_frame,
-            text="📂 저장 폴더 열기",
+            text="저장 폴더 열기",
             width=20,
             command=self._on_open_save_folder
         )
