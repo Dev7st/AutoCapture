@@ -79,7 +79,7 @@
 - [x] `get_monitor_info()`: 모니터 정보 조회
 - [x] mss 라이브러리로 캡처 구현
 - [x] 캡처 이미지 RGB 변환
-- [ ] 캡처 기능 단위 테스트
+- [x] 캡처 기능 단위 테스트
 
 ### 1.6 얼굴 감지 기능
 - [ ] `features/face_detection.py` 생성
