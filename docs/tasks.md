@@ -72,7 +72,7 @@
 - [x] 듀얼 모니터 환경 테스트
 
 ### 1.5 화면 캡처 기능
-- [ ] `features/capture.py` 생성
+- [x] `features/capture.py` 생성
 - [ ] `ScreenCapture` 클래스 구현
 - [ ] `__init__()`: 모니터 ID 초기화
 - [ ] `capture()`: 화면 캡처 메서드
