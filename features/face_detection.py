@@ -180,3 +180,32 @@ class FaceDetector:
         except Exception as e:
             logger.error(f"얼굴 감지 실패: {e}", exc_info=True)
             raise RuntimeError(f"얼굴 감지 중 오류 발생: {e}")
+
+    def cleanup(self) -> None:
+        """
+        모델을 정리하고 GPU 메모리를 해제합니다.
+
+        InsightFace 모델 인스턴스를 삭제하고 GPU 메모리를 명시적으로 해제합니다.
+        애플리케이션 종료 시 또는 모델을 더 이상 사용하지 않을 때 호출하세요.
+
+        Example:
+            >>> detector = FaceDetector(gpu_id=0)
+            >>> detector.initialize()
+            >>> # ... 얼굴 감지 작업 ...
+            >>> detector.cleanup()  # 메모리 해제
+        """
+        if self.model is not None:
+            logger.info("FaceDetector 정리 시작")
+
+            try:
+                # 모델 인스턴스 삭제
+                del self.model
+                self.model = None
+                self.is_initialized = False
+
+                logger.info("FaceDetector 정리 완료")
+
+            except Exception as e:
+                logger.error(f"FaceDetector 정리 실패: {e}", exc_info=True)
+        else:
+            logger.info("정리할 모델이 없습니다")
