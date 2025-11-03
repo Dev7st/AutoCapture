@@ -111,3 +111,49 @@ class ScreenCapture:
         except Exception as e:
             logger.error(f"화면 캡처 실패: {e}", exc_info=True)
             raise RuntimeError(f"화면 캡처 실패: {e}")
+
+    def get_monitor_info(self) -> dict:
+        """
+        현재 선택된 모니터의 정보를 반환합니다.
+
+        모니터의 해상도(width, height)와 위치(left, top) 정보를 조회합니다.
+
+        Returns:
+            dict: 모니터 정보
+                - id (int): 모니터 ID
+                - width (int): 모니터 가로 해상도
+                - height (int): 모니터 세로 해상도
+                - left (int): 모니터 X 좌표
+                - top (int): 모니터 Y 좌표
+
+        Raises:
+            RuntimeError: 모니터 정보 조회 실패 시
+            IndexError: 유효하지 않은 모니터 ID인 경우
+
+        Example:
+            >>> capturer = ScreenCapture(monitor_id=1)
+            >>> info = capturer.get_monitor_info()
+            >>> print(info)
+            {'id': 1, 'width': 1920, 'height': 1080, 'left': 0, 'top': 0}
+        """
+        try:
+            # mss.monitors[0]은 전체 화면, [1:]부터 실제 모니터
+            monitor = self._sct.monitors[self.monitor_id]
+
+            return {
+                'id': self.monitor_id,
+                'width': monitor['width'],
+                'height': monitor['height'],
+                'left': monitor['left'],
+                'top': monitor['top']
+            }
+
+        except IndexError as e:
+            logger.error(f"유효하지 않은 모니터 ID: {self.monitor_id}", exc_info=True)
+            raise IndexError(
+                f"모니터 ID {self.monitor_id}를 찾을 수 없습니다. "
+                f"연결된 모니터 개수를 확인하세요."
+            )
+        except Exception as e:
+            logger.error(f"모니터 정보 조회 실패: {e}", exc_info=True)
+            raise RuntimeError(f"모니터 정보 조회 실패: {e}")
