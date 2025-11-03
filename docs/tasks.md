@@ -87,7 +87,7 @@
 - [x] `__init__()`: GPU ID 설정
 - [x] `initialize()`: InsightFace 모델 로드
 - [x] `detect()`: 얼굴 감지 및 개수 반환
-- [ ] `cleanup()`: GPU 메모리 해제
+- [x] `cleanup()`: GPU 메모리 해제
 - [ ] InsightFace buffalo_l 모델 다운로드 및 테스트
 - [ ] GPU 감지 실패 시 CPU 전환 로직
 - [ ] 얼굴 감지 정확도 테스트 (95% 이상)
