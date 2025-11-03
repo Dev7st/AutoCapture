@@ -82,9 +82,9 @@
 - [x] 캡처 기능 단위 테스트
 
 ### 1.6 얼굴 감지 기능
-- [ ] `features/face_detection.py` 생성
-- [ ] `FaceDetector` 클래스 구현
-- [ ] `__init__()`: GPU ID 설정
+- [x] `features/face_detection.py` 생성
+- [x] `FaceDetector` 클래스 구현
+- [x] `__init__()`: GPU ID 설정
 - [ ] `initialize()`: InsightFace 모델 로드
 - [ ] `detect()`: 얼굴 감지 및 개수 반환
 - [ ] `cleanup()`: GPU 메모리 해제
