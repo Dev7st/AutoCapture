@@ -75,7 +75,7 @@
 - [x] `features/capture.py` 생성
 - [x] `ScreenCapture` 클래스 구현
 - [x] `__init__()`: 모니터 ID 초기화
-- [ ] `capture()`: 화면 캡처 메서드
+- [x] `capture()`: 화면 캡처 메서드
 - [ ] `get_monitor_info()`: 모니터 정보 조회
 - [ ] mss 라이브러리로 캡처 구현
 - [ ] 캡처 이미지 RGB 변환
