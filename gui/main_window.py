@@ -470,6 +470,31 @@ class MainWindow:
         # 학생 수 변경 시 자동 업데이트
         self.student_count_var.trace_add("write", self._update_threshold_label)
 
+    def _on_mode_changed(self, event=None) -> None:
+        """
+        캡처 모드 변경 시 호출되는 콜백 함수.
+
+        Args:
+            event: tkinter 이벤트 객체 (사용하지 않음)
+        """
+        mode_text = self.mode_var.get()
+        # 내부 모드 값으로 변환
+        if "유연" in mode_text:
+            self.mode = "flexible"
+        else:
+            self.mode = "exact"
+        logger.info(f"캡처 모드 변경: {mode_text} ({self.mode})")
+
+    def _on_student_count_entered(self, event=None) -> None:
+        """
+        학생 수 직접 입력 후 Enter 또는 포커스 아웃 시 호출되는 콜백 함수.
+
+        Args:
+            event: tkinter 이벤트 객체 (사용하지 않음)
+        """
+        student_count = self.student_count_var.get()
+        logger.info(f"학생 수 직접 입력: {student_count}명")
+
     def _increment_student_count(self) -> None:
         """
         학생 수를 1 증가시킵니다.
@@ -524,31 +549,6 @@ class MainWindow:
                 )
             except:
                 pass
-
-    def _on_mode_changed(self, event=None) -> None:
-        """
-        캡처 모드 변경 시 호출되는 콜백 함수.
-
-        Args:
-            event: tkinter 이벤트 객체 (사용하지 않음)
-        """
-        mode_text = self.mode_var.get()
-        # 내부 모드 값으로 변환
-        if "유연" in mode_text:
-            self.mode = "flexible"
-        else:
-            self.mode = "exact"
-        logger.info(f"캡처 모드 변경: {mode_text} ({self.mode})")
-
-    def _on_student_count_entered(self, event=None) -> None:
-        """
-        학생 수 직접 입력 후 Enter 또는 포커스 아웃 시 호출되는 콜백 함수.
-
-        Args:
-            event: tkinter 이벤트 객체 (사용하지 않음)
-        """
-        student_count = self.student_count_var.get()
-        logger.info(f"학생 수 직접 입력: {student_count}명")
 
     # ==================== Period Section ====================
 
