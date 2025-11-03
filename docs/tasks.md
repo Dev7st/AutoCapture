@@ -72,14 +72,14 @@
 - [x] 듀얼 모니터 환경 테스트
 
 ### 1.5 화면 캡처 기능
-- [ ] `features/capture.py` 생성
-- [ ] `ScreenCapture` 클래스 구현
-- [ ] `__init__()`: 모니터 ID 초기화
-- [ ] `capture()`: 화면 캡처 메서드
-- [ ] `get_monitor_info()`: 모니터 정보 조회
-- [ ] mss 라이브러리로 캡처 구현
-- [ ] 캡처 이미지 RGB 변환
-- [ ] 캡처 기능 단위 테스트
+- [x] `features/capture.py` 생성
+- [x] `ScreenCapture` 클래스 구현
+- [x] `__init__()`: 모니터 ID 초기화
+- [x] `capture()`: 화면 캡처 메서드
+- [x] `get_monitor_info()`: 모니터 정보 조회
+- [x] mss 라이브러리로 캡처 구현
+- [x] 캡처 이미지 RGB 변환
+- [x] 캡처 기능 단위 테스트
 
 ### 1.6 얼굴 감지 기능
 - [ ] `features/face_detection.py` 생성
