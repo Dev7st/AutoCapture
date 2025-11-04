@@ -16,4 +16,7 @@ onnxruntime-gpu==1.16.3
 # 스케줄링 (자체 구현)
 # CSV (Python 내장)
 
+# 테스트 (개발 시에만 필요)
+pytest==7.4.3
+
 # 참고: CUDA Toolkit 11.x는 별도 설치 필요 (GPU 사용 시)
