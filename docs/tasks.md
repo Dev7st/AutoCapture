@@ -91,7 +91,7 @@
 - [x] `tests/test_face_detection.py` 테스트 스크립트 작성
 - [x] InsightFace buffalo_l 모델 다운로드 및 테스트
 - [x] GPU 감지 실패 시 CPU 전환 로직
-- [ ] 얼굴 감지 정확도 테스트 (95% 이상)
+- [x] 얼굴 감지 정확도 테스트 (95% 이상) - 평균 98% 달성
 
 ### 1.7 파일 저장 기능
 - [ ] `features/file_manager.py` 생성
