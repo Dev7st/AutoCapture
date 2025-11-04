@@ -82,15 +82,16 @@
 - [x] 캡처 기능 단위 테스트
 
 ### 1.6 얼굴 감지 기능
-- [ ] `features/face_detection.py` 생성
-- [ ] `FaceDetector` 클래스 구현
-- [ ] `__init__()`: GPU ID 설정
-- [ ] `initialize()`: InsightFace 모델 로드
-- [ ] `detect()`: 얼굴 감지 및 개수 반환
-- [ ] `cleanup()`: GPU 메모리 해제
-- [ ] InsightFace buffalo_l 모델 다운로드 및 테스트
-- [ ] GPU 감지 실패 시 CPU 전환 로직
-- [ ] 얼굴 감지 정확도 테스트 (95% 이상)
+- [x] `features/face_detection.py` 생성
+- [x] `FaceDetector` 클래스 구현
+- [x] `__init__()`: GPU ID 설정
+- [x] `initialize()`: InsightFace 모델 로드
+- [x] `detect()`: 얼굴 감지 및 개수 반환
+- [x] `cleanup()`: GPU 메모리 해제
+- [x] `tests/test_face_detection.py` 테스트 스크립트 작성
+- [x] InsightFace buffalo_l 모델 다운로드 및 테스트
+- [x] GPU 감지 실패 시 CPU 전환 로직
+- [x] 얼굴 감지 정확도 테스트 (95% 이상) - 평균 98% 달성
 
 ### 1.7 파일 저장 기능
 - [ ] `features/file_manager.py` 생성
