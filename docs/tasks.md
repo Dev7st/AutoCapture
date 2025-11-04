@@ -88,8 +88,9 @@
 - [x] `initialize()`: InsightFace 모델 로드
 - [x] `detect()`: 얼굴 감지 및 개수 반환
 - [x] `cleanup()`: GPU 메모리 해제
-- [ ] InsightFace buffalo_l 모델 다운로드 및 테스트
-- [ ] GPU 감지 실패 시 CPU 전환 로직
+- [x] `tests/test_face_detection.py` 테스트 스크립트 작성
+- [x] InsightFace buffalo_l 모델 다운로드 및 테스트
+- [x] GPU 감지 실패 시 CPU 전환 로직
 - [ ] 얼굴 감지 정확도 테스트 (95% 이상)
 
 ### 1.7 파일 저장 기능
