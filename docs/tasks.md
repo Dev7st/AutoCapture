@@ -94,9 +94,9 @@
 - [x] 얼굴 감지 정확도 테스트 (95% 이상) - 평균 98% 달성
 
 ### 1.7 파일 저장 기능
-- [ ] `features/file_manager.py` 생성
-- [ ] `FileManager` 클래스 구현
-- [ ] `__init__()`: 기본 저장 경로 설정
+- [x] `features/file_manager.py` 생성
+- [x] `FileManager` 클래스 구현
+- [x] `__init__()`: 기본 저장 경로 설정
 - [ ] `save_image()`: 이미지 저장 (교시별)
 - [ ] `ensure_folder_exists()`: 날짜 폴더 생성
 - [ ] `get_file_path()`: 파일 경로 생성
