@@ -94,15 +94,16 @@
 - [x] 얼굴 감지 정확도 테스트 (95% 이상) - 평균 98% 달성
 
 ### 1.7 파일 저장 기능
-- [ ] `features/file_manager.py` 생성
-- [ ] `FileManager` 클래스 구현
-- [ ] `__init__()`: 기본 저장 경로 설정
-- [ ] `save_image()`: 이미지 저장 (교시별)
-- [ ] `ensure_folder_exists()`: 날짜 폴더 생성
-- [ ] `get_file_path()`: 파일 경로 생성
-- [ ] 파일명 규칙 구현 (YYMMDD_N교시.png)
-- [ ] 덮어쓰기 vs 수정본 로직 구현
-- [ ] 파일 저장 권한 에러 처리
+- [x] `features/file_manager.py` 생성
+- [x] `FileManager` 클래스 구현
+- [x] `__init__()`: 기본 저장 경로 설정
+- [x] `ensure_folder_exists()`: 날짜 폴더 생성
+- [x] `get_file_path()`: 파일 경로 생성 (파일명 규칙, 덮어쓰기/수정본 로직)
+- [x] `_get_period_name()`: 교시명 반환 (Private)
+- [x] `_validate_image()`: 이미지 유효성 검사 (Private)
+- [x] `save_image()`: 이미지 저장 (numpy → PIL → PNG)
+- [x] 에러 처리 강화 (권한, 디스크 공간, 잘못된 입력)
+- [x] `tests/test_file_manager.py` 테스트 스크립트 작성
 
 ### 1.8 스케줄링 기능
 - [ ] `features/scheduler.py` 생성
