@@ -103,7 +103,7 @@
 - [x] `_validate_image()`: 이미지 유효성 검사 (Private)
 - [x] `save_image()`: 이미지 저장 (numpy → PIL → PNG)
 - [x] 에러 처리 강화 (권한, 디스크 공간, 잘못된 입력)
-- [ ] `tests/test_file_manager.py` 테스트 스크립트 작성
+- [x] `tests/test_file_manager.py` 테스트 스크립트 작성
 
 ### 1.8 스케줄링 기능
 - [ ] `features/scheduler.py` 생성
