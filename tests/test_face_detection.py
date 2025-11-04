@@ -345,6 +345,116 @@ def test_multiple_detections():
         return False
 
 
+def test_accuracy_with_real_zoom_images():
+    """실제 Zoom 화면 이미지로 정확도 테스트."""
+    print("=" * 60)
+    print("9. 실제 Zoom 화면 정확도 테스트")
+    print("=" * 60)
+
+    try:
+        from pathlib import Path
+        from PIL import Image
+
+        # 테스트 이미지 폴더 경로
+        test_images_folder = Path(__file__).parent / "test_images"
+
+        if not test_images_folder.exists():
+            print(f"⚠️  테스트 이미지 폴더가 없습니다: {test_images_folder}")
+            print(f"   폴더를 생성하고 Zoom 화면 이미지를 넣어주세요.")
+            print()
+            return True  # 선택적 테스트이므로 실패로 처리하지 않음
+
+        # 테스트 데이터: (파일명, 실제 인원 수)
+        test_cases = [
+            ("zoom_22people.png", 22),  # 학생 21명 + 강사 1명
+            ("zoom_21people.png", 21),  # 결석 1명
+            ("zoom_20people.png", 20),  # 결석 2명
+            ("zoom_19people.png", 19),  # 결석 3명
+            ("zoom_18people.png", 18),  # 결석 4명
+            # 추가 이미지가 있다면 여기에 추가
+        ]
+
+        detector = FaceDetector()
+        detector.initialize()
+
+        total_tests = 0
+        total_accuracy = 0
+        passed_tests = 0
+
+        print(f"테스트 이미지 폴더: {test_images_folder}")
+        print()
+
+        for image_filename, expected_count in test_cases:
+            image_path = test_images_folder / image_filename
+
+            if not image_path.exists():
+                print(f"⚠️  이미지 없음: {image_filename} (건너뜀)")
+                continue
+
+            # 이미지 로드
+            pil_image = Image.open(image_path)
+            image = np.array(pil_image.convert("RGB"))
+
+            # 얼굴 감지
+            detected_count = detector.detect(image)
+
+            # 정확도 계산
+            accuracy = (detected_count / expected_count) * 100 if expected_count > 0 else 0
+
+            # 결과 출력
+            result_icon = "✅" if accuracy >= 95 else "⚠️"
+            print(f"{result_icon} {image_filename}")
+            print(f"   실제 인원: {expected_count}명")
+            print(f"   감지 인원: {detected_count}명")
+            print(f"   정확도: {accuracy:.1f}%")
+
+            if accuracy >= 95:
+                passed_tests += 1
+
+            total_tests += 1
+            total_accuracy += accuracy
+            print()
+
+        detector.cleanup()
+
+        if total_tests == 0:
+            print(f"⚠️  테스트할 이미지가 없습니다.")
+            print(f"   {test_images_folder} 폴더에 이미지를 추가하세요:")
+            print(f"   - zoom_22people.png (22명)")
+            print(f"   - zoom_21people.png (21명)")
+            print(f"   - zoom_20people.png (20명)")
+            print(f"   - zoom_19people.png (19명)")
+            print(f"   - zoom_18people.png (18명)")
+            print()
+            return True  # 선택적 테스트
+
+        # 전체 평균 정확도
+        avg_accuracy = total_accuracy / total_tests
+
+        print("=" * 60)
+        print(f"정확도 테스트 결과")
+        print(f"   총 테스트: {total_tests}개")
+        print(f"   통과 (≥95%): {passed_tests}개")
+        print(f"   평균 정확도: {avg_accuracy:.1f}%")
+        print("=" * 60)
+        print()
+
+        if avg_accuracy >= 95:
+            print(f"✅ 평균 정확도 95% 이상 달성!")
+            print()
+            return True
+        else:
+            print(f"⚠️  평균 정확도가 95% 미만입니다.")
+            print()
+            return False
+
+    except Exception as e:
+        print(f"❌ 정확도 테스트 실패: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+
 if __name__ == "__main__":
     print()
     print("=" * 60)
@@ -361,6 +471,7 @@ if __name__ == "__main__":
     results.append(test_detect_with_invalid_image())
     results.append(test_cleanup())
     results.append(test_multiple_detections())
+    results.append(test_accuracy_with_real_zoom_images())
 
     print("=" * 60)
     print("테스트 결과 요약")
