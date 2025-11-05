@@ -238,27 +238,29 @@ class FileManager:
         pass
     
     def save_image(
-        self, 
-        image: np.ndarray, 
+        self,
+        image: np.ndarray,
         period: int,
-        is_modified: bool = False
+        is_within_window: bool
     ) -> str:
         """
         이미지를 저장합니다.
-        
+
         Args:
             image: 저장할 이미지
             period: 교시 (1~8) 또는 0(퇴실)
-            is_modified: 수정본 여부
-        
+            is_within_window: 캡처 시간대 내 여부
+                - True: 시간대 내 → 덮어쓰기
+                - False: 시간대 종료 후 → _수정.png
+
         Returns:
             str: 저장된 파일 경로
-        
+
         Example:
             >>> fm = FileManager()
-            >>> path = fm.save_image(img, 1, False)
-            "C:/IBM 비대면/251020/251020_1교시.png"
             >>> path = fm.save_image(img, 1, True)
+            "C:/IBM 비대면/251020/251020_1교시.png"
+            >>> path = fm.save_image(img, 1, False)
             "C:/IBM 비대면/251020/251020_1교시_수정.png"
         """
         pass
@@ -267,10 +269,14 @@ class FileManager:
         """날짜 폴더를 생성합니다."""
         pass
     
-    def get_file_path(self, period: int, is_modified: bool) -> Path:
+    def get_file_path(self, period: int, is_within_window: bool) -> Path:
         """
         파일 경로를 생성합니다.
-        
+
+        Args:
+            period: 교시 번호
+            is_within_window: 시간대 내 여부
+
         Returns:
             Path: 파일 경로
         """
@@ -332,7 +338,11 @@ class CSVLogger:
         pass
     
     def _ensure_log_file(self) -> None:
-        """로그 파일이 없으면 헤더와 함께 생성합니다."""
+        """
+        로그 파일이 없으면 헤더와 함께 생성합니다.
+
+        UTF-8-BOM 인코딩 사용 (Excel 호환).
+        """
         pass
 ```
 
@@ -486,7 +496,19 @@ class MainWindow:
     def on_retry_button(self, period: int) -> None:
         """재시도 버튼 클릭 핸들러"""
         pass
-    
+
+    def on_student_count_change(self, new_count: int) -> None:
+        """
+        출석 학생 수 변경 핸들러.
+
+        ▲▼ 버튼 또는 직접 입력 시 호출되며,
+        기준 인원을 자동으로 재계산합니다.
+
+        Args:
+            new_count: 새로운 학생 수
+        """
+        pass
+
     def show_alert(self, title: str, message: str) -> None:
         """알림창을 표시합니다."""
         pass
@@ -498,6 +520,7 @@ class MainWindow:
 - `update_period_status()`: 상태 업데이트
 - `on_skip_button()`: 건너뛰기 처리
 - `on_retry_button()`: 재시도 처리
+- `on_student_count_change()`: 학생 수 변경 처리
 - `show_alert()`: 알림창 표시
 
 ---
@@ -540,9 +563,22 @@ class InitDialog:
     def on_ok(self) -> None:
         """확인 버튼 핸들러"""
         pass
-    
+
     def on_cancel(self) -> None:
         """취소 버튼 핸들러"""
+        pass
+
+    def validate_input(self) -> bool:
+        """
+        입력값을 검증합니다.
+
+        Returns:
+            bool: 유효성 여부
+
+        Validation:
+            - 학생 수: 1~100명
+            - 저장 경로: 폴더 존재 여부
+        """
         pass
 ```
 
@@ -577,9 +613,9 @@ class InitDialog:
 ```
 1. MainWindow.on_retry_button(period)
    ↓
-2. Scheduler.skip_period(period) (재활성화)
+2. Scheduler.reset_period(period)
    ↓
-3. 시간대 확인
+3. Scheduler.is_in_capture_window(period) 확인
    ↓ 시간대 내
 4. 즉시 캡처 프로세스 실행 (덮어쓰기)
    ↓ 시간대 종료 후
