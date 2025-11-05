@@ -240,3 +240,31 @@ class CaptureScheduler:
 
         self.is_running = False
         logger.info("스케줄러 중지")
+
+    def skip_period(self, period: int) -> None:
+        """
+        특정 교시를 건너뜁니다.
+
+        해당 교시의 is_skipped 플래그를 True로 설정하여
+        자동 캡처를 중단합니다.
+
+        Args:
+            period: 교시 번호 (1~8: 교시, 0: 퇴실)
+
+        Example:
+            >>> scheduler.skip_period(1)  # 1교시 건너뛰기
+        """
+        # 해당 교시의 스케줄 찾기
+        schedule = None
+        for s in self.schedules:
+            if s["period"] == period:
+                schedule = s
+                break
+
+        if schedule is None:
+            logger.warning(f"교시 {period}의 스케줄을 찾을 수 없습니다")
+            return
+
+        # 건너뛰기 플래그 설정
+        schedule["is_skipped"] = True
+        logger.info(f"교시 {period} 건너뛰기 설정")
