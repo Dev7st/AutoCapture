@@ -107,3 +107,48 @@ class CaptureScheduler:
         except ValueError as e:
             logger.error(f"스케줄 추가 실패: {e}")
             raise
+
+    def is_in_capture_window(self, period: int) -> bool:
+        """
+        현재 시간이 캡처 시간대인지 확인합니다.
+
+        Args:
+            period: 교시 번호 (1~8: 교시, 0: 퇴실)
+
+        Returns:
+            bool: 캡처 시간대 여부 (True: 시간대 내, False: 시간대 외)
+
+        Example:
+            >>> scheduler.is_in_capture_window(1)
+            True  # 현재 시간이 09:30~09:45 사이인 경우
+        """
+        # 해당 교시의 스케줄 찾기
+        schedule = None
+        for s in self.schedules:
+            if s["period"] == period:
+                schedule = s
+                break
+
+        if schedule is None:
+            logger.warning(f"교시 {period}의 스케줄을 찾을 수 없습니다")
+            return False
+
+        # 현재 시간 가져오기
+        now = datetime.now()
+        current_time = now.strftime("%H:%M")
+
+        # 시간대 확인
+        start_time = schedule["start_time"]
+        end_time = schedule["end_time"]
+
+        # 시간 문자열을 분으로 변환하여 비교
+        def time_to_minutes(time_str: str) -> int:
+            """HH:MM 형식을 분 단위로 변환"""
+            hour, minute = map(int, time_str.split(":"))
+            return hour * 60 + minute
+
+        current_minutes = time_to_minutes(current_time)
+        start_minutes = time_to_minutes(start_time)
+        end_minutes = time_to_minutes(end_time)
+
+        return start_minutes <= current_minutes < end_minutes
