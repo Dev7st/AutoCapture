@@ -268,3 +268,60 @@ class CaptureScheduler:
         # 건너뛰기 플래그 설정
         schedule["is_skipped"] = True
         logger.info(f"교시 {period} 건너뛰기 설정")
+
+    def mark_completed(self, period: int) -> None:
+        """
+        교시 완료 처리를 수행합니다.
+
+        캡처 성공 시 호출되며, is_completed 플래그를 True로 설정하여
+        해당 교시의 추가 캡처 시도를 중단합니다.
+
+        Args:
+            period: 교시 번호 (1~8: 교시, 0: 퇴실)
+
+        Example:
+            >>> scheduler.mark_completed(1)  # 1교시 완료 처리
+        """
+        # 해당 교시의 스케줄 찾기
+        schedule = None
+        for s in self.schedules:
+            if s["period"] == period:
+                schedule = s
+                break
+
+        if schedule is None:
+            logger.warning(f"교시 {period}의 스케줄을 찾을 수 없습니다")
+            return
+
+        # 완료 플래그 설정
+        schedule["is_completed"] = True
+        logger.info(f"교시 {period} 완료 처리")
+
+    def reset_period(self, period: int) -> None:
+        """
+        재시도를 위해 교시 상태를 초기화합니다.
+
+        재시도 버튼 클릭 시 호출되며, is_completed와 is_skipped 플래그를
+        False로 설정하여 다시 캡처를 시도할 수 있도록 합니다.
+
+        Args:
+            period: 교시 번호 (1~8: 교시, 0: 퇴실)
+
+        Example:
+            >>> scheduler.reset_period(1)  # 1교시 재시도
+        """
+        # 해당 교시의 스케줄 찾기
+        schedule = None
+        for s in self.schedules:
+            if s["period"] == period:
+                schedule = s
+                break
+
+        if schedule is None:
+            logger.warning(f"교시 {period}의 스케줄을 찾을 수 없습니다")
+            return
+
+        # 상태 초기화
+        schedule["is_completed"] = False
+        schedule["is_skipped"] = False
+        logger.info(f"교시 {period} 상태 초기화 (재시도 가능)")
