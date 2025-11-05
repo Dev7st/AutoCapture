@@ -40,30 +40,58 @@ def test_init():
 
 
 def test_add_schedule():
-    """스케줄 추가 테스트."""
+    """8교시 + 퇴실 전체 스케줄 등록 테스트."""
     print("=" * 60)
-    print("2. 스케줄 추가 테스트")
+    print("2. 8교시 + 퇴실 전체 스케줄 등록 테스트")
     print("=" * 60)
 
     try:
         scheduler = CaptureScheduler()
 
-        # 정상적인 스케줄 추가
         def dummy_callback(period):
-            print(f"Callback called: period={period}")
+            pass
 
-        scheduler.add_schedule(1, "09:30", "09:45", dummy_callback)
-        print(f"✅ 1교시 스케줄 추가 성공")
-        print(f"   period: {scheduler.schedules[0]['period']}")
-        print(f"   start_time: {scheduler.schedules[0]['start_time']}")
-        print(f"   end_time: {scheduler.schedules[0]['end_time']}")
-        print(f"   is_skipped: {scheduler.schedules[0]['is_skipped']}")
-        print(f"   is_completed: {scheduler.schedules[0]['is_completed']}")
+        # 1~8교시 스케줄 등록 (30~45분)
+        class_times = [
+            (1, "09:30", "09:45"),  # 1교시
+            (2, "10:30", "10:45"),  # 2교시
+            (3, "11:30", "11:45"),  # 3교시
+            (4, "12:30", "12:45"),  # 4교시
+            (5, "14:30", "14:45"),  # 5교시
+            (6, "15:30", "15:45"),  # 6교시
+            (7, "16:30", "16:45"),  # 7교시
+            (8, "17:30", "17:45"),  # 8교시
+        ]
+
+        # 퇴실 스케줄 (18:30~18:32)
+        checkout_time = (0, "18:30", "18:32")
+
+        # 1~8교시 등록
+        for period, start, end in class_times:
+            scheduler.add_schedule(period, start, end, dummy_callback)
+            print(f"✅ {period}교시 등록: {start}~{end}")
+
+        # 퇴실 등록
+        scheduler.add_schedule(checkout_time[0], checkout_time[1],
+                               checkout_time[2], dummy_callback)
+        print(f"✅ 퇴실 등록: {checkout_time[1]}~{checkout_time[2]}")
+        print()
+
+        # 총 스케줄 개수 확인
+        total_schedules = len(scheduler.schedules)
+        print(f"총 등록된 스케줄: {total_schedules}개")
+
+        if total_schedules == 9:
+            print(f"✅ 전체 스케줄 등록 성공 (8교시 + 퇴실)")
+        else:
+            print(f"❌ 전체 스케줄 등록 실패 (예상: 9개, 실제: {total_schedules}개)")
+            return False
+
         print()
 
         # 잘못된 시간 형식 테스트
         try:
-            scheduler.add_schedule(2, "25:00", "26:00", dummy_callback)
+            scheduler.add_schedule(99, "25:00", "26:00", dummy_callback)
             print(f"❌ 잘못된 시간 형식 검증 실패")
             return False
         except ValueError as e:
@@ -72,7 +100,7 @@ def test_add_schedule():
 
         # 시작 시간 >= 종료 시간 테스트
         try:
-            scheduler.add_schedule(3, "10:30", "10:30", dummy_callback)
+            scheduler.add_schedule(99, "10:30", "10:30", dummy_callback)
             print(f"❌ 시간 범위 검증 실패")
             return False
         except ValueError as e:
@@ -352,7 +380,7 @@ def main():
 
     # 테스트 실행
     results.append(("초기화", test_init()))
-    results.append(("스케줄 추가", test_add_schedule()))
+    results.append(("8교시+퇴실 스케줄 등록", test_add_schedule()))
     results.append(("시간대 확인", test_is_in_capture_window()))
     results.append(("건너뛰기", test_skip_period()))
     results.append(("완료 처리", test_mark_completed()))
