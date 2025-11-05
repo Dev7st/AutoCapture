@@ -106,17 +106,19 @@
 - [x] `tests/test_file_manager.py` 테스트 스크립트 작성
 
 ### 1.8 스케줄링 기능
-- [ ] `features/scheduler.py` 생성
-- [ ] `CaptureScheduler` 클래스 구현
-- [ ] `__init__()`: 스케줄 목록 초기화
-- [ ] `add_schedule()`: 스케줄 추가
-- [ ] `start()`: 스케줄러 시작
-- [ ] `stop()`: 스케줄러 중지
-- [ ] `skip_period()`: 건너뛰기
-- [ ] `is_in_capture_window()`: 캡처 시간대 확인
-- [ ] 8교시 + 퇴실 스케줄 등록 (09:30~09:45, ...)
-- [ ] 10초 간격 재시도 로직
-- [ ] 스케줄러 동작 테스트
+- [x] `features/scheduler.py` 생성
+- [x] `CaptureScheduler` 클래스 구현
+- [x] `__init__()`: 스케줄 목록 초기화
+- [x] `add_schedule()`: 스케줄 추가
+- [x] `is_in_capture_window()`: 캡처 시간대 확인
+- [x] `start()`: 스케줄러 시작
+- [x] `stop()`: 스케줄러 중지
+- [x] `skip_period()`: 건너뛰기
+- [x] `mark_completed()`: 교시 완료 처리 (캡처 성공 시)
+- [x] `reset_period()`: 재시도용 초기화 (재시도 버튼 클릭 시)
+- [x] 스케줄러 동작 테스트
+- [x] 8교시 + 퇴실 스케줄 등록 (09:30~09:45, ...)
+- [x] 10초 간격 재시도 로직
 
 ### 1.9 알림창
 - [ ] `MainWindow.show_alert()` 메서드 구현
