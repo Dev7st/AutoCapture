@@ -394,7 +394,15 @@ class CaptureScheduler:
     def skip_period(self, period: int) -> None:
         """특정 교시를 건너뜁니다."""
         pass
-    
+
+    def mark_completed(self, period: int) -> None:
+        """교시 완료 처리 (캡처 성공 시 호출)."""
+        pass
+
+    def reset_period(self, period: int) -> None:
+        """재시도용 초기화 (재시도 버튼 클릭 시 호출)."""
+        pass
+
     def is_in_capture_window(self, period: int) -> bool:
         """
         현재 시간이 캡처 시간대인지 확인합니다.
@@ -413,6 +421,8 @@ class CaptureScheduler:
 - `start()`: 스케줄러 시작
 - `stop()`: 스케줄러 중지
 - `skip_period()`: 건너뛰기
+- `mark_completed()`: 교시 완료 처리
+- `reset_period()`: 재시도용 초기화
 - `is_in_capture_window()`: 시간대 확인
 
 **스케줄 구조:**
