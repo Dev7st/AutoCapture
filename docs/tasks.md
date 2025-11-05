@@ -109,7 +109,7 @@
 - [x] `features/scheduler.py` 생성
 - [x] `CaptureScheduler` 클래스 구현
 - [x] `__init__()`: 스케줄 목록 초기화
-- [ ] `add_schedule()`: 스케줄 추가
+- [x] `add_schedule()`: 스케줄 추가
 - [ ] `is_in_capture_window()`: 캡처 시간대 확인
 - [ ] `start()`: 스케줄러 시작
 - [ ] `stop()`: 스케줄러 중지
