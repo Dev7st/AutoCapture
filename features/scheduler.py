@@ -6,13 +6,14 @@
 
 import logging
 from datetime import datetime, time
-from typing import Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
 
 # 상수 정의
 RETRY_INTERVAL = 10  # 재시도 간격 (초)
+CHECK_INTERVAL = 1000  # 스케줄 체크 간격 (밀리초)
 
 
 class CaptureScheduler:
@@ -24,11 +25,13 @@ class CaptureScheduler:
     Attributes:
         schedules (List[Dict]): 스케줄 목록
         is_running (bool): 실행 중 여부
+        _root (Optional[Any]): tkinter 루트 윈도우
+        _last_attempt (Dict[int, int]): 교시별 마지막 시도 시간 (초)
 
     Example:
         >>> scheduler = CaptureScheduler()
         >>> scheduler.add_schedule(1, "09:30", "09:45", capture_callback)
-        >>> scheduler.start()
+        >>> scheduler.start(root)
     """
 
     def __init__(self) -> None:
@@ -39,6 +42,8 @@ class CaptureScheduler:
         """
         self.schedules: List[Dict] = []
         self.is_running: bool = False
+        self._root: Optional[Any] = None
+        self._last_attempt: Dict[int, int] = {}
 
         logger.info("CaptureScheduler 초기화 완료")
 
@@ -152,3 +157,69 @@ class CaptureScheduler:
         end_minutes = time_to_minutes(end_time)
 
         return start_minutes <= current_minutes < end_minutes
+
+    def start(self, root: Any) -> None:
+        """
+        스케줄러를 시작합니다.
+
+        tkinter의 after() 메서드를 사용하여 1초마다 스케줄을 체크합니다.
+
+        Args:
+            root: tkinter 루트 윈도우 (tk.Tk 또는 tk.Toplevel)
+
+        Raises:
+            RuntimeError: 이미 실행 중인 경우
+
+        Example:
+            >>> scheduler.start(root)
+        """
+        if self.is_running:
+            logger.warning("스케줄러가 이미 실행 중입니다")
+            raise RuntimeError("스케줄러가 이미 실행 중입니다")
+
+        self._root = root
+        self.is_running = True
+        logger.info("스케줄러 시작")
+
+        # 첫 체크 시작
+        self._check_schedules()
+
+    def _check_schedules(self) -> None:
+        """
+        모든 스케줄을 체크하고 필요 시 callback을 호출합니다.
+
+        1초마다 호출되며, 10초 간격으로 callback을 실행합니다.
+        """
+        if not self.is_running:
+            return
+
+        try:
+            current_timestamp = int(datetime.now().timestamp())
+
+            for schedule in self.schedules:
+                period = schedule["period"]
+
+                # 건너뛰기 또는 완료된 교시는 무시
+                if schedule["is_skipped"] or schedule["is_completed"]:
+                    continue
+
+                # 캡처 시간대인지 확인
+                if not self.is_in_capture_window(period):
+                    continue
+
+                # 마지막 시도 시간 확인 (10초 간격)
+                last_attempt = self._last_attempt.get(period, 0)
+                if current_timestamp - last_attempt < RETRY_INTERVAL:
+                    continue
+
+                # callback 호출
+                self._last_attempt[period] = current_timestamp
+                callback = schedule["callback"]
+                callback(period)
+
+        except Exception as e:
+            logger.error(f"스케줄 체크 중 오류: {e}", exc_info=True)
+
+        # 1초 후 다시 체크
+        if self._root is not None:
+            self._root.after(CHECK_INTERVAL, self._check_schedules)
