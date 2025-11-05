@@ -98,11 +98,11 @@ FaceDetector.detect(image) → Face count (int)
     ↓
 Compare with threshold
     ↓ (if threshold met)
-FileManager.save_image() → File path
+FileManager.save_image(is_within_window) → File path
     ↓
 CSVLogger.log_event() → CSV entry
     ↓
-MainWindow.update_status() → UI update
+MainWindow.update_period_status() → UI update
     ↓
 MainWindow.show_alert() → Success notification
 ```
@@ -238,7 +238,9 @@ python -m pytest --cov=features tests/
 3. GPU-accelerated face detection (GTX 960)
 4. Count detected faces
 5. Compare with threshold
-6. If met: Save the already-captured image (don't re-capture)
+6. If met: Save the already-captured image with `is_within_window` parameter
+   - Within capture window: Overwrite existing file
+   - After capture window: Save as `_수정.png`
 7. If failed: Discard image, wait 10 seconds, retry from step 1
 
 **File Naming Convention**:
@@ -322,12 +324,13 @@ When making changes, always consult these documents:
 - Lunch break (13:30-14:30): No capture
 - Retry interval: Every 10 seconds within capture window
 
-**File Naming Rules**:
-- Within capture window retry: Overwrite existing file
+**File Naming Rules** (controlled by `is_within_window` parameter):
+- Within capture window retry (`is_within_window=True`): Overwrite existing file
   - `251020_1교시.png` → `251020_1교시.png` (overwrite)
-- After capture window retry: Save as modified
+- After capture window retry (`is_within_window=False`): Save as modified
   - `251020_1교시.png` (exists) → `251020_1교시_수정.png` (new file)
 - This preserves original capture while allowing manual corrections
+- The `is_within_window` parameter is determined by `Scheduler.is_in_capture_window()`
 
 ## Development Progress Tracking
 
@@ -337,12 +340,11 @@ When implementing new features, follow the specifications in `docs/architecture.
 
 ---
 
-**Document Version**: 2.0
-**Last Updated**: 2025-10-30
+**Document Version**: 2.1
+**Last Updated**: 2025-11-05
 **Major Changes**:
-- Removed .cursorrules references (file deleted)
-- Added application entry point and startup flow
-- Added data flow architecture diagram
-- Added state management details
-- Reorganized based on requirements.md, architecture.md, and rules.md
-- Removed development status details (moved to tasks.md to avoid frequent updates)
+- Updated Core Workflow: `update_status()` → `update_period_status()`
+- Updated Data Flow: Added `is_within_window` parameter to `FileManager.save_image()`
+- Updated Face Detection Flow: Added file naming logic based on capture window
+- Updated File Naming Rules: Added `is_within_window` parameter explanation
+- Synchronized with architecture.md v2.0 changes
