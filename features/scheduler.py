@@ -223,3 +223,20 @@ class CaptureScheduler:
         # 1초 후 다시 체크
         if self._root is not None:
             self._root.after(CHECK_INTERVAL, self._check_schedules)
+
+    def stop(self) -> None:
+        """
+        스케줄러를 중지합니다.
+
+        is_running 플래그를 False로 설정하여
+        _check_schedules()의 재귀 호출을 중단합니다.
+
+        Example:
+            >>> scheduler.stop()
+        """
+        if not self.is_running:
+            logger.warning("스케줄러가 실행 중이 아닙니다")
+            return
+
+        self.is_running = False
+        logger.info("스케줄러 중지")
