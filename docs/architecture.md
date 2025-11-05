@@ -613,9 +613,9 @@ class InitDialog:
 ```
 1. MainWindow.on_retry_button(period)
    ↓
-2. Scheduler.skip_period(period) (재활성화)
+2. Scheduler.reset_period(period)
    ↓
-3. 시간대 확인
+3. Scheduler.is_in_capture_window(period) 확인
    ↓ 시간대 내
 4. 즉시 캡처 프로세스 실행 (덮어쓰기)
    ↓ 시간대 종료 후
