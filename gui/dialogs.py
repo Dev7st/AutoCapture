@@ -7,6 +7,7 @@
 # 표준 라이브러리
 import logging
 import tkinter as tk
+from pathlib import Path
 from tkinter import ttk, filedialog, messagebox
 from typing import Optional, Dict, List
 
@@ -317,7 +318,8 @@ class InitDialog:
         """
         try:
             # 현재 경로를 초기 디렉토리로 설정
-            initial_dir = self.save_path_var.get() if self.save_path_var else "C:/"
+            current_path = self.save_path_var.get() if self.save_path_var else "C:/"
+            initial_dir = str(Path(current_path))
 
             # 폴더 선택 다이얼로그 표시
             selected_path = filedialog.askdirectory(
@@ -327,7 +329,9 @@ class InitDialog:
 
             # 경로가 선택되면 업데이트 (취소 시 빈 문자열 반환)
             if selected_path:
-                self.save_path_var.set(selected_path)
+                # Path 객체로 변환 후 문자열로 저장 (UI 표시용)
+                normalized_path = str(Path(selected_path))
+                self.save_path_var.set(normalized_path)
 
         except Exception as e:
             # 예외 발생 시 에러 로그 및 사용자 알림
@@ -583,7 +587,7 @@ class InitDialog:
 
     # ==================== Validation ====================
 
-    def _validate_inputs(self) -> bool:
+    def validate_input(self) -> bool:
         """
         사용자 입력값의 유효성을 검증합니다.
 
@@ -642,15 +646,16 @@ class InitDialog:
         다이얼로그를 닫습니다.
         """
         # 입력값 검증
-        if not self._validate_inputs():
+        if not self.validate_input():
             # 검증 실패 시 다이얼로그 유지 (early return)
             return
 
         # 선택된 모니터 ID 추출
         monitor_id = self._get_selected_monitor_id()
 
-        # 저장 경로 가져오기
-        save_path = self.save_path_var.get() if self.save_path_var else "C:/IBM 비대면"
+        # 저장 경로 가져오기 (Path 객체로 정규화)
+        save_path_str = self.save_path_var.get() if self.save_path_var else "C:/IBM 비대면"
+        save_path = str(Path(save_path_str))
 
         # 캡처 모드 가져오기
         mode = self.mode_var.get() if self.mode_var else "flexible"
