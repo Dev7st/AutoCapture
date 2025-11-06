@@ -8,6 +8,7 @@
 import logging
 import os
 import tkinter as tk
+from pathlib import Path
 from tkinter import ttk, filedialog, messagebox
 from datetime import datetime
 from typing import Optional, Dict
@@ -517,30 +518,37 @@ class MainWindow:
             self.student_count_var.set(current_value - 1)
             logger.info(f"학생 수 감소: {current_value} → {current_value - 1}")
 
-    def _update_threshold_label(self, *args) -> None:
+    def on_student_count_change(self, new_count: int) -> None:
         """
-        학생 수 변경 시 기준 인원 레이블을 업데이트합니다.
+        출석 학생 수 변경 핸들러.
+
+        ▲▼ 버튼 또는 직접 입력 시 호출되며,
+        기준 인원을 자동으로 재계산합니다.
 
         Args:
-            *args: trace_add 콜백에서 전달되는 인자 (사용하지 않음)
+            new_count: 새로운 학생 수
+
+        Example:
+            >>> window.on_student_count_change(25)
         """
         try:
-            student_count = self.student_count_var.get()
-
-            # 범위 검증 및 수정
-            if student_count < 1:
-                student_count = 1
+            # 범위 검증
+            if new_count < 1:
+                new_count = 1
                 self.student_count_var.set(1)
-            elif student_count > 100:
-                student_count = 100
+            elif new_count > 100:
+                new_count = 100
                 self.student_count_var.set(100)
 
-            threshold = student_count + 1
+            # 기준 인원 계산 및 레이블 업데이트
+            threshold = new_count + 1
             self.threshold_label.config(
-                text=f"기준 인원: {threshold}명 (학생 {student_count}명 + 강사 1명)"
+                text=f"기준 인원: {threshold}명 (학생 {new_count}명 + 강사 1명)"
             )
+            logger.info(f"학생 수 변경: {new_count}명 (기준 인원: {threshold}명)")
+
         except Exception as e:
-            logger.error(f"기준 인원 업데이트 실패: {e}")
+            logger.error(f"학생 수 변경 처리 실패: {e}")
             # 잘못된 값일 경우 기본값으로 설정
             try:
                 self.student_count_var.set(1)
@@ -549,6 +557,22 @@ class MainWindow:
                 )
             except:
                 pass
+
+    def _update_threshold_label(self, *args) -> None:
+        """
+        학생 수 변경 시 기준 인원 레이블을 업데이트합니다.
+
+        trace_add 콜백 함수로 사용됩니다.
+        실제 처리는 on_student_count_change()에서 수행합니다.
+
+        Args:
+            *args: trace_add 콜백에서 전달되는 인자 (사용하지 않음)
+        """
+        try:
+            student_count = self.student_count_var.get()
+            self.on_student_count_change(student_count)
+        except Exception as e:
+            logger.error(f"기준 인원 레이블 업데이트 실패: {e}")
 
     # ==================== Period Section ====================
 
@@ -803,20 +827,25 @@ class MainWindow:
         폴더 선택 다이얼로그를 표시하고 저장 경로를 변경합니다.
         """
         try:
+            # 현재 경로를 Path 객체로 변환
+            initial_dir = str(Path(self.save_path))
+
             # 폴더 선택 다이얼로그
             selected_path = filedialog.askdirectory(
                 title="저장 경로 선택",
-                initialdir=self.save_path
+                initialdir=initial_dir
             )
 
             # 경로가 선택되면 업데이트
             if selected_path:
-                self.save_path = selected_path
+                # Path 객체로 정규화 후 문자열로 저장
+                normalized_path = str(Path(selected_path))
+                self.save_path = normalized_path
                 messagebox.showinfo(
                     "경로 변경 완료",
-                    f"저장 경로가 변경되었습니다.\n\n{selected_path}"
+                    f"저장 경로가 변경되었습니다.\n\n{normalized_path}"
                 )
-                logger.info(f"저장 경로 변경: {selected_path}")
+                logger.info(f"저장 경로 변경: {normalized_path}")
 
                 # TODO: Config.save()로 설정 저장 (Phase 3)
 
@@ -831,8 +860,11 @@ class MainWindow:
         탐색기로 저장 폴더를 엽니다.
         """
         try:
+            # Path 객체로 변환
+            save_path_obj = Path(self.save_path)
+
             # 폴더 존재 확인
-            if not os.path.exists(self.save_path):
+            if not save_path_obj.exists():
                 messagebox.showerror(
                     "오류",
                     f"저장 폴더가 존재하지 않습니다.\n\n{self.save_path}"
@@ -840,8 +872,8 @@ class MainWindow:
                 logger.warning(f"저장 폴더가 존재하지 않음: {self.save_path}")
                 return
 
-            # Windows 탐색기로 폴더 열기
-            os.startfile(self.save_path)
+            # Windows 탐색기로 폴더 열기 (os.startfile은 Windows 전용)
+            os.startfile(str(save_path_obj))
             logger.info(f"저장 폴더 열기: {self.save_path}")
 
         except Exception as e:
