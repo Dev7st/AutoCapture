@@ -82,21 +82,21 @@ class TestFolderCreation:
 class TestFilePathGeneration:
     """파일 경로 생성 테스트"""
 
-    def test_get_file_path_period_1_normal(self):
-        """1교시 일반 파일 경로 생성 테스트"""
+    def test_get_file_path_period_1_within_window(self):
+        """1교시 시간대 내 파일 경로 생성 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
             fm = FileManager(tmpdir)
-            path = fm.get_file_path(1, False)
+            path = fm.get_file_path(1, is_within_window=True)
 
             expected_filename = f"{fm.current_date}_1교시.png"
             assert path.name == expected_filename
             assert path.parent == Path(tmpdir) / fm.current_date
 
-    def test_get_file_path_period_1_modified(self):
-        """1교시 수정본 파일 경로 생성 테스트"""
+    def test_get_file_path_period_1_after_window(self):
+        """1교시 시간 종료 후 파일 경로 생성 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
             fm = FileManager(tmpdir)
-            path = fm.get_file_path(1, True)
+            path = fm.get_file_path(1, is_within_window=False)
 
             expected_filename = f"{fm.current_date}_1교시_수정.png"
             assert path.name == expected_filename
@@ -105,7 +105,7 @@ class TestFilePathGeneration:
         """퇴실 파일 경로 생성 테스트"""
         with tempfile.TemporaryDirectory() as tmpdir:
             fm = FileManager(tmpdir)
-            path = fm.get_file_path(0, False)
+            path = fm.get_file_path(0, is_within_window=True)
 
             expected_filename = f"{fm.current_date}_퇴실.png"
             assert path.name == expected_filename
@@ -116,7 +116,7 @@ class TestFilePathGeneration:
             fm = FileManager(tmpdir)
 
             for period in range(9):
-                path = fm.get_file_path(period, False)
+                path = fm.get_file_path(period, is_within_window=True)
                 assert path.suffix == ".png"
                 assert path.parent == Path(tmpdir) / fm.current_date
 
@@ -124,19 +124,19 @@ class TestFilePathGeneration:
         """잘못된 period (음수) 테스트"""
         fm = FileManager()
         with pytest.raises(ValueError, match="0~8 범위"):
-            fm.get_file_path(-1, False)
+            fm.get_file_path(-1, is_within_window=True)
 
     def test_get_file_path_invalid_period_too_large(self):
         """잘못된 period (9 이상) 테스트"""
         fm = FileManager()
         with pytest.raises(ValueError, match="0~8 범위"):
-            fm.get_file_path(9, False)
+            fm.get_file_path(9, is_within_window=True)
 
     def test_get_file_path_invalid_period_type(self):
         """잘못된 period 타입 테스트"""
         fm = FileManager()
         with pytest.raises(ValueError, match="정수여야"):
-            fm.get_file_path("1", False)
+            fm.get_file_path("1", is_within_window=True)
 
 
 class TestImageSaving:
@@ -151,7 +151,7 @@ class TestImageSaving:
             image = np.zeros((100, 100, 3), dtype=np.uint8)
             image[:, :] = [255, 0, 0]  # 빨간색
 
-            saved_path = fm.save_image(image, 1, False)
+            saved_path = fm.save_image(image, 1, is_within_window=True)
 
             assert Path(saved_path).exists()
             assert Path(saved_path).suffix == ".png"
@@ -164,17 +164,17 @@ class TestImageSaving:
             # 100x100 회색 이미지 생성
             image = np.full((100, 100), 128, dtype=np.uint8)
 
-            saved_path = fm.save_image(image, 1, False)
+            saved_path = fm.save_image(image, 1, is_within_window=True)
             assert Path(saved_path).exists()
 
     def test_save_image_overwrite(self):
-        """파일 덮어쓰기 테스트"""
+        """파일 덮어쓰기 테스트 (시간대 내)"""
         with tempfile.TemporaryDirectory() as tmpdir:
             fm = FileManager(tmpdir)
             image = np.zeros((100, 100, 3), dtype=np.uint8)
 
             # 첫 번째 저장
-            path1 = fm.save_image(image, 1, False)
+            path1 = fm.save_image(image, 1, is_within_window=True)
             mtime1 = os.path.getmtime(path1)
 
             # 잠시 대기 (파일 수정 시간 차이를 위해)
@@ -182,7 +182,7 @@ class TestImageSaving:
             time.sleep(0.1)
 
             # 두 번째 저장 (덮어쓰기)
-            path2 = fm.save_image(image, 1, False)
+            path2 = fm.save_image(image, 1, is_within_window=True)
             mtime2 = os.path.getmtime(path2)
 
             # 같은 경로에 저장되고, 수정 시간이 달라야 함
@@ -190,16 +190,16 @@ class TestImageSaving:
             assert mtime2 > mtime1
 
     def test_save_image_modified_version(self):
-        """수정본 파일 저장 테스트"""
+        """수정본 파일 저장 테스트 (시간 종료 후)"""
         with tempfile.TemporaryDirectory() as tmpdir:
             fm = FileManager(tmpdir)
             image = np.zeros((100, 100, 3), dtype=np.uint8)
 
-            # 일반 파일 저장
-            path1 = fm.save_image(image, 1, False)
+            # 시간대 내 파일 저장
+            path1 = fm.save_image(image, 1, is_within_window=True)
 
-            # 수정본 저장
-            path2 = fm.save_image(image, 1, True)
+            # 시간 종료 후 수정본 저장
+            path2 = fm.save_image(image, 1, is_within_window=False)
 
             # 두 파일 모두 존재해야 함
             assert Path(path1).exists()
@@ -215,7 +215,7 @@ class TestImageSaving:
 
             saved_paths = []
             for period in range(9):
-                path = fm.save_image(image, period, False)
+                path = fm.save_image(image, period, is_within_window=True)
                 saved_paths.append(path)
                 assert Path(path).exists()
 
@@ -226,21 +226,21 @@ class TestImageSaving:
         """None 이미지 저장 시 에러 테스트"""
         fm = FileManager()
         with pytest.raises(ValueError, match="None"):
-            fm.save_image(None, 1, False)
+            fm.save_image(None, 1, is_within_window=True)
 
     def test_save_image_invalid_empty(self):
         """빈 이미지 저장 시 에러 테스트"""
         fm = FileManager()
         empty_image = np.array([])
         with pytest.raises(ValueError, match="비어있습니다"):
-            fm.save_image(empty_image, 1, False)
+            fm.save_image(empty_image, 1, is_within_window=True)
 
     def test_save_image_invalid_shape_1d(self):
         """1D 이미지 저장 시 에러 테스트"""
         fm = FileManager()
         image_1d = np.array([1, 2, 3, 4, 5])
         with pytest.raises(ValueError, match="2D 또는 3D"):
-            fm.save_image(image_1d, 1, False)
+            fm.save_image(image_1d, 1, is_within_window=True)
 
     def test_save_image_invalid_channel(self):
         """잘못된 채널 수 이미지 저장 시 에러 테스트"""
@@ -248,7 +248,7 @@ class TestImageSaving:
         # 5채널 이미지 (잘못된 형식)
         image_5ch = np.zeros((100, 100, 5), dtype=np.uint8)
         with pytest.raises(ValueError, match="채널은"):
-            fm.save_image(image_5ch, 1, False)
+            fm.save_image(image_5ch, 1, is_within_window=True)
 
 
 class TestPrivateMethods:
