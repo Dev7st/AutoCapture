@@ -50,7 +50,7 @@
 - [x] `setup_ui()`: UI 배치
 - [x] 상단 정보 영역 UI
 - [x] 날짜 표시 (실시간)
-- [ ] `update_time()`: 시간 표시 (1초 업데이트)
+- [x] `update_time()`: 시간 표시 (1초 업데이트)
 - [x] 현재 상태 표시 (다음 교시까지 남은 시간)
 - [x] 캡처 모니터 표시 및 [변경] 버튼
 - [x] 인원 관리 영역 UI
@@ -64,11 +64,11 @@
 - [x] 하단 버튼 영역 UI
 - [x] [📁 저장 경로 설정] 버튼
 - [x] [📂 저장 폴더 열기] 버튼
-- [ ] `update_period_status()`: 교시 상태 업데이트
-- [ ] `on_skip_button()`: 건너뛰기 버튼 핸들러
-- [ ] `on_retry_button()`: 재시도 버튼 핸들러
-- [ ] `on_student_count_change()`: 학생 수 변경 핸들러
-- [ ] `show_alert()`: 알림창 표시
+- [x] `update_period_status()`: 교시 상태 업데이트
+- [x] `on_skip_button()`: 건너뛰기 버튼 핸들러
+- [x] `on_retry_button()`: 재시도 버튼 핸들러
+- [x] `on_student_count_change()`: 학생 수 변경 핸들러
+- [x] `show_alert()`: 알림창 표시
 
 ### 1.4 모니터 선택 기능
 - [x] `utils/monitor.py` 생성
