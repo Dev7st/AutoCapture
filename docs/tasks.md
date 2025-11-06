@@ -103,12 +103,12 @@
 - [x] `FileManager` 클래스 구현
 - [x] `__init__()`: 기본 저장 경로 설정
 - [x] `ensure_folder_exists()`: 날짜 폴더 생성
-- [x] `get_file_path()`: 파일 경로 생성 (파일명 규칙, 시간대 내/외 구분)
+- [x] `get_file_path(is_within_window)`: 파일 경로 생성 (파일명 규칙, 시간대 내/외 구분)
 - [x] `_get_period_name()`: 교시명 반환 (Private)
 - [x] `_validate_image()`: 이미지 유효성 검사 (Private)
-- [ ] `save_image(is_within_window)`: 이미지 저장 (시간대 기반 파일명)
-- [ ] 에러 처리 강화 (권한, 디스크 공간, 잘못된 입력)
-- [ ] `tests/test_file_manager.py` 테스트 스크립트 작성
+- [x] `save_image(is_within_window)`: 이미지 저장 (시간대 기반 파일명)
+- [x] 에러 처리 강화 (권한, 디스크 공간, 잘못된 입력)
+- [x] `tests/test_file_manager.py` 테스트 스크립트 작성
 
 ### 1.8 스케줄링 기능
 - [x] `features/scheduler.py` 생성

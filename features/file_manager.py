@@ -31,7 +31,7 @@ class FileManager:
 
     Example:
         >>> fm = FileManager("C:/IBM 비대면")
-        >>> file_path = fm.save_image(image, period=1, is_modified=False)
+        >>> file_path = fm.save_image(image, period=1, is_within_window=True)
         "C:/IBM 비대면/251104/251104_1교시.png"
     """
 
@@ -82,17 +82,17 @@ class FileManager:
             logger.error(f"폴더 생성 실패: {e}", exc_info=True)
             raise OSError(f"폴더 생성 중 오류 발생: {e}")
 
-    def get_file_path(self, period: int, is_modified: bool = False) -> Path:
+    def get_file_path(self, period: int, is_within_window: bool) -> Path:
         """
         파일 경로를 생성합니다.
 
-        교시 번호와 수정본 여부에 따라 파일 경로를 생성합니다.
+        교시 번호와 캡처 시간대 여부에 따라 파일 경로를 생성합니다.
 
         Args:
             period: 교시 번호 (0=퇴실, 1~8=교시)
-            is_modified: 수정본 여부
-                        False: 일반 파일 (덮어쓰기)
-                        True: 수정본 파일 (_수정.png)
+            is_within_window: 캡처 시간대 내 여부
+                - True: 시간대 내 → 덮어쓰기
+                - False: 시간대 종료 후 → _수정.png
 
         Returns:
             Path: 생성된 파일 경로
@@ -102,13 +102,13 @@ class FileManager:
 
         Example:
             >>> fm = FileManager("C:/IBM 비대면")
-            >>> path = fm.get_file_path(1, False)
+            >>> path = fm.get_file_path(1, True)
             Path("C:/IBM 비대면/251104/251104_1교시.png")
 
-            >>> path = fm.get_file_path(1, True)
+            >>> path = fm.get_file_path(1, False)
             Path("C:/IBM 비대면/251104/251104_1교시_수정.png")
 
-            >>> path = fm.get_file_path(0, False)
+            >>> path = fm.get_file_path(0, True)
             Path("C:/IBM 비대면/251104/251104_퇴실.png")
         """
         # period 유효성 검사
@@ -124,10 +124,10 @@ class FileManager:
         period_name = self._get_period_name(period)
 
         # 파일명 생성
-        if is_modified:
-            filename = f"{self.current_date}_{period_name}_수정.png"
-        else:
+        if is_within_window:
             filename = f"{self.current_date}_{period_name}.png"
+        else:
+            filename = f"{self.current_date}_{period_name}_수정.png"
 
         # 전체 경로 생성
         file_path = self.base_path / self.current_date / filename
@@ -139,20 +139,20 @@ class FileManager:
         self,
         image: np.ndarray,
         period: int,
-        is_modified: bool = False
+        is_within_window: bool
     ) -> str:
         """
         이미지를 저장합니다.
 
         numpy array 형식의 이미지를 PNG 파일로 저장합니다.
-        파일명 규칙에 따라 일반 파일 또는 수정본으로 저장됩니다.
+        캡처 시간대 여부에 따라 덮어쓰기 또는 수정본으로 저장됩니다.
 
         Args:
             image: 저장할 이미지 (numpy array, RGB)
             period: 교시 번호 (0=퇴실, 1~8=교시)
-            is_modified: 수정본 여부
-                        False: 일반 파일 (기존 파일 덮어쓰기)
-                        True: 수정본 (_수정.png)
+            is_within_window: 캡처 시간대 내 여부
+                - True: 시간대 내 → 덮어쓰기
+                - False: 시간대 종료 후 → _수정.png
 
         Returns:
             str: 저장된 파일 경로
@@ -165,8 +165,10 @@ class FileManager:
         Example:
             >>> fm = FileManager()
             >>> image = np.array([[[255, 0, 0]]])  # 1x1 빨간색 이미지
-            >>> path = fm.save_image(image, 1, False)
+            >>> path = fm.save_image(image, 1, True)
             "C:/IBM 비대면/251104/251104_1교시.png"
+            >>> path = fm.save_image(image, 1, False)
+            "C:/IBM 비대면/251104/251104_1교시_수정.png"
         """
         try:
             # 1. 이미지 유효성 검사
@@ -176,7 +178,7 @@ class FileManager:
             self.ensure_folder_exists()
 
             # 3. 파일 경로 생성
-            file_path = self.get_file_path(period, is_modified)
+            file_path = self.get_file_path(period, is_within_window)
 
             # 4. numpy array → PIL Image 변환
             pil_image = Image.fromarray(image)
