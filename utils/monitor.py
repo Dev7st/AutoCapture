@@ -5,9 +5,15 @@
 선택할 수 있는 기능을 제공합니다.
 """
 
+# 표준 라이브러리
+import logging
+
 # 외부 라이브러리
 import mss
 from typing import List, Dict
+
+# 로거 설정
+logger = logging.getLogger(__name__)
 
 
 def get_monitors() -> List[Dict]:
@@ -48,7 +54,7 @@ def get_monitors() -> List[Dict]:
 
     except Exception as e:
         # 모니터 조회 실패 시 빈 리스트 반환
-        print(f"모니터 조회 실패: {e}")
+        logger.error(f"모니터 조회 실패: {e}")
         return []
 
 
