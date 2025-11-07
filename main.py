@@ -15,7 +15,6 @@ Usage:
 # 표준 라이브러리
 import logging
 import sys
-import tkinter as tk
 from pathlib import Path
 
 # 프로젝트 루트를 Python 경로에 추가
@@ -39,10 +38,9 @@ def main() -> None:
     """
     프로그램 메인 함수.
 
-    1. 루트 윈도우 생성 (숨김)
-    2. InitDialog를 표시하여 사용자 설정 수집
-    3. 설정값 검증
-    4. MainWindow 실행
+    1. InitDialog를 표시하여 사용자 설정 수집
+    2. 설정값 검증
+    3. MainWindow 실행
 
     Raises:
         Exception: 프로그램 실행 중 치명적 오류 발생 시
@@ -52,17 +50,10 @@ def main() -> None:
         logger.info("출결 관리 자동 캡처 프로그램 시작")
         logger.info("=" * 60)
 
-        # 1. 루트 윈도우 생성 (InitDialog의 부모 윈도우)
-        root = tk.Tk()
-        root.withdraw()  # 숨기기
-
-        # 2. 초기 설정 다이얼로그 표시
+        # 1. 초기 설정 다이얼로그 표시
         logger.info("초기 설정 다이얼로그 표시")
-        dialog = InitDialog(root)
+        dialog = InitDialog()
         config = dialog.show()
-
-        # 루트 윈도우 종료 (InitDialog 완료 후 불필요)
-        root.destroy()
 
         # 사용자가 취소를 선택한 경우
         if config is None:
@@ -76,14 +67,14 @@ def main() -> None:
         logger.info(f"  - 캡처 모드: {config.get('mode')}")
         logger.info(f"  - 학생 수: {config.get('student_count')}명")
 
-        # 3. 메인 윈도우 생성 및 실행
+        # 2. 메인 윈도우 생성 및 실행
         logger.info("메인 윈도우 시작")
         window = MainWindow(config)
 
         # TODO: Phase 1.10 나머지 작업
-        # 4. Features 인스턴스 생성 (MainWindow 내부에서)
-        # 5. Scheduler 시작 (MainWindow 내부에서)
-        # 6. 프로그램 종료 시 cleanup 처리
+        # 3. Features 인스턴스 생성 (MainWindow 내부에서)
+        # 4. Scheduler 시작 (MainWindow 내부에서)
+        # 5. 프로그램 종료 시 cleanup 처리
 
         window.run()
 
