@@ -126,10 +126,10 @@
 - [x] 10초 간격 재시도 로직
 
 ### 1.9 알림창
-- [ ] `MainWindow.show_alert()` 메서드 구현
-- [ ] 성공 알림창 (캡처 완료)
-- [ ] 실패 알림창 (얼굴 감지 실패)
-- [ ] 에러 알림창 (파일 저장 실패 등)
+- [x] `MainWindow.show_alert()` 메서드 구현
+- [x] 성공 알림창 (캡처 완료) - alert_type="info"
+- [x] 실패 알림창 (얼굴 감지 실패) - alert_type="warning"
+- [x] 에러 알림창 (파일 저장 실패 등) - alert_type="error"
 
 ### 1.10 메인 프로그램
 - [ ] `main.py` 생성

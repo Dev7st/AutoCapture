@@ -882,18 +882,44 @@ class MainWindow:
 
     # ==================== Alert ====================
 
-    def show_alert(self, title: str, message: str) -> None:
+    def show_alert(self, title: str, message: str, alert_type: str = "info") -> None:
         """
         알림창을 표시합니다.
 
-        TODO: Phase 2에서 캡처 성공/실패 알림에 사용
+        캡처 성공, 실패, 에러 등 다양한 상황에서 사용자에게 알림을 제공합니다.
 
         Args:
             title: 알림창 제목
             message: 알림 메시지
+            alert_type: 알림 타입 ("info", "warning", "error")
+                - "info": 정보 알림 (성공, 완료 등)
+                - "warning": 경고 알림 (실패, 재시도 필요 등)
+                - "error": 에러 알림 (파일 저장 실패, 권한 오류 등)
 
         Example:
-            >>> window.show_alert("캡처 성공", "1교시 캡처가 완료되었습니다.")
+            >>> # 성공 알림
+            >>> window.show_alert("캡처 완료", "1교시 캡처가 완료되었습니다.", "info")
+
+            >>> # 실패 알림
+            >>> window.show_alert("감지 실패", "얼굴이 감지되지 않았습니다.", "warning")
+
+            >>> # 에러 알림
+            >>> window.show_alert("저장 실패", "파일 저장 권한이 없습니다.", "error")
         """
-        messagebox.showinfo(title, message)
-        logger.info(f"알림 표시: {title} - {message}")
+        try:
+            # alert_type에 따라 적절한 messagebox 호출
+            if alert_type == "info":
+                messagebox.showinfo(title, message)
+            elif alert_type == "warning":
+                messagebox.showwarning(title, message)
+            elif alert_type == "error":
+                messagebox.showerror(title, message)
+            else:
+                # 잘못된 타입이면 기본값 사용
+                logger.warning(f"알 수 없는 alert_type: {alert_type}, info로 대체")
+                messagebox.showinfo(title, message)
+
+            logger.info(f"알림 표시: [{alert_type}] {title} - {message}")
+
+        except Exception as e:
+            logger.error(f"알림창 표시 실패: {e}", exc_info=True)
