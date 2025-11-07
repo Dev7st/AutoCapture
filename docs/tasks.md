@@ -132,10 +132,10 @@
 - [x] 에러 알림창 (파일 저장 실패 등) - alert_type="error"
 
 ### 1.10 메인 프로그램
-- [ ] `main.py` 생성
-- [ ] 초기 설정 다이얼로그 표시
+- [x] `main.py` 생성
+- [x] 초기 설정 다이얼로그 표시 (InitDialog)
+- [x] 메인 윈도우 시작 (MainWindow with config)
 - [ ] Features 인스턴스 생성 (Capture, Detector, FileManager, Scheduler)
-- [ ] 메인 윈도우 시작
 - [ ] 프로그램 종료 시 cleanup 처리
 
 ---
