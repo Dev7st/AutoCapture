@@ -6,6 +6,7 @@
 
 # 표준 라이브러리
 import logging
+import platform
 import tkinter as tk
 from pathlib import Path
 from tkinter import ttk, filedialog, messagebox
@@ -29,12 +30,11 @@ class InitDialog:
     - 출석 학생 수 입력
 
     Attributes:
-        parent: 부모 윈도우
-        dialog (tk.Toplevel): 다이얼로그 윈도우
+        dialog (tk.Tk): 다이얼로그 윈도우
         result (Optional[Dict]): 사용자 입력 결과
 
     Example:
-        >>> dialog = InitDialog(parent)
+        >>> dialog = InitDialog()
         >>> result = dialog.show()
         >>> print(result)
         {'monitor_id': 2, 'save_path': 'C:/IBM 비대면', 'mode': 'flexible', 'student_count': 1}
@@ -42,15 +42,11 @@ class InitDialog:
 
     # ==================== Public Methods ====================
 
-    def __init__(self, parent: tk.Tk):
+    def __init__(self):
         """
         초기 설정 다이얼로그를 초기화합니다.
-
-        Args:
-            parent: 부모 윈도우
         """
-        self.parent = parent
-        self.dialog: Optional[tk.Toplevel] = None
+        self.dialog: Optional[tk.Tk] = None
         self.result: Optional[Dict] = None
 
         # UI 변수
@@ -64,7 +60,7 @@ class InitDialog:
         """
         다이얼로그를 표시하고 사용자 입력을 받습니다.
 
-        모달 다이얼로그로 표시되며, 사용자가 확인 또는 취소를
+        독립 윈도우로 표시되며, 사용자가 확인 또는 취소를
         선택할 때까지 대기합니다.
 
         Returns:
@@ -78,29 +74,24 @@ class InitDialog:
                            }
 
         Example:
-            >>> dialog = InitDialog(parent)
+            >>> dialog = InitDialog()
             >>> result = dialog.show()
             >>> if result:
             ...     print(f"선택된 모니터: {result['monitor_id']}")
         """
-        # 다이얼로그 윈도우 생성
-        self.dialog = tk.Toplevel(self.parent)
+        # 독립 윈도우 생성
+        self.dialog = tk.Tk()
         self.dialog.title("초기 설정")
-        self.dialog.geometry("850x1250")
-        self.dialog.resizable(False, False)
+        self.dialog.resizable(True, True)  # 창 이동 및 크기 조절 가능
 
-        # 모달 설정 (부모 윈도우 비활성화)
-        self.dialog.transient(self.parent)
-        self.dialog.grab_set()
-
-        # UI 구성 (다음 단계에서 구현)
+        # UI 구성
         self._setup_ui()
 
-        # 윈도우 중앙 배치
+        # 윈도우 크기와 중앙 위치 설정
         self._center_window()
 
-        # 다이얼로그가 닫힐 때까지 대기
-        self.dialog.wait_window()
+        # 메인 루프 시작 (윈도우가 닫힐 때까지 대기)
+        self.dialog.mainloop()
 
         return self.result
 
@@ -138,21 +129,35 @@ class InitDialog:
 
     def _center_window(self) -> None:
         """다이얼로그를 화면 중앙에 배치합니다."""
-        self.dialog.update_idletasks()
-
-        # 화면 크기
-        screen_width = self.dialog.winfo_screenwidth()
-        screen_height = self.dialog.winfo_screenheight()
-
         # 윈도우 크기
-        window_width = self.dialog.winfo_width()
-        window_height = self.dialog.winfo_height()
+        window_width = 850
+        window_height = 1250
+
+        # HiDPI/Retina 디스플레이 처리
+        if platform.system() == "Windows":
+            try:
+                import ctypes
+                # 실제 물리적 화면 크기 가져오기
+                user32 = ctypes.windll.user32
+                screen_width = user32.GetSystemMetrics(0)
+                screen_height = user32.GetSystemMetrics(1)
+            except Exception as e:
+                logger.warning(f"실제 화면 크기 가져오기 실패, 기본값 사용: {e}")
+                self.dialog.update_idletasks()
+                screen_width = self.dialog.winfo_screenwidth()
+                screen_height = self.dialog.winfo_screenheight()
+        else:
+            # macOS, Linux는 winfo 사용
+            self.dialog.update_idletasks()
+            screen_width = self.dialog.winfo_screenwidth()
+            screen_height = self.dialog.winfo_screenheight()
 
         # 중앙 좌표 계산
         x = (screen_width - window_width) // 2
         y = (screen_height - window_height) // 2
 
-        self.dialog.geometry(f"+{x}+{y}")
+        # 크기와 위치를 함께 설정
+        self.dialog.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
     # ==================== Monitor Section ====================
 
