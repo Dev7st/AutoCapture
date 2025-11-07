@@ -7,6 +7,7 @@
 # 표준 라이브러리
 import logging
 import os
+import platform
 import tkinter as tk
 from pathlib import Path
 from tkinter import ttk, filedialog, messagebox
@@ -59,8 +60,7 @@ class MainWindow:
         """
         self.root = tk.Tk()
         self.root.title("출결 관리 자동 캡처 시스템")
-        self.root.geometry("750x820")
-        self.root.resizable(False, False)
+        self.root.resizable(True, True)
 
         # 설정값 저장
         self.config = config
@@ -87,6 +87,9 @@ class MainWindow:
         # UI 구성
         self.setup_ui()
 
+        # 윈도우 크기와 중앙 위치 설정
+        self._center_window()
+
         # 시간 업데이트 시작
         self.update_time()
 
@@ -108,6 +111,38 @@ class MainWindow:
             8: (17, 45),  # 8교시: 17:30~17:45
             0: (18, 32),  # 퇴실: 18:30~18:32
         }
+
+    def _center_window(self) -> None:
+        """메인 윈도우를 화면 중앙에 배치합니다."""
+        # 윈도우 크기
+        window_width = 900
+        window_height = 1100
+
+        # HiDPI/Retina 디스플레이 처리
+        if platform.system() == "Windows":
+            try:
+                import ctypes
+                # 실제 물리적 화면 크기 가져오기
+                user32 = ctypes.windll.user32
+                screen_width = user32.GetSystemMetrics(0)
+                screen_height = user32.GetSystemMetrics(1)
+            except Exception as e:
+                logger.warning(f"실제 화면 크기 가져오기 실패, 기본값 사용: {e}")
+                self.root.update_idletasks()
+                screen_width = self.root.winfo_screenwidth()
+                screen_height = self.root.winfo_screenheight()
+        else:
+            # macOS, Linux는 winfo 사용
+            self.root.update_idletasks()
+            screen_width = self.root.winfo_screenwidth()
+            screen_height = self.root.winfo_screenheight()
+
+        # 중앙 좌표 계산
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+
+        # 크기와 위치를 함께 설정
+        self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
     def setup_ui(self) -> None:
         """
