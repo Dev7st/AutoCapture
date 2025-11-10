@@ -154,8 +154,8 @@
 ## 📋 Phase 2: 제어 기능 및 통합 (Control & Integration)
 
 ### 2.1 CSV 로깅
-- [ ] `features/logger.py` 생성
-- [ ] `CSVLogger` 클래스 기본 구조
+- [x] `features/logger.py` 생성
+- [x] `CSVLogger` 클래스 기본 구조
 - [ ] `_ensure_log_file()`: 로그 파일 생성 (헤더 포함)
 - [ ] `__init__()`: 로그 파일 경로 설정
 - [ ] `log_event()`: 이벤트 기록 메서드
