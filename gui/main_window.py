@@ -288,10 +288,82 @@ class MainWindow:
         메인 윈도우를 실행합니다.
 
         이벤트 루프를 시작하고 윈도우가 닫힐 때까지 대기합니다.
+        윈도우 종료 시 cleanup 처리를 수행합니다.
         """
+        # 윈도우 종료 이벤트 핸들러 등록
+        self.root.protocol("WM_DELETE_WINDOW", self._on_closing)
+
         logger.info("메인 윈도우 실행 시작")
         self.root.mainloop()
         logger.info("메인 윈도우 종료")
+
+    def _on_closing(self) -> None:
+        """
+        윈도우 종료 이벤트 핸들러.
+
+        사용자가 X 버튼을 클릭하거나 윈도우를 닫을 때 호출됩니다.
+        cleanup 처리를 수행한 후 윈도우를 종료합니다.
+        """
+        logger.info("윈도우 종료 요청 받음")
+
+        # cleanup 처리
+        self.cleanup()
+
+        # 윈도우 파괴
+        self.root.destroy()
+        logger.info("윈도우 종료 완료")
+
+    def cleanup(self) -> None:
+        """
+        프로그램 종료 시 리소스 정리.
+
+        - Scheduler 중지
+        - FaceDetector GPU 메모리 해제
+        - 기타 리소스 정리
+        """
+        logger.info("=" * 60)
+        logger.info("리소스 정리 시작")
+        logger.info("=" * 60)
+
+        # 1. Scheduler 중지
+        if self.scheduler is not None:
+            try:
+                logger.info("Scheduler 중지 중...")
+                self.scheduler.stop()
+                logger.info("Scheduler 중지 완료")
+            except Exception as e:
+                logger.error(f"Scheduler 중지 실패: {e}", exc_info=True)
+
+        # 2. FaceDetector GPU 메모리 해제
+        if self.detector is not None:
+            try:
+                logger.info("FaceDetector GPU 메모리 해제 중...")
+                self.detector.cleanup()
+                logger.info("FaceDetector 메모리 해제 완료")
+            except Exception as e:
+                logger.error(f"FaceDetector cleanup 실패: {e}", exc_info=True)
+
+        # 3. ScreenCapture 정리 (필요 시)
+        if self.capture is not None:
+            try:
+                logger.info("ScreenCapture 리소스 해제")
+                # ScreenCapture는 별도 cleanup 메서드가 없으므로 None 처리
+                self.capture = None
+            except Exception as e:
+                logger.error(f"ScreenCapture 정리 실패: {e}", exc_info=True)
+
+        # 4. FileManager 정리 (필요 시)
+        if self.file_manager is not None:
+            try:
+                logger.info("FileManager 리소스 해제")
+                # FileManager는 별도 cleanup 메서드가 없으므로 None 처리
+                self.file_manager = None
+            except Exception as e:
+                logger.error(f"FileManager 정리 실패: {e}", exc_info=True)
+
+        logger.info("=" * 60)
+        logger.info("리소스 정리 완료")
+        logger.info("=" * 60)
 
     # ==================== Info Section ====================
 
