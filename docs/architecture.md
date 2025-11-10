@@ -605,7 +605,7 @@ class InitDialog:
 ```
 1. Scheduler (시간 도달)
    ↓
-2. MainWindow.on_schedule_trigger()
+2. MainWindow._on_capture_trigger(period)
    ↓
 3. ScreenCapture.capture()
    ↓ (image)
