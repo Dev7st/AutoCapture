@@ -14,6 +14,12 @@ from tkinter import ttk, filedialog, messagebox
 from datetime import datetime
 from typing import Optional, Dict
 
+# 내부 모듈
+from features.capture import ScreenCapture
+from features.face_detection import FaceDetector
+from features.file_manager import FileManager
+from features.scheduler import CaptureScheduler
+
 # 로거 설정
 logger = logging.getLogger(__name__)
 
@@ -41,6 +47,10 @@ class MainWindow:
         save_path (str): 저장 경로
         mode (str): 캡처 모드 ('exact' or 'flexible')
         student_count (int): 출석 학생 수
+        capture (ScreenCapture): 화면 캡처 인스턴스
+        detector (FaceDetector): 얼굴 감지 인스턴스
+        file_manager (FileManager): 파일 관리 인스턴스
+        scheduler (CaptureScheduler): 스케줄러 인스턴스
 
     Example:
         >>> window = MainWindow(config)
@@ -68,6 +78,27 @@ class MainWindow:
         self.save_path: str = config.get('save_path', 'C:/IBM 비대면')
         self.mode: str = config.get('mode', 'flexible')
         self.student_count: int = config.get('student_count', 1)
+
+        # Features 인스턴스 초기화
+        logger.info("Features 모듈 초기화 시작")
+
+        # 1. ScreenCapture 인스턴스 생성
+        logger.info(f"ScreenCapture 초기화 (모니터 ID: {self.monitor_id})")
+        self.capture: Optional[ScreenCapture] = None
+        try:
+            self.capture = ScreenCapture(monitor_id=self.monitor_id)
+            logger.info("ScreenCapture 초기화 완료")
+        except Exception as e:
+            logger.error(f"ScreenCapture 초기화 실패: {e}", exc_info=True)
+            messagebox.showerror(
+                "초기화 오류",
+                f"화면 캡처 모듈 초기화에 실패했습니다.\n\n{e}"
+            )
+
+        # 나머지 Features 인스턴스는 순차적으로 추가 예정
+        self.detector: Optional[FaceDetector] = None
+        self.file_manager: Optional[FileManager] = None
+        self.scheduler: Optional[CaptureScheduler] = None
 
         # UI 변수
         self.date_var: Optional[tk.StringVar] = None
