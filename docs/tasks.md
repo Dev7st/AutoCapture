@@ -158,7 +158,7 @@
 - [x] `CSVLogger` 클래스 기본 구조
 - [x] `_ensure_log_file()`: 로그 파일 생성 (헤더 포함)
 - [x] `__init__()`: 로그 파일 경로 설정
-- [ ] `log_event()`: 이벤트 기록 메서드
+- [x] `log_event()`: 이벤트 기록 메서드
 - [x] CSV 구조 정의 (날짜, 시간, 항목, 상태, 감지인원, 기준인원, 파일명, 비고)
 - [x] UTF-8-BOM 인코딩 (Excel 호환)
 - [ ] `tests/test_logger.py` 테스트 스크립트 작성
