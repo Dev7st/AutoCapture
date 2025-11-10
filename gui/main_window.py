@@ -125,8 +125,21 @@ class MainWindow:
                 f"저장 경로를 확인하거나 폴더 권한을 확인해주세요."
             )
 
-        # 나머지 Features 인스턴스는 순차적으로 추가 예정
+        # 4. CaptureScheduler 인스턴스 생성
+        logger.info("CaptureScheduler 초기화")
         self.scheduler: Optional[CaptureScheduler] = None
+        try:
+            self.scheduler = CaptureScheduler()
+            self._setup_schedules()
+            logger.info("CaptureScheduler 초기화 완료")
+        except Exception as e:
+            logger.error(f"CaptureScheduler 초기화 실패: {e}", exc_info=True)
+            messagebox.showerror(
+                "초기화 오류",
+                f"스케줄러 초기화에 실패했습니다.\n\n{e}"
+            )
+
+        logger.info("Features 모듈 초기화 완료")
 
         # UI 변수
         self.date_var: Optional[tk.StringVar] = None
@@ -170,6 +183,47 @@ class MainWindow:
             8: (17, 45),  # 8교시: 17:30~17:45
             0: (18, 32),  # 퇴실: 18:30~18:32
         }
+
+    def _setup_schedules(self) -> None:
+        """
+        CaptureScheduler에 교시별 스케줄을 등록합니다.
+
+        1~8교시 + 퇴실(0) 총 9개 스케줄을 등록합니다.
+        각 교시는 캡처 콜백 함수를 통해 자동 캡처를 시도합니다.
+        """
+        if self.scheduler is None:
+            logger.warning("Scheduler가 초기화되지 않아 스케줄 등록을 건너뜁니다.")
+            return
+
+        # 1~8교시 스케줄 등록
+        schedule_times = {
+            1: ("09:30", "09:45"),
+            2: ("10:30", "10:45"),
+            3: ("11:30", "11:45"),
+            4: ("12:30", "12:45"),
+            5: ("14:30", "14:45"),
+            6: ("15:30", "15:45"),
+            7: ("16:30", "16:45"),
+            8: ("17:30", "17:45"),
+            0: ("18:30", "18:32"),  # 퇴실
+        }
+
+        for period, (start_time, end_time) in schedule_times.items():
+            try:
+                # TODO: Phase 2에서 실제 캡처 콜백 구현 예정
+                # 현재는 더미 콜백 함수 사용
+                def capture_callback(p=period):
+                    logger.info(f"{p}교시 캡처 콜백 호출됨 (구현 예정)")
+
+                self.scheduler.add_schedule(
+                    period=period,
+                    start_time=start_time,
+                    end_time=end_time,
+                    callback=capture_callback
+                )
+                logger.info(f"{period}교시 스케줄 등록 완료: {start_time}~{end_time}")
+            except Exception as e:
+                logger.error(f"{period}교시 스케줄 등록 실패: {e}", exc_info=True)
 
     def _center_window(self) -> None:
         """메인 윈도우를 화면 중앙에 배치합니다."""
