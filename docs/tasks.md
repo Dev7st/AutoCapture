@@ -139,7 +139,11 @@
 - [x] HiDPI/Retina 디스플레이 대응 (Windows ctypes)
 - [x] InitDialog 화면 정중앙 배치
 - [x] MainWindow 화면 정중앙 배치
-- [ ] Features 인스턴스 생성 (Capture, Detector, FileManager, Scheduler)
+- [x] Features 인스턴스 생성 (Capture, Detector, FileManager, Scheduler)
+  - [x] ScreenCapture 인스턴스 생성 및 초기화
+  - [x] FaceDetector 인스턴스 생성 및 모델 로드
+  - [x] FileManager 인스턴스 생성 및 폴더 생성
+  - [x] CaptureScheduler 인스턴스 생성 및 스케줄 등록 (9개)
 - [ ] 프로그램 종료 시 cleanup 처리
 
 ---
