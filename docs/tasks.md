@@ -144,7 +144,10 @@
   - [x] FaceDetector 인스턴스 생성 및 모델 로드
   - [x] FileManager 인스턴스 생성 및 폴더 생성
   - [x] CaptureScheduler 인스턴스 생성 및 스케줄 등록 (9개)
-- [ ] 프로그램 종료 시 cleanup 처리
+- [x] 프로그램 종료 시 cleanup 처리
+  - [x] WM_DELETE_WINDOW 이벤트 핸들러 등록
+  - [x] cleanup() 메서드 구현 (Scheduler 중지, GPU 메모리 해제)
+  - [x] _on_closing() 핸들러 구현
 
 ---
 
