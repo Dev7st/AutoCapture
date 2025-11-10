@@ -95,8 +95,22 @@ class MainWindow:
                 f"화면 캡처 모듈 초기화에 실패했습니다.\n\n{e}"
             )
 
-        # 나머지 Features 인스턴스는 순차적으로 추가 예정
+        # 2. FaceDetector 인스턴스 생성
+        logger.info("FaceDetector 초기화 (GPU 사용 시도)")
         self.detector: Optional[FaceDetector] = None
+        try:
+            self.detector = FaceDetector(gpu_id=0)
+            self.detector.initialize()
+            logger.info("FaceDetector 초기화 완료")
+        except Exception as e:
+            logger.error(f"FaceDetector 초기화 실패: {e}", exc_info=True)
+            messagebox.showerror(
+                "초기화 오류",
+                f"얼굴 감지 모듈 초기화에 실패했습니다.\n\n{e}\n\n"
+                f"GPU를 사용할 수 없거나 InsightFace 모델 로드에 실패했습니다."
+            )
+
+        # 나머지 Features 인스턴스는 순차적으로 추가 예정
         self.file_manager: Optional[FileManager] = None
         self.scheduler: Optional[CaptureScheduler] = None
 
