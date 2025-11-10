@@ -7,11 +7,18 @@
 # 표준 라이브러리
 import logging
 import os
+import platform
 import tkinter as tk
 from pathlib import Path
 from tkinter import ttk, filedialog, messagebox
 from datetime import datetime
 from typing import Optional, Dict
+
+# 내부 모듈
+from features.capture import ScreenCapture
+from features.face_detection import FaceDetector
+from features.file_manager import FileManager
+from features.scheduler import CaptureScheduler
 
 # 로거 설정
 logger = logging.getLogger(__name__)
@@ -40,6 +47,10 @@ class MainWindow:
         save_path (str): 저장 경로
         mode (str): 캡처 모드 ('exact' or 'flexible')
         student_count (int): 출석 학생 수
+        capture (ScreenCapture): 화면 캡처 인스턴스
+        detector (FaceDetector): 얼굴 감지 인스턴스
+        file_manager (FileManager): 파일 관리 인스턴스
+        scheduler (CaptureScheduler): 스케줄러 인스턴스
 
     Example:
         >>> window = MainWindow(config)
@@ -59,8 +70,7 @@ class MainWindow:
         """
         self.root = tk.Tk()
         self.root.title("출결 관리 자동 캡처 시스템")
-        self.root.geometry("750x820")
-        self.root.resizable(False, False)
+        self.root.resizable(True, True)
 
         # 설정값 저장
         self.config = config
@@ -68,6 +78,68 @@ class MainWindow:
         self.save_path: str = config.get('save_path', 'C:/IBM 비대면')
         self.mode: str = config.get('mode', 'flexible')
         self.student_count: int = config.get('student_count', 1)
+
+        # Features 인스턴스 초기화
+        logger.info("Features 모듈 초기화 시작")
+
+        # 1. ScreenCapture 인스턴스 생성
+        logger.info(f"ScreenCapture 초기화 (모니터 ID: {self.monitor_id})")
+        self.capture: Optional[ScreenCapture] = None
+        try:
+            self.capture = ScreenCapture(monitor_id=self.monitor_id)
+            logger.info("ScreenCapture 초기화 완료")
+        except Exception as e:
+            logger.error(f"ScreenCapture 초기화 실패: {e}", exc_info=True)
+            messagebox.showerror(
+                "초기화 오류",
+                f"화면 캡처 모듈 초기화에 실패했습니다.\n\n{e}"
+            )
+
+        # 2. FaceDetector 인스턴스 생성
+        logger.info("FaceDetector 초기화 (GPU 사용 시도)")
+        self.detector: Optional[FaceDetector] = None
+        try:
+            self.detector = FaceDetector(gpu_id=0)
+            self.detector.initialize()
+            logger.info("FaceDetector 초기화 완료")
+        except Exception as e:
+            logger.error(f"FaceDetector 초기화 실패: {e}", exc_info=True)
+            messagebox.showerror(
+                "초기화 오류",
+                f"얼굴 감지 모듈 초기화에 실패했습니다.\n\n{e}\n\n"
+                f"GPU를 사용할 수 없거나 InsightFace 모델 로드에 실패했습니다."
+            )
+
+        # 3. FileManager 인스턴스 생성
+        logger.info(f"FileManager 초기화 (저장 경로: {self.save_path})")
+        self.file_manager: Optional[FileManager] = None
+        try:
+            self.file_manager = FileManager(base_path=self.save_path)
+            self.file_manager.ensure_folder_exists()
+            logger.info("FileManager 초기화 완료")
+        except Exception as e:
+            logger.error(f"FileManager 초기화 실패: {e}", exc_info=True)
+            messagebox.showerror(
+                "초기화 오류",
+                f"파일 관리 모듈 초기화에 실패했습니다.\n\n{e}\n\n"
+                f"저장 경로를 확인하거나 폴더 권한을 확인해주세요."
+            )
+
+        # 4. CaptureScheduler 인스턴스 생성
+        logger.info("CaptureScheduler 초기화")
+        self.scheduler: Optional[CaptureScheduler] = None
+        try:
+            self.scheduler = CaptureScheduler()
+            self._setup_schedules()
+            logger.info("CaptureScheduler 초기화 완료")
+        except Exception as e:
+            logger.error(f"CaptureScheduler 초기화 실패: {e}", exc_info=True)
+            messagebox.showerror(
+                "초기화 오류",
+                f"스케줄러 초기화에 실패했습니다.\n\n{e}"
+            )
+
+        logger.info("Features 모듈 초기화 완료")
 
         # UI 변수
         self.date_var: Optional[tk.StringVar] = None
@@ -86,6 +158,9 @@ class MainWindow:
 
         # UI 구성
         self.setup_ui()
+
+        # 윈도우 크기와 중앙 위치 설정
+        self._center_window()
 
         # 시간 업데이트 시작
         self.update_time()
@@ -108,6 +183,79 @@ class MainWindow:
             8: (17, 45),  # 8교시: 17:30~17:45
             0: (18, 32),  # 퇴실: 18:30~18:32
         }
+
+    def _setup_schedules(self) -> None:
+        """
+        CaptureScheduler에 교시별 스케줄을 등록합니다.
+
+        1~8교시 + 퇴실(0) 총 9개 스케줄을 등록합니다.
+        각 교시는 캡처 콜백 함수를 통해 자동 캡처를 시도합니다.
+        """
+        if self.scheduler is None:
+            logger.warning("Scheduler가 초기화되지 않아 스케줄 등록을 건너뜁니다.")
+            return
+
+        # 1~8교시 스케줄 등록
+        schedule_times = {
+            1: ("09:30", "09:45"),
+            2: ("10:30", "10:45"),
+            3: ("11:30", "11:45"),
+            4: ("12:30", "12:45"),
+            5: ("14:30", "14:45"),
+            6: ("15:30", "15:45"),
+            7: ("16:30", "16:45"),
+            8: ("17:30", "17:45"),
+            0: ("18:30", "18:32"),  # 퇴실
+        }
+
+        for period, (start_time, end_time) in schedule_times.items():
+            try:
+                # TODO: Phase 2에서 실제 캡처 콜백 구현 예정
+                # 현재는 더미 콜백 함수 사용
+                def capture_callback(p=period):
+                    logger.info(f"{p}교시 캡처 콜백 호출됨 (구현 예정)")
+
+                self.scheduler.add_schedule(
+                    period=period,
+                    start_time=start_time,
+                    end_time=end_time,
+                    callback=capture_callback
+                )
+                logger.info(f"{period}교시 스케줄 등록 완료: {start_time}~{end_time}")
+            except Exception as e:
+                logger.error(f"{period}교시 스케줄 등록 실패: {e}", exc_info=True)
+
+    def _center_window(self) -> None:
+        """메인 윈도우를 화면 중앙에 배치합니다."""
+        # 윈도우 크기
+        window_width = 900
+        window_height = 1100
+
+        # HiDPI/Retina 디스플레이 처리
+        if platform.system() == "Windows":
+            try:
+                import ctypes
+                # 실제 물리적 화면 크기 가져오기
+                user32 = ctypes.windll.user32
+                screen_width = user32.GetSystemMetrics(0)
+                screen_height = user32.GetSystemMetrics(1)
+            except Exception as e:
+                logger.warning(f"실제 화면 크기 가져오기 실패, 기본값 사용: {e}")
+                self.root.update_idletasks()
+                screen_width = self.root.winfo_screenwidth()
+                screen_height = self.root.winfo_screenheight()
+        else:
+            # macOS, Linux는 winfo 사용
+            self.root.update_idletasks()
+            screen_width = self.root.winfo_screenwidth()
+            screen_height = self.root.winfo_screenheight()
+
+        # 중앙 좌표 계산
+        x = (screen_width - window_width) // 2
+        y = (screen_height - window_height) // 2
+
+        # 크기와 위치를 함께 설정
+        self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
     def setup_ui(self) -> None:
         """
@@ -140,10 +288,82 @@ class MainWindow:
         메인 윈도우를 실행합니다.
 
         이벤트 루프를 시작하고 윈도우가 닫힐 때까지 대기합니다.
+        윈도우 종료 시 cleanup 처리를 수행합니다.
         """
+        # 윈도우 종료 이벤트 핸들러 등록
+        self.root.protocol("WM_DELETE_WINDOW", self._on_closing)
+
         logger.info("메인 윈도우 실행 시작")
         self.root.mainloop()
         logger.info("메인 윈도우 종료")
+
+    def _on_closing(self) -> None:
+        """
+        윈도우 종료 이벤트 핸들러.
+
+        사용자가 X 버튼을 클릭하거나 윈도우를 닫을 때 호출됩니다.
+        cleanup 처리를 수행한 후 윈도우를 종료합니다.
+        """
+        logger.info("윈도우 종료 요청 받음")
+
+        # cleanup 처리
+        self.cleanup()
+
+        # 윈도우 파괴
+        self.root.destroy()
+        logger.info("윈도우 종료 완료")
+
+    def cleanup(self) -> None:
+        """
+        프로그램 종료 시 리소스 정리.
+
+        - Scheduler 중지
+        - FaceDetector GPU 메모리 해제
+        - 기타 리소스 정리
+        """
+        logger.info("=" * 60)
+        logger.info("리소스 정리 시작")
+        logger.info("=" * 60)
+
+        # 1. Scheduler 중지
+        if self.scheduler is not None:
+            try:
+                logger.info("Scheduler 중지 중...")
+                self.scheduler.stop()
+                logger.info("Scheduler 중지 완료")
+            except Exception as e:
+                logger.error(f"Scheduler 중지 실패: {e}", exc_info=True)
+
+        # 2. FaceDetector GPU 메모리 해제
+        if self.detector is not None:
+            try:
+                logger.info("FaceDetector GPU 메모리 해제 중...")
+                self.detector.cleanup()
+                logger.info("FaceDetector 메모리 해제 완료")
+            except Exception as e:
+                logger.error(f"FaceDetector cleanup 실패: {e}", exc_info=True)
+
+        # 3. ScreenCapture 정리 (필요 시)
+        if self.capture is not None:
+            try:
+                logger.info("ScreenCapture 리소스 해제")
+                # ScreenCapture는 별도 cleanup 메서드가 없으므로 None 처리
+                self.capture = None
+            except Exception as e:
+                logger.error(f"ScreenCapture 정리 실패: {e}", exc_info=True)
+
+        # 4. FileManager 정리 (필요 시)
+        if self.file_manager is not None:
+            try:
+                logger.info("FileManager 리소스 해제")
+                # FileManager는 별도 cleanup 메서드가 없으므로 None 처리
+                self.file_manager = None
+            except Exception as e:
+                logger.error(f"FileManager 정리 실패: {e}", exc_info=True)
+
+        logger.info("=" * 60)
+        logger.info("리소스 정리 완료")
+        logger.info("=" * 60)
 
     # ==================== Info Section ====================
 
