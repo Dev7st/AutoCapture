@@ -151,47 +151,73 @@
 
 ---
 
-## 📋 Phase 2: 제어 기능 (Control Features)
+## 📋 Phase 2: 제어 기능 및 통합 (Control & Integration)
 
-### 2.1 인원 관리 (이벤트 핸들러 연결)
-- [ ] `MainWindow.on_student_count_change()` 구현
-- [ ] ▲▼ 버튼 이벤트 연결
-- [ ] 텍스트 입력 이벤트 연결
-- [ ] 기준 인원 UI 자동 업데이트
-
-### 2.2 캡처 모드 로직 구현
-- [ ] 정확 모드 비교 로직 (감지 인원 == 기준 인원)
-- [ ] 유연 모드 비교 로직 (감지 인원 >= 기준 인원 × 0.9)
-- [ ] 모드 전환 이벤트 핸들러 연결
-
-### 2.3 건너뛰기 기능 통합
-- [ ] `MainWindow.on_skip_button()` 구현
-- [ ] `Scheduler.skip_period()` 호출
-- [ ] UI 상태 업데이트 (🔍 감지중 → ⏭️ 건너뛰기)
-- [ ] CSV 로그 기록
-
-### 2.4 재시도 기능 통합
-- [ ] `MainWindow.on_retry_button()` 구현
-- [ ] `Scheduler.is_in_capture_window()` 호출하여 시간대 확인
-- [ ] `Scheduler.reset_period()` 호출하여 상태 초기화
-- [ ] `FileManager.save_image(is_within_window)` 파라미터 전달
-- [ ] UI 상태 업데이트 (대기중 → 감지 시작)
-- [ ] CSV 로그 기록
-
-### 2.5 CSV 로깅
+### 2.1 CSV 로깅
 - [ ] `features/logger.py` 생성
-- [ ] `CSVLogger` 클래스 구현
-- [ ] `__init__()`: 로그 파일 경로 설정
-- [ ] `log_event()`: 이벤트 기록
+- [ ] `CSVLogger` 클래스 기본 구조
 - [ ] `_ensure_log_file()`: 로그 파일 생성 (헤더 포함)
+- [ ] `__init__()`: 로그 파일 경로 설정
+- [ ] `log_event()`: 이벤트 기록 메서드
 - [ ] CSV 구조 정의 (날짜, 시간, 항목, 상태, 감지인원, 기준인원, 파일명, 비고)
 - [ ] UTF-8-BOM 인코딩 (Excel 호환)
-- [ ] 모든 주요 이벤트 로그 기록
-- [ ] 캡처 시작
-- [ ] 얼굴 감지 (실패/성공)
-- [ ] 파일 저장
-- [ ] 건너뛰기
-- [ ] 재시도
+- [ ] `tests/test_logger.py` 테스트 스크립트 작성
+
+### 2.2 캡처 프로세스 통합
+- [ ] `MainWindow._on_capture_trigger(period)` 메서드 생성
+- [ ] `ScreenCapture.capture()` 호출 및 에러 처리
+- [ ] `FaceDetector.detect(image)` 호출 및 에러 처리
+- [ ] 캡처 모드별 비교 로직 구현
+- [ ] 정확 모드: `detected == threshold`
+- [ ] 유연 모드: `detected >= threshold * 0.9`
+- [ ] 조건 만족 시 처리
+- [ ] `FileManager.save_image()` 호출
+- [ ] `CSVLogger.log_event()` 호출
+- [ ] `Scheduler.mark_completed()` 호출
+- [ ] `update_period_status()` UI 업데이트
+- [ ] 성공 알림창 표시
+- [ ] 조건 불만족 시 처리
+- [ ] 이미지 메모리 해제
+- [ ] 실패 로그 기록
+- [ ] 10초 후 자동 재시도 (Scheduler)
+- [ ] `Scheduler`에 콜백 함수 등록
+- [ ] 전체 캡처 프로세스 테스트
+
+### 2.3 인원 관리 (이벤트 핸들러 연결)
+- [ ] `MainWindow.on_student_count_change(new_count)` 메서드 구현
+- [ ] 입력값 검증 (1~100)
+- [ ] `self.student_count` 업데이트
+- [ ] 기준 인원 재계산 (모드별)
+- [ ] UI 레이블 업데이트
+- [ ] ▲ 버튼 이벤트 연결
+- [ ] ▼ 버튼 이벤트 연결
+- [ ] 텍스트 입력 검증 및 이벤트 연결
+- [ ] 인원 변경 동작 테스트
+
+### 2.4 캡처 모드 전환
+- [ ] `MainWindow.on_mode_change(new_mode)` 메서드 구현
+- [ ] `self.mode` 업데이트
+- [ ] 기준 인원 재계산
+- [ ] UI 업데이트
+- [ ] 드롭다운 이벤트 연결
+- [ ] 모드 전환 동작 테스트
+
+### 2.5 건너뛰기 기능 통합
+- [ ] `MainWindow.on_skip_button(period)` 메서드 구현
+- [ ] `Scheduler.skip_period(period)` 호출
+- [ ] `update_period_status()` 호출 (상태: 건너뛰기)
+- [ ] `CSVLogger.log_event()` 호출
+- [ ] 버튼 비활성화 처리
+- [ ] 건너뛰기 동작 테스트
+
+### 2.6 재시도 기능 통합
+- [ ] `MainWindow.on_retry_button(period)` 메서드 구현
+- [ ] `Scheduler.is_in_capture_window(period)` 시간대 확인
+- [ ] `Scheduler.reset_period(period)` 상태 초기화
+- [ ] `_on_capture_trigger(period)` 즉시 실행
+- [ ] `is_within_window` 파라미터 전달
+- [ ] `update_period_status()` UI 업데이트
+- [ ] `CSVLogger.log_event()` 호출
 
 ---
 
@@ -297,10 +323,10 @@
 
 ---
 
-**문서 버전**: 2.0
-**최종 수정일**: 2025-11-05
+**문서 버전**: 2.1
+**최종 수정일**: 2025-11-10
 **주요 변경사항**:
-- Phase 2-4 중복 항목 정리 (실제 개발 작업만 남김)
-- Phase 1.2-1.3, 1.7 architecture.md 변경사항 반영
-- architecture.md 수정에 따른 체크리스트 해제 (재구현 필요)
-- 개발팁을 Phase별 안내로 변경
+- Phase 2 재구성: 누락된 "캡처 프로세스 통합" 작업 추가
+- Phase 2 개발 순서 재정렬: CSV 로깅 → 캡처 통합 → UI 이벤트 → 제어 기능
+- Phase 1과 동일한 스타일로 메서드/클래스 단위 순차적 체크리스트 작성
+- Phase 2 제목 변경: "제어 기능" → "제어 기능 및 통합"
