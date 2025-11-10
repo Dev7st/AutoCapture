@@ -512,6 +512,19 @@ class MainWindow:
     def show_alert(self, title: str, message: str) -> None:
         """알림창을 표시합니다."""
         pass
+
+    def cleanup(self) -> None:
+        """
+        프로그램 종료 시 리소스 정리.
+
+        - Scheduler 중지
+        - FaceDetector GPU 메모리 해제
+        - 기타 리소스 정리
+
+        Note:
+            윈도우 종료 시 자동 호출됩니다.
+        """
+        pass
 ```
 
 **주요 메서드:**
@@ -522,6 +535,7 @@ class MainWindow:
 - `on_retry_button()`: 재시도 처리
 - `on_student_count_change()`: 학생 수 변경 처리
 - `show_alert()`: 알림창 표시
+- `cleanup()`: 리소스 정리 (종료 시)
 
 ---
 
