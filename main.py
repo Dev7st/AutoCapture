@@ -70,12 +70,6 @@ def main() -> None:
         # 2. 메인 윈도우 생성 및 실행
         logger.info("메인 윈도우 시작")
         window = MainWindow(config)
-
-        # TODO: Phase 1.10 나머지 작업
-        # 3. Features 인스턴스 생성 (MainWindow 내부에서)
-        # 4. Scheduler 시작 (MainWindow 내부에서)
-        # 5. 프로그램 종료 시 cleanup 처리
-
         window.run()
 
         logger.info("=" * 60)
