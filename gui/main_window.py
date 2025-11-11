@@ -1136,9 +1136,6 @@ class MainWindow:
         # UI 상태: "감지중"으로 변경
         self.update_period_status(period, "감지중")
 
-        # GUI 업데이트를 즉시 반영 (화면에 표시)
-        self.root.update_idletasks()
-
         # 화면 캡처
         logger.info(f"{period_name} 화면 캡처 시작...")
         try:
