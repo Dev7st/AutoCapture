@@ -238,6 +238,13 @@ class MainWindow:
             except Exception as e:
                 logger.error(f"{period}교시 스케줄 등록 실패: {e}", exc_info=True)
 
+        # 스케줄러 시작
+        try:
+            self.scheduler.start(self.root)
+            logger.info("Scheduler 시작 완료")
+        except Exception as e:
+            logger.error(f"Scheduler 시작 실패: {e}", exc_info=True)
+
     def _center_window(self) -> None:
         """메인 윈도우를 화면 중앙에 배치합니다."""
         # 윈도우 크기
