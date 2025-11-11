@@ -1009,7 +1009,7 @@ class MainWindow:
         """
         재시도 버튼 클릭 핸들러.
 
-        TODO: Phase 2에서 캡처 로직과 연동하여 재시도 구현
+        캡처 프로세스를 즉시 실행합니다.
 
         Args:
             period: 교시 번호
@@ -1017,8 +1017,8 @@ class MainWindow:
         period_name = "퇴실" if period == 0 else f"{period}교시"
         logger.info(f"재시도 버튼 클릭: {period_name}")
 
-        # TODO: 캡처 시간대 확인 후 즉시 캡처 시도
-        self.update_period_status(period, "🔍 감지중")
+        # 캡처 프로세스 즉시 실행
+        self._on_capture_trigger(period)
 
     # ==================== Bottom Buttons ====================
 
@@ -1131,13 +1131,19 @@ class MainWindow:
         """
         # 교시명 생성
         period_name = f"{period}교시" if period > 0 else "퇴실"
+        logger.info(f"===== {period_name} 캡처 프로세스 시작 =====")
 
         # UI 상태: "감지중"으로 변경
         self.update_period_status(period, "감지중")
 
+        # GUI 업데이트를 즉시 반영 (화면에 표시)
+        self.root.update_idletasks()
+
         # 화면 캡처
+        logger.info(f"{period_name} 화면 캡처 시작...")
         try:
             image = self.capture.capture()
+            logger.info(f"{period_name} 화면 캡처 완료 (크기: {image.shape})")
         except RuntimeError as e:
             logger.error(f"{period_name} 화면 캡처 실패: {e}")
             self.csv_logger.log_event(period_name, "캡처 실패", 0, self.student_count + 1, "", str(e))
@@ -1150,8 +1156,10 @@ class MainWindow:
             return
 
         # 얼굴 감지
+        logger.info(f"{period_name} 얼굴 감지 시작... (CPU 모드는 2-3초 소요 가능)")
         try:
             detected_count = self.detector.detect(image)
+            logger.info(f"{period_name} 얼굴 감지 완료: {detected_count}명")
         except ValueError as e:
             logger.error(f"{period_name} 얼굴 감지 실패: {e}")
             self.csv_logger.log_event(period_name, "감지 실패", 0, self.student_count + 1, "", str(e))
