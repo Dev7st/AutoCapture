@@ -18,6 +18,7 @@ from typing import Optional, Dict
 from features.capture import ScreenCapture
 from features.face_detection import FaceDetector
 from features.file_manager import FileManager
+from features.logger import CSVLogger
 from features.scheduler import CaptureScheduler
 
 # 로거 설정
@@ -137,6 +138,19 @@ class MainWindow:
             messagebox.showerror(
                 "초기화 오류",
                 f"스케줄러 초기화에 실패했습니다.\n\n{e}"
+            )
+
+        # 5. CSVLogger 인스턴스 생성
+        logger.info(f"CSVLogger 초기화 (저장 경로: {self.save_path})")
+        self.csv_logger: Optional[CSVLogger] = None
+        try:
+            self.csv_logger = CSVLogger(base_path=self.save_path)
+            logger.info("CSVLogger 초기화 완료")
+        except Exception as e:
+            logger.error(f"CSVLogger 초기화 실패: {e}", exc_info=True)
+            messagebox.showerror(
+                "초기화 오류",
+                f"로그 모듈 초기화에 실패했습니다.\n\n{e}"
             )
 
         logger.info("Features 모듈 초기화 완료")
