@@ -224,10 +224,9 @@ class MainWindow:
 
         for period, (start_time, end_time) in schedule_times.items():
             try:
-                # TODO: Phase 2에서 실제 캡처 콜백 구현 예정
-                # 현재는 더미 콜백 함수 사용
+                # 캡처 콜백 함수: _on_capture_trigger 메서드 호출
                 def capture_callback(p=period):
-                    logger.info(f"{p}교시 캡처 콜백 호출됨 (구현 예정)")
+                    self._on_capture_trigger(p)
 
                 self.scheduler.add_schedule(
                     period=period,
@@ -1113,6 +1112,201 @@ class MainWindow:
         except Exception as e:
             logger.error(f"저장 폴더 열기 실패: {e}")
             messagebox.showerror("오류", f"저장 폴더 열기 중 오류가 발생했습니다.\n{e}")
+
+    # ==================== Private 메서드 (캡처 프로세스) ====================
+
+    def _on_capture_trigger(self, period: int) -> None:
+        """
+        교시별 캡처 프로세스 실행 (Scheduler 콜백).
+
+        Args:
+            period: 교시 번호 (1~8: 교시, 0: 퇴실)
+
+        Flow:
+            1. 화면 캡처 (ScreenCapture)
+            2. 얼굴 감지 (FaceDetector)
+            3. 조건 비교 (모드별: 정확/유연)
+            4. 성공 시: 파일 저장 → 로그 기록 → UI 업데이트 → 알림
+            5. 실패 시: 메모리 해제 → 실패 로그 기록
+        """
+        # 교시명 생성
+        period_name = f"{period}교시" if period > 0 else "퇴실"
+
+        # UI 상태: "감지중"으로 변경
+        self.update_period_status(period, "감지중")
+
+        # 화면 캡처
+        try:
+            image = self.capture.capture()
+        except RuntimeError as e:
+            logger.error(f"{period_name} 화면 캡처 실패: {e}")
+            self.csv_logger.log_event(period_name, "캡처 실패", 0, self.student_count + 1, "", str(e))
+            self.show_alert("캡처 실패", f"{period_name} 화면 캡처 중 오류 발생", "error")
+            return
+        except Exception as e:
+            logger.error(f"{period_name} 예상치 못한 오류: {e}")
+            self.csv_logger.log_event(period_name, "캡처 실패", 0, self.student_count + 1, "", str(e))
+            self.show_alert("오류", f"{period_name} 캡처 중 예상치 못한 오류", "error")
+            return
+
+        # 얼굴 감지
+        try:
+            detected_count = self.detector.detect(image)
+        except ValueError as e:
+            logger.error(f"{period_name} 얼굴 감지 실패: {e}")
+            self.csv_logger.log_event(period_name, "감지 실패", 0, self.student_count + 1, "", str(e))
+            self.show_alert("감지 실패", f"{period_name} 얼굴 감지 중 오류 발생", "error")
+            del image
+            return
+        except Exception as e:
+            logger.error(f"{period_name} 예상치 못한 오류: {e}")
+            self.csv_logger.log_event(period_name, "감지 실패", 0, self.student_count + 1, "", str(e))
+            self.show_alert("오류", f"{period_name} 감지 중 예상치 못한 오류", "error")
+            del image
+            return
+
+        # 기준 인원 계산
+        threshold = self.student_count + 1
+
+        # 조건 확인 및 처리
+        is_success, mode_note = self._check_capture_condition(detected_count, threshold)
+
+        if is_success:
+            self._process_capture_success(period, period_name, image, detected_count, threshold, mode_note)
+        else:
+            self._process_capture_failure(period_name, image, detected_count, threshold, mode_note)
+
+    def _check_capture_condition(self, detected_count: int, threshold: int) -> tuple[bool, str]:
+        """
+        캡처 조건을 확인합니다 (모드별).
+
+        Args:
+            detected_count: 감지된 인원
+            threshold: 기준 인원
+
+        Returns:
+            tuple[bool, str]: (조건 만족 여부, 모드 설명)
+        """
+        if self.mode == "exact":
+            # 정확 모드: 감지 인원 == 기준 인원
+            is_success = (detected_count == threshold)
+            mode_note = "정확 모드"
+        elif self.mode == "flexible":
+            # 유연 모드: 감지 인원 >= 기준 인원 × 0.9
+            min_required = int(threshold * 0.9)
+            is_success = (detected_count >= min_required)
+            mode_note = f"유연 모드 (최소 {min_required}명)"
+        else:
+            logger.error(f"알 수 없는 캡처 모드: {self.mode}")
+            return False, "알 수 없는 모드"
+
+        return is_success, mode_note
+
+    def _process_capture_success(
+        self,
+        period: int,
+        period_name: str,
+        image,
+        detected_count: int,
+        threshold: int,
+        mode_note: str
+    ) -> None:
+        """
+        캡처 성공 시 처리 로직.
+
+        Args:
+            period: 교시 번호
+            period_name: 교시명
+            image: 캡처된 이미지
+            detected_count: 감지된 인원
+            threshold: 기준 인원
+            mode_note: 모드 설명
+        """
+        try:
+            # 1. 시간대 확인
+            is_within_window = self.scheduler.is_in_capture_window(period)
+
+            # 2. 파일 저장
+            file_path = self.file_manager.save_image(image, period, is_within_window)
+            file_name = Path(file_path).name
+
+            # 3. CSV 로그 기록
+            self.csv_logger.log_event(
+                period_name,
+                "캡처 성공",
+                detected_count,
+                threshold,
+                file_name,
+                mode_note
+            )
+
+            # 4. Scheduler 완료 처리
+            self.scheduler.mark_completed(period)
+
+            # 5. UI 업데이트
+            self.update_period_status(period, "완료")
+
+            # 6. 성공 알림창
+            message = (
+                f"{period_name} 캡처가 완료되었습니다.\n\n"
+                f"파일: {file_name}\n"
+                f"감지 인원: {detected_count}명\n"
+                f"기준 인원: {threshold}명\n"
+                f"모드: {mode_note}"
+            )
+            self.show_alert("캡처 성공", message, "info")
+
+            logger.info(f"{period_name} 캡처 성공: {file_path}")
+
+        except PermissionError as e:
+            logger.error(f"{period_name} 파일 저장 권한 오류: {e}")
+            self.csv_logger.log_event(period_name, "저장 실패", detected_count, threshold, "", "권한 오류")
+            self.show_alert("저장 실패", f"{period_name} 파일 저장 권한이 없습니다.", "error")
+        except OSError as e:
+            logger.error(f"{period_name} 파일 저장 실패: {e}")
+            self.csv_logger.log_event(period_name, "저장 실패", detected_count, threshold, "", str(e))
+            self.show_alert("저장 실패", f"{period_name} 파일 저장 중 오류 발생", "error")
+        except Exception as e:
+            logger.error(f"{period_name} 예상치 못한 오류: {e}")
+            self.csv_logger.log_event(period_name, "저장 실패", detected_count, threshold, "", str(e))
+            self.show_alert("오류", f"{period_name} 저장 중 예상치 못한 오류", "error")
+        finally:
+            # 메모리 해제
+            del image
+
+    def _process_capture_failure(
+        self,
+        period_name: str,
+        image,
+        detected_count: int,
+        threshold: int,
+        mode_note: str
+    ) -> None:
+        """
+        캡처 실패 시 처리 로직.
+
+        Args:
+            period_name: 교시명
+            image: 캡처된 이미지
+            detected_count: 감지된 인원
+            threshold: 기준 인원
+            mode_note: 모드 설명
+        """
+        # 1. 메모리 해제
+        del image
+
+        # 2. 실패 로그 기록
+        self.csv_logger.log_event(
+            period_name,
+            "감지 실패",
+            detected_count,
+            threshold,
+            "",
+            f"{mode_note} - 기준 미달"
+        )
+
+        # 3. 로그만 기록 (UI는 "감지중" 유지, Scheduler가 10초 후 자동 재시도)
+        logger.info(f"{period_name} 감지 실패: {detected_count}/{threshold}명")
 
     # ==================== Alert ====================
 
