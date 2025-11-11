@@ -164,23 +164,23 @@
 - [x] `tests/test_logger.py` 테스트 스크립트 작성
 
 ### 2.2 캡처 프로세스 통합
-- [ ] `MainWindow._on_capture_trigger(period)` 메서드 생성
-- [ ] `ScreenCapture.capture()` 호출 및 에러 처리
-- [ ] `FaceDetector.detect(image)` 호출 및 에러 처리
-- [ ] 캡처 모드별 비교 로직 구현
-- [ ] 정확 모드: `detected == threshold`
-- [ ] 유연 모드: `detected >= threshold * 0.9`
-- [ ] 조건 만족 시 처리
-- [ ] `FileManager.save_image()` 호출
-- [ ] `CSVLogger.log_event()` 호출
-- [ ] `Scheduler.mark_completed()` 호출
-- [ ] `update_period_status()` UI 업데이트
-- [ ] 성공 알림창 표시
-- [ ] 조건 불만족 시 처리
-- [ ] 이미지 메모리 해제
-- [ ] 실패 로그 기록
-- [ ] 10초 후 자동 재시도 (Scheduler)
-- [ ] `Scheduler`에 콜백 함수 등록
+- [x] `MainWindow._on_capture_trigger(period)` 메서드 생성
+- [x] `ScreenCapture.capture()` 호출 및 에러 처리
+- [x] `FaceDetector.detect(image)` 호출 및 에러 처리
+- [x] 캡처 모드별 비교 로직 구현
+- [x] 정확 모드: `detected == threshold`
+- [x] 유연 모드: `detected >= threshold * 0.9`
+- [x] 조건 만족 시 처리
+- [x] `FileManager.save_image()` 호출
+- [x] `CSVLogger.log_event()` 호출
+- [x] `Scheduler.mark_completed()` 호출
+- [x] `update_period_status()` UI 업데이트
+- [x] 성공 알림창 표시
+- [x] 조건 불만족 시 처리
+- [x] 이미지 메모리 해제
+- [x] 실패 로그 기록
+- [x] 10초 후 자동 재시도 (Scheduler)
+- [x] `Scheduler`에 콜백 함수 등록
 - [ ] 전체 캡처 프로세스 테스트
 
 ### 2.3 인원 관리 (이벤트 핸들러 연결)
