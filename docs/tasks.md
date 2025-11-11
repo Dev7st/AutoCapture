@@ -181,7 +181,12 @@
 - [x] 실패 로그 기록
 - [x] 10초 후 자동 재시도 (Scheduler)
 - [x] `Scheduler`에 콜백 함수 등록
-- [ ] 전체 캡처 프로세스 테스트
+- [x] `Scheduler.start(root)` 호출하여 자동 트리거 활성화
+- [x] 재시도 버튼 콜백 연결 (`on_retry_button()` → `_on_capture_trigger()`)
+- [x] 캡처 프로세스 로그 추가 (단계별 추적)
+- [x] 전체 캡처 프로세스 테스트 (수동 트리거)
+- [x] Scheduler 자동 트리거 테스트 (시간 도달 시 자동 실행)
+- [x] 10초 자동 재시도 테스트 (실패 후 자동 재시도)
 
 ### 2.3 인원 관리 (이벤트 핸들러 연결)
 - [ ] `MainWindow.on_student_count_change(new_count)` 메서드 구현
