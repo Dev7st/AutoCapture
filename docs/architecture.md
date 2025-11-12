@@ -497,8 +497,15 @@ class MainWindow:
         """재시도 버튼 클릭 핸들러"""
         pass
 
-    def show_alert(self, title: str, message: str) -> None:
-        """알림창을 표시합니다."""
+    def show_alert(self, title: str, message: str, alert_type: str = "info") -> None:
+        """
+        알림창을 표시합니다.
+
+        Args:
+            title: 알림창 제목
+            message: 알림 메시지
+            alert_type: 알림 타입 ("info", "warning", "error")
+        """
         pass
 
     def cleanup(self) -> None:
