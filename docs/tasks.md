@@ -199,10 +199,11 @@
 - [ ] 인원 변경 동작 테스트
 
 ### 2.4 캡처 모드 전환
-- [ ] `MainWindow.on_mode_change(new_mode)` 메서드 구현
-- [ ] `self.mode` 업데이트
-- [ ] 기준 인원 재계산
-- [ ] UI 업데이트
+- [x] `MainWindow._on_mode_change(event)` 메서드 구현 (private)
+- [x] `self.mode` 업데이트
+- [x] 기준 인원 재계산 (Helper 메서드 호출)
+- [x] UI 업데이트 (모드별 표시)
+- [x] Combobox 이벤트 연결 (_on_mode_change)
 - [ ] 모드 전환 동작 테스트
 
 ### 2.5 건너뛰기 기능 통합
