@@ -497,18 +497,6 @@ class MainWindow:
         """재시도 버튼 클릭 핸들러"""
         pass
 
-    def on_student_count_change(self, new_count: int) -> None:
-        """
-        출석 학생 수 변경 핸들러.
-
-        ▲▼ 버튼 또는 직접 입력 시 호출되며,
-        기준 인원을 자동으로 재계산합니다.
-
-        Args:
-            new_count: 새로운 학생 수
-        """
-        pass
-
     def show_alert(self, title: str, message: str) -> None:
         """알림창을 표시합니다."""
         pass
@@ -533,7 +521,6 @@ class MainWindow:
 - `update_period_status()`: 상태 업데이트
 - `on_skip_button()`: 건너뛰기 처리
 - `on_retry_button()`: 재시도 처리
-- `on_student_count_change()`: 학생 수 변경 처리
 - `show_alert()`: 알림창 표시
 - `cleanup()`: 리소스 정리 (종료 시)
 
