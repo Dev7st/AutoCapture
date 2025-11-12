@@ -195,7 +195,7 @@
 - [x] 기준 인원 재계산 (모드별)
 - [x] UI 레이블 업데이트 (Helper 메서드 호출)
 - [x] trace_add 이벤트 연결 (_on_student_count_change)
-- [ ] 인원 변경 동작 테스트
+- [x] 인원 변경 동작 테스트
 
 ### 2.4 캡처 모드 전환
 - [x] `MainWindow._on_mode_change(event)` 메서드 구현 (private)
@@ -203,7 +203,7 @@
 - [x] 기준 인원 재계산 (Helper 메서드 호출)
 - [x] UI 업데이트 (모드별 표시)
 - [x] Combobox 이벤트 연결 (_on_mode_change)
-- [ ] 모드 전환 동작 테스트
+- [x] 모드 전환 동작 테스트
 
 ### 2.5 건너뛰기 기능 통합
 - [ ] `MainWindow.on_skip_button(period)` 메서드 구현
