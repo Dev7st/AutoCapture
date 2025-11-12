@@ -189,7 +189,6 @@
 - [x] 10초 자동 재시도 테스트 (실패 후 자동 재시도)
 
 ### 2.3 인원 관리 (이벤트 핸들러 연결)
-- [x] `MainWindow._update_threshold_label()` 메서드 삭제 (불필요한 wrapper)
 - [ ] `MainWindow.on_student_count_change(new_count)` 메서드 구현
 - [ ] 입력값 검증 (1~100)
 - [ ] `self.student_count` 업데이트
