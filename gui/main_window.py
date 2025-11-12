@@ -461,7 +461,7 @@ class MainWindow:
             monitor_frame,
             text="변경",
             width=8,
-            command=self._on_change_monitor
+            command=self._on_monitor_change
         )
         change_button.pack(side=tk.LEFT, padx=(10, 0))
 
@@ -489,7 +489,7 @@ class MainWindow:
         # 1초 후 재호출
         self.root.after(1000, self.update_time)
 
-    def _on_change_monitor(self) -> None:
+    def _on_monitor_change(self) -> None:
         """
         모니터 변경 버튼 클릭 핸들러.
 
