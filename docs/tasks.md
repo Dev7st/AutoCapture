@@ -189,11 +189,12 @@
 - [x] 10초 자동 재시도 테스트 (실패 후 자동 재시도)
 
 ### 2.3 인원 관리 (이벤트 핸들러 연결)
-- [ ] `MainWindow.on_student_count_change(new_count)` 메서드 구현
-- [ ] 입력값 검증 (1~100)
-- [ ] `self.student_count` 업데이트
-- [ ] 기준 인원 재계산 (모드별)
-- [ ] UI 레이블 업데이트
+- [x] `MainWindow._on_student_count_change(*args)` 메서드 구현 (private)
+- [x] 입력값 검증 (1~100)
+- [x] `self.student_count` 업데이트
+- [x] 기준 인원 재계산 (모드별)
+- [x] UI 레이블 업데이트 (Helper 메서드 호출)
+- [x] trace_add 이벤트 연결 (_on_student_count_change)
 - [ ] 텍스트 입력 검증 및 이벤트 연결
 - [ ] 인원 변경 동작 테스트
 
