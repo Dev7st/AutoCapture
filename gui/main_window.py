@@ -1037,7 +1037,7 @@ class MainWindow:
                 period=period_name,
                 status="건너뛰기",
                 detected_count=0,
-                threshold_count=self.threshold_count,
+                threshold_count=self.student_count + 1,
                 filename="",
                 note="사용자가 수동으로 건너뛰기"
             )
