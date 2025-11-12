@@ -614,7 +614,7 @@ class MainWindow:
             mode_combo.current(1)  # 정확 모드
 
         # 모드 변경 시 로깅
-        mode_combo.bind("<<ComboboxSelected>>", self._on_mode_changed)
+        mode_combo.bind("<<ComboboxSelected>>", self._on_mode_change)
 
     def _create_student_count_input(self, parent: ttk.LabelFrame) -> None:
         """
@@ -711,19 +711,26 @@ class MainWindow:
         # 학생 수 변경 시 자동 업데이트
         self.student_count_var.trace_add("write", self._on_student_count_change)
 
-    def _on_mode_changed(self, event=None) -> None:
+    def _on_mode_change(self, event=None) -> None:
         """
         캡처 모드 변경 시 호출되는 콜백 함수.
+
+        Combobox 선택 시 호출되며,
+        기준 인원 표시를 모드에 맞게 업데이트합니다.
 
         Args:
             event: tkinter 이벤트 객체 (사용하지 않음)
         """
+        # 모드 변경
         mode_text = self.mode_var.get()
-        # 내부 모드 값으로 변환
         if "유연" in mode_text:
             self.mode = "flexible"
         else:
             self.mode = "exact"
+
+        # Helper 메서드 호출 (중복 로직 제거)
+        self._update_threshold_display()
+
         logger.info(f"캡처 모드 변경: {mode_text} ({self.mode})")
 
     def _on_student_count_entered(self, event=None) -> None:
