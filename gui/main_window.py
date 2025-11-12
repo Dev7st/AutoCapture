@@ -798,22 +798,6 @@ class MainWindow:
             except:
                 pass
 
-    def _update_threshold_label(self, *args) -> None:
-        """
-        학생 수 변경 시 기준 인원 레이블을 업데이트합니다.
-
-        trace_add 콜백 함수로 사용됩니다.
-        실제 처리는 on_student_count_change()에서 수행합니다.
-
-        Args:
-            *args: trace_add 콜백에서 전달되는 인자 (사용하지 않음)
-        """
-        try:
-            student_count = self.student_count_var.get()
-            self.on_student_count_change(student_count)
-        except Exception as e:
-            logger.error(f"기준 인원 레이블 업데이트 실패: {e}")
-
     # ==================== Period Section ====================
 
     def _create_period_section(self, parent: ttk.Frame) -> None:
