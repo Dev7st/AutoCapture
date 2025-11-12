@@ -1017,6 +1017,7 @@ class MainWindow:
         건너뛰기 버튼 클릭 핸들러.
 
         해당 교시의 자동 감지/캡처를 중단하고 건너뛰기 상태로 변경합니다.
+        건너뛰기 후에도 재시도 버튼을 통해 다시 캡처할 수 있습니다.
 
         Args:
             period: 교시 번호 (1-8: 교시, 0: 퇴실)
@@ -1040,12 +1041,6 @@ class MainWindow:
                 filename="",
                 note="사용자가 수동으로 건너뛰기"
             )
-
-            # 4. 버튼 비활성화 처리
-            if period in self.period_buttons:
-                skip_btn, retry_btn = self.period_buttons[period]
-                skip_btn.config(state=tk.DISABLED)
-                retry_btn.config(state=tk.DISABLED)
 
             logger.info(f"{period_name} 건너뛰기 완료")
 
