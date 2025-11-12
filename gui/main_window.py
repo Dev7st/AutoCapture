@@ -1016,16 +1016,41 @@ class MainWindow:
         """
         건너뛰기 버튼 클릭 핸들러.
 
-        TODO: Phase 2에서 Scheduler와 연동하여 실제 건너뛰기 구현
+        해당 교시의 자동 감지/캡처를 중단하고 건너뛰기 상태로 변경합니다.
+        건너뛰기 후에도 재시도 버튼을 통해 다시 캡처할 수 있습니다.
 
         Args:
-            period: 교시 번호
+            period: 교시 번호 (1-8: 교시, 0: 퇴실)
         """
         period_name = "퇴실" if period == 0 else f"{period}교시"
         logger.info(f"건너뛰기 버튼 클릭: {period_name}")
 
-        # TODO: Scheduler.skip_period(period) 호출
-        self.update_period_status(period, "⏭️ 건너뛰기")
+        try:
+            # 1. Scheduler에서 해당 교시 건너뛰기
+            self.scheduler.skip_period(period)
+
+            # 2. 상태 업데이트
+            self.update_period_status(period, "⏭️ 건너뛰기")
+
+            # 3. CSV 로그 기록
+            self.csv_logger.log_event(
+                period=period_name,
+                status="건너뛰기",
+                detected_count=0,
+                threshold_count=self.student_count + 1,
+                filename="",
+                note="사용자가 수동으로 건너뛰기"
+            )
+
+            logger.info(f"{period_name} 건너뛰기 완료")
+
+        except Exception as e:
+            logger.error(f"{period_name} 건너뛰기 처리 실패: {e}")
+            self.show_alert(
+                title="건너뛰기 실패",
+                message=f"{period_name} 건너뛰기 처리 중 오류가 발생했습니다.\n\n오류: {e}",
+                alert_type="error"
+            )
 
     def on_retry_button(self, period: int) -> None:
         """

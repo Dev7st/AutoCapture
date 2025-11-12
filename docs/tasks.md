@@ -205,13 +205,12 @@
 - [x] Combobox 이벤트 연결 (_on_mode_change)
 - [x] 모드 전환 동작 테스트
 
-### 2.5 건너뛰기 기능 통합
-- [ ] `MainWindow.on_skip_button(period)` 메서드 구현
-- [ ] `Scheduler.skip_period(period)` 호출
-- [ ] `update_period_status()` 호출 (상태: 건너뛰기)
-- [ ] `CSVLogger.log_event()` 호출
-- [ ] 버튼 비활성화 처리
-- [ ] 건너뛰기 동작 테스트
+### 2.5 건너뛰기 기능 통합 ✅
+- [x] `MainWindow.on_skip_button(period)` 메서드 구현
+- [x] `Scheduler.skip_period(period)` 호출
+- [x] `update_period_status()` 호출 (상태: 건너뛰기)
+- [x] `CSVLogger.log_event()` 호출
+- [x] 건너뛰기 동작 테스트
 
 ### 2.6 재시도 기능 통합
 - [ ] `MainWindow.on_retry_button(period)` 메서드 구현
