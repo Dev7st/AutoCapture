@@ -798,6 +798,28 @@ class MainWindow:
             except:
                 pass
 
+    def _update_threshold_display(self) -> None:
+        """
+        기준 인원 레이블을 현재 모드와 학생 수에 맞게 업데이트합니다.
+
+        Private Helper 메서드로, 학생 수 변경 또는 모드 변경 시 호출됩니다.
+        _on_student_count_change()와 _on_mode_change()에서 공통으로 사용합니다.
+        """
+        student_count = self.student_count_var.get()
+        threshold = student_count + 1
+
+        if self.mode == "flexible":
+            effective_threshold = int(threshold * 0.9)
+            self.threshold_label.config(
+                text=f"기준 인원: {threshold}명 (학생 {student_count}명 + 강사 1명)\n"
+                     f"유연 모드: {effective_threshold}명 이상"
+            )
+        else:
+            self.threshold_label.config(
+                text=f"기준 인원: {threshold}명 (학생 {student_count}명 + 강사 1명)\n"
+                     f"정확 모드: 정확히 {threshold}명"
+            )
+
     # ==================== Period Section ====================
 
     def _create_period_section(self, parent: ttk.Frame) -> None:
