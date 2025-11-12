@@ -461,7 +461,7 @@ class MainWindow:
             monitor_frame,
             text="변경",
             width=8,
-            command=self._on_change_monitor
+            command=self._on_monitor_change
         )
         change_button.pack(side=tk.LEFT, padx=(10, 0))
 
@@ -489,7 +489,7 @@ class MainWindow:
         # 1초 후 재호출
         self.root.after(1000, self.update_time)
 
-    def _on_change_monitor(self) -> None:
+    def _on_monitor_change(self) -> None:
         """
         모니터 변경 버튼 클릭 핸들러.
 
@@ -614,7 +614,7 @@ class MainWindow:
             mode_combo.current(1)  # 정확 모드
 
         # 모드 변경 시 로깅
-        mode_combo.bind("<<ComboboxSelected>>", self._on_mode_changed)
+        mode_combo.bind("<<ComboboxSelected>>", self._on_mode_change)
 
     def _create_student_count_input(self, parent: ttk.LabelFrame) -> None:
         """
@@ -709,21 +709,28 @@ class MainWindow:
         self.threshold_label.pack(anchor=tk.W)
 
         # 학생 수 변경 시 자동 업데이트
-        self.student_count_var.trace_add("write", self._update_threshold_label)
+        self.student_count_var.trace_add("write", self._on_student_count_change)
 
-    def _on_mode_changed(self, event=None) -> None:
+    def _on_mode_change(self, event=None) -> None:
         """
         캡처 모드 변경 시 호출되는 콜백 함수.
+
+        Combobox 선택 시 호출되며,
+        기준 인원 표시를 모드에 맞게 업데이트합니다.
 
         Args:
             event: tkinter 이벤트 객체 (사용하지 않음)
         """
+        # 모드 변경
         mode_text = self.mode_var.get()
-        # 내부 모드 값으로 변환
         if "유연" in mode_text:
             self.mode = "flexible"
         else:
             self.mode = "exact"
+
+        # Helper 메서드 호출 (중복 로직 제거)
+        self._update_threshold_display()
+
         logger.info(f"캡처 모드 변경: {mode_text} ({self.mode})")
 
     def _on_student_count_entered(self, event=None) -> None:
@@ -758,20 +765,20 @@ class MainWindow:
             self.student_count_var.set(current_value - 1)
             logger.info(f"학생 수 감소: {current_value} → {current_value - 1}")
 
-    def on_student_count_change(self, new_count: int) -> None:
+    def _on_student_count_change(self, *args) -> None:
         """
-        출석 학생 수 변경 핸들러.
+        학생 수 변경 시 호출되는 콜백 함수.
 
-        ▲▼ 버튼 또는 직접 입력 시 호출되며,
-        기준 인원을 자동으로 재계산합니다.
+        trace_add 콜백으로 사용되며,
+        기준 인원을 모드별로 자동 재계산합니다.
 
         Args:
-            new_count: 새로운 학생 수
-
-        Example:
-            >>> window.on_student_count_change(25)
+            *args: trace_add 콜백에서 전달되는 인자 (사용하지 않음)
         """
         try:
+            # 현재 입력값 가져오기
+            new_count = self.student_count_var.get()
+
             # 범위 검증
             if new_count < 1:
                 new_count = 1
@@ -780,39 +787,47 @@ class MainWindow:
                 new_count = 100
                 self.student_count_var.set(100)
 
-            # 기준 인원 계산 및 레이블 업데이트
-            threshold = new_count + 1
-            self.threshold_label.config(
-                text=f"기준 인원: {threshold}명 (학생 {new_count}명 + 강사 1명)"
-            )
-            logger.info(f"학생 수 변경: {new_count}명 (기준 인원: {threshold}명)")
+            # 인스턴스 변수 업데이트
+            self.student_count = new_count
+
+            # Helper 메서드 호출 (중복 로직 제거)
+            self._update_threshold_display()
+
+            logger.info(f"학생 수 변경: {new_count}명 (기준: {new_count + 1}명, 모드: {self.mode})")
 
         except Exception as e:
             logger.error(f"학생 수 변경 처리 실패: {e}")
-            # 잘못된 값일 경우 기본값으로 설정
+            # 기본값으로 복구
             try:
                 self.student_count_var.set(1)
+                self.student_count = 1
                 self.threshold_label.config(
                     text="기준 인원: 2명 (학생 1명 + 강사 1명)"
                 )
             except:
                 pass
 
-    def _update_threshold_label(self, *args) -> None:
+    def _update_threshold_display(self) -> None:
         """
-        학생 수 변경 시 기준 인원 레이블을 업데이트합니다.
+        기준 인원 레이블을 현재 모드와 학생 수에 맞게 업데이트합니다.
 
-        trace_add 콜백 함수로 사용됩니다.
-        실제 처리는 on_student_count_change()에서 수행합니다.
-
-        Args:
-            *args: trace_add 콜백에서 전달되는 인자 (사용하지 않음)
+        Private Helper 메서드로, 학생 수 변경 또는 모드 변경 시 호출됩니다.
+        _on_student_count_change()와 _on_mode_change()에서 공통으로 사용합니다.
         """
-        try:
-            student_count = self.student_count_var.get()
-            self.on_student_count_change(student_count)
-        except Exception as e:
-            logger.error(f"기준 인원 레이블 업데이트 실패: {e}")
+        student_count = self.student_count_var.get()
+        threshold = student_count + 1
+
+        if self.mode == "flexible":
+            effective_threshold = int(threshold * 0.9)
+            self.threshold_label.config(
+                text=f"기준 인원: {threshold}명 (학생 {student_count}명 + 강사 1명)\n"
+                     f"유연 모드: {effective_threshold}명 이상"
+            )
+        else:
+            self.threshold_label.config(
+                text=f"기준 인원: {threshold}명 (학생 {student_count}명 + 강사 1명)\n"
+                     f"정확 모드: 정확히 {threshold}명"
+            )
 
     # ==================== Period Section ====================
 
