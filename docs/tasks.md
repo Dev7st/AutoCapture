@@ -210,7 +210,6 @@
 - [x] `Scheduler.skip_period(period)` 호출
 - [x] `update_period_status()` 호출 (상태: 건너뛰기)
 - [x] `CSVLogger.log_event()` 호출
-- [x] 버튼 비활성화 처리
 - [ ] 건너뛰기 동작 테스트
 
 ### 2.6 재시도 기능 통합
