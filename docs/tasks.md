@@ -212,12 +212,12 @@
 - [x] `CSVLogger.log_event()` 호출
 - [x] 건너뛰기 동작 테스트
 
-### 2.6 재시도 기능 통합
-- [ ] `MainWindow.on_retry_button(period)` 메서드 구현
-- [ ] `Scheduler.is_in_capture_window(period)` 시간대 확인
-- [ ] `Scheduler.reset_period(period)` 상태 초기화
-- [ ] `update_period_status()` UI 업데이트
-- [ ] `CSVLogger.log_event()` 호출
+### 2.6 재시도 기능 통합 ✅
+- [x] `MainWindow.on_retry_button(period)` 메서드 구현
+- [x] `Scheduler.is_in_capture_window(period)` 시간대 확인
+- [x] `Scheduler.reset_period(period)` 상태 초기화
+- [x] `update_period_status()` UI 업데이트
+- [x] `CSVLogger.log_event()` 호출
 - [ ] 재시도 동작 테스트
 
 ### 2.7 알림창 추가 (캡처 실패 및 시간 초과)
