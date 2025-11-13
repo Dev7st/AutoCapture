@@ -1056,16 +1056,52 @@ class MainWindow:
         """
         재시도 버튼 클릭 핸들러.
 
-        캡처 프로세스를 즉시 실행합니다.
+        캡처 시간대 내/외 여부를 판단하여 즉시 캡처를 시도합니다.
+        - 시간대 내: 기존 파일 덮어쓰기
+        - 시간대 종료 후: _수정.png로 새 파일 생성
 
         Args:
-            period: 교시 번호
+            period: 교시 번호 (1-8: 교시, 0: 퇴실)
         """
         period_name = "퇴실" if period == 0 else f"{period}교시"
         logger.info(f"재시도 버튼 클릭: {period_name}")
 
-        # 캡처 프로세스 즉시 실행
-        self._on_capture_trigger(period)
+        try:
+            # 1. 캡처 시간대 확인
+            is_within = self.scheduler.is_in_capture_window(period)
+            time_status = "시간대 내" if is_within else "시간대 종료 후"
+            logger.info(f"{period_name} 재시도: {time_status}")
+
+            # 2. Scheduler 상태 초기화 (is_completed, is_skipped 플래그 제거)
+            self.scheduler.reset_period(period)
+
+            # 3. UI 상태 업데이트
+            self.update_period_status(period, "🔍 재시도 중")
+
+            # 4. CSV 로그 기록
+            self.csv_logger.log_event(
+                period=period_name,
+                status="재시도 시작",
+                detected_count=0,
+                threshold_count=self.student_count + 1,
+                filename="",
+                note=f"{time_status} 수동 재시도"
+            )
+
+            # 5. 캡처 프로세스 즉시 실행
+            # _on_capture_trigger()가 내부에서 is_in_capture_window()를 다시 호출하여
+            # FileManager.save_image()에 is_within_window 전달
+            self._on_capture_trigger(period)
+
+            logger.info(f"{period_name} 재시도 완료")
+
+        except Exception as e:
+            logger.error(f"{period_name} 재시도 처리 실패: {e}")
+            self.show_alert(
+                title="재시도 실패",
+                message=f"{period_name} 재시도 처리 중 오류가 발생했습니다.\n\n오류: {e}",
+                alert_type="error"
+            )
 
     # ==================== Bottom Buttons ====================
 
