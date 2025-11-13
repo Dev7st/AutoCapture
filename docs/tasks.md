@@ -218,7 +218,7 @@
 - [x] `Scheduler.reset_period(period)` 상태 초기화
 - [x] `update_period_status()` UI 업데이트
 - [x] `CSVLogger.log_event()` 호출
-- [ ] 재시도 동작 테스트
+- [x] 재시도 동작 테스트
 
 ### 2.7 알림창 추가 (캡처 실패 및 시간 초과)
 - [ ] `MainWindow._handle_capture_failure()` 알림창 추가
