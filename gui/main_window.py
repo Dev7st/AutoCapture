@@ -1396,6 +1396,25 @@ class MainWindow:
         # 3. 로그만 기록 (UI는 "감지중" 유지, Scheduler가 10초 후 자동 재시도)
         logger.info(f"{period_name} 감지 실패: {detected_count}/{threshold}명")
 
+        # 4. 실패 알림창 표시
+        # 최소 필요 인원 계산 (유연 모드 시)
+        min_required = int(threshold * 0.9) if self.mode == "유연 모드" else threshold
+        mode_description = (
+            f"(유연 모드: 최소 {min_required}명 필요)" if self.mode == "유연 모드" else ""
+        )
+
+        self.show_alert(
+            title="캡처 실패",
+            message=(
+                f"{period_name} 얼굴 감지 실패\n\n"
+                f"감지 인원: {detected_count}명\n"
+                f"기준 인원: {threshold}명\n"
+                f"{mode_description}\n\n"
+                f"10초 후 재시도합니다."
+            ),
+            alert_type="warning"
+        )
+
     # ==================== Alert ====================
 
     def show_alert(self, title: str, message: str, alert_type: str = "info") -> None:
