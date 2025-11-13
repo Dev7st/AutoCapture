@@ -216,10 +216,9 @@
 - [ ] `MainWindow.on_retry_button(period)` 메서드 구현
 - [ ] `Scheduler.is_in_capture_window(period)` 시간대 확인
 - [ ] `Scheduler.reset_period(period)` 상태 초기화
-- [ ] `_on_capture_trigger(period)` 즉시 실행
-- [ ] `is_within_window` 파라미터 전달
 - [ ] `update_period_status()` UI 업데이트
 - [ ] `CSVLogger.log_event()` 호출
+- [ ] 재시도 동작 테스트
 
 ### 2.7 알림창 추가 (캡처 실패 및 시간 초과)
 - [ ] `MainWindow._handle_capture_failure()` 알림창 추가
