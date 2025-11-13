@@ -220,8 +220,8 @@
 - [x] `CSVLogger.log_event()` 호출
 - [x] 재시도 동작 테스트
 
-### 2.7 캡처 실패 알림창 추가
-- [ ] `_process_capture_failure()` 메서드에 `show_alert()` 호출 추가
+### 2.7 캡처 실패 알림창 추가 ✅
+- [x] `_process_capture_failure()` 메서드에 `show_alert()` 호출 추가
 - [ ] 캡처 실패 알림 테스트
 
 ---
