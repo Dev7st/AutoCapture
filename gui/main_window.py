@@ -1404,14 +1404,22 @@ class MainWindow:
         # 3. 로그만 기록 (UI는 "감지중" 유지, Scheduler가 10초 후 자동 재시도)
         logger.info(f"{period_name} 감지 실패: {detected_count}/{threshold}명")
 
-        # 4. 재시도 실패 시 이전 상태 복원
-        if hasattr(self, '_retry_previous_status') and period in self._retry_previous_status:
+        # 4. 재시도 실패 여부 확인
+        is_retry_failure = (
+            hasattr(self, '_retry_previous_status') and period in self._retry_previous_status
+        )
+
+        # 5. 재시도 실패 시 이전 상태 복원
+        if is_retry_failure:
             previous_status = self._retry_previous_status[period]
             self.update_period_status(period, previous_status)
             del self._retry_previous_status[period]
             logger.info(f"{period_name} 재시도 실패: 이전 상태({previous_status})로 복원")
 
-        # 5. 실패 알림창 표시
+        # 6. 실패 알림창 표시
+        # 재시도 여부에 따라 다른 안내 문구 표시
+        retry_note = "" if is_retry_failure else "10초 후 재시도합니다."
+
         # 유연 모드일 때만 최소 필요 인원 표시
         if self.mode == "flexible":
             min_required = int(threshold * 0.9)
@@ -1419,16 +1427,18 @@ class MainWindow:
                 f"{period_name} 얼굴 감지 실패\n\n"
                 f"감지 인원: {detected_count}명\n"
                 f"기준 인원: {threshold}명\n"
-                f"(유연 모드: 최소 {min_required}명 필요)\n\n"
-                f"10초 후 재시도합니다."
+                f"(유연 모드: 최소 {min_required}명 필요)"
             )
         else:
             message = (
                 f"{period_name} 얼굴 감지 실패\n\n"
                 f"감지 인원: {detected_count}명\n"
-                f"기준 인원: {threshold}명\n\n"
-                f"10초 후 재시도합니다."
+                f"기준 인원: {threshold}명"
             )
+
+        # 재시도 안내 문구 추가 (자동 재시도인 경우만)
+        if retry_note:
+            message += f"\n\n{retry_note}"
 
         self.show_alert(title="캡처 실패", message=message, alert_type="warning")
 
