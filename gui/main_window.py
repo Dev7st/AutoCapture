@@ -1067,16 +1067,22 @@ class MainWindow:
         logger.info(f"재시도 버튼 클릭: {period_name}")
 
         try:
-            # 1. 캡처 시간대 확인
+            # 1. 이전 상태 저장 (실패 시 복원용)
+            previous_status = self.period_status_vars[period].get()
+
+            # 2. 캡처 시간대 확인
             is_within = self.scheduler.is_in_capture_window(period)
             time_status = "시간대 내" if is_within else "시간대 종료 후"
             logger.info(f"{period_name} 재시도: {time_status}")
 
-            # 2. Scheduler 상태 초기화 (is_completed, is_skipped 플래그 제거)
+            # 3. Scheduler 상태 초기화 (is_completed, is_skipped 플래그 제거)
             self.scheduler.reset_period(period)
 
-            # 3. UI 상태 업데이트
+            # 4. UI 상태 업데이트
             self.update_period_status(period, "🔍 재시도 중")
+
+            # 5. 이전 상태를 임시 저장 (실패 처리에서 사용)
+            self._retry_previous_status = {period: previous_status}
 
             # 4. CSV 로그 기록
             self.csv_logger.log_event(
@@ -1262,7 +1268,7 @@ class MainWindow:
         if is_success:
             self._process_capture_success(period, period_name, image, detected_count, threshold, mode_note)
         else:
-            self._process_capture_failure(period_name, image, detected_count, threshold, mode_note)
+            self._process_capture_failure(period, period_name, image, detected_count, threshold, mode_note)
 
     def _check_capture_condition(self, detected_count: int, threshold: int) -> tuple[bool, str]:
         """
@@ -1364,6 +1370,7 @@ class MainWindow:
 
     def _process_capture_failure(
         self,
+        period: int,
         period_name: str,
         image,
         detected_count: int,
@@ -1374,6 +1381,7 @@ class MainWindow:
         캡처 실패 시 처리 로직.
 
         Args:
+            period: 교시 번호
             period_name: 교시명
             image: 캡처된 이미지
             detected_count: 감지된 인원
@@ -1396,7 +1404,14 @@ class MainWindow:
         # 3. 로그만 기록 (UI는 "감지중" 유지, Scheduler가 10초 후 자동 재시도)
         logger.info(f"{period_name} 감지 실패: {detected_count}/{threshold}명")
 
-        # 4. 실패 알림창 표시
+        # 4. 재시도 실패 시 이전 상태 복원
+        if hasattr(self, '_retry_previous_status') and period in self._retry_previous_status:
+            previous_status = self._retry_previous_status[period]
+            self.update_period_status(period, previous_status)
+            del self._retry_previous_status[period]
+            logger.info(f"{period_name} 재시도 실패: 이전 상태({previous_status})로 복원")
+
+        # 5. 실패 알림창 표시
         # 유연 모드일 때만 최소 필요 인원 표시
         if self.mode == "flexible":
             min_required = int(threshold * 0.9)
