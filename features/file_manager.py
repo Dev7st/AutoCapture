@@ -8,7 +8,6 @@
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 # 외부 라이브러리
 import numpy as np
