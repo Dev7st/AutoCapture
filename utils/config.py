@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 # 기본 설정값
 DEFAULT_CONFIG: Dict[str, Any] = {
     "monitor_id": 1,
-    "save_path": "C:/IBM 비대면",
+    "save_path": str(Path.home() / "Desktop"),
     "mode": "flexible",
     "student_count": 1,
     "threshold_ratio": 0.9,
