@@ -14,6 +14,7 @@ from typing import Optional, Dict, List
 
 # 내부 모듈
 from utils.monitor import get_monitor_names, get_monitor_count
+from utils.config import Config
 
 # 로거 설정
 logger = logging.getLogger(__name__)
@@ -48,6 +49,11 @@ class InitDialog:
         """
         self.dialog: Optional[tk.Tk] = None
         self.result: Optional[Dict] = None
+
+        # Config 인스턴스 생성 및 설정 로드
+        self.config = Config()
+        self.saved_config = self.config.load()
+        logger.info(f"저장된 설정 로드: {self.saved_config}")
 
         # UI 변수
         self.monitor_var: Optional[tk.StringVar] = None
@@ -215,9 +221,16 @@ class InitDialog:
         # 모니터 선택 콤보박스
         self.monitor_var = tk.StringVar()
 
-        # 기본값: 첫 번째 모니터 (모니터 1)
+        # 기본값: 저장된 설정 또는 첫 번째 모니터
         if self.monitor_names:
-            self.monitor_var.set(self.monitor_names[0])
+            saved_monitor_id = self.saved_config.get('monitor_id', 1)
+            # monitor_id를 "모니터 N" 형식으로 변환
+            default_monitor = f"모니터 {saved_monitor_id}"
+            # 해당 모니터가 목록에 있으면 설정, 없으면 첫 번째 모니터
+            if default_monitor in self.monitor_names:
+                self.monitor_var.set(default_monitor)
+            else:
+                self.monitor_var.set(self.monitor_names[0])
 
         monitor_combo = ttk.Combobox(
             section_frame,
@@ -288,8 +301,9 @@ class InitDialog:
         path_frame = ttk.Frame(section_frame)
         path_frame.pack(fill=tk.X, pady=(0, 20))
 
-        # 저장 경로 변수 초기화 (기본값: C:/IBM 비대면)
-        self.save_path_var = tk.StringVar(value="C:/IBM 비대면")
+        # 저장 경로 변수 초기화 (저장된 설정 또는 기본값)
+        default_save_path = self.saved_config.get('save_path', str(Path.home() / "Desktop"))
+        self.save_path_var = tk.StringVar(value=default_save_path)
 
         # 경로 입력 필드
         path_entry = ttk.Entry(
@@ -365,8 +379,9 @@ class InitDialog:
         section_frame.configure(labelwidget=ttk.Label(parent, text="캡처 모드 선택", font=("", 16, "bold")))
         section_frame.pack(fill=tk.X, pady=(0, 50))
 
-        # 모드 변수 초기화 (기본값: flexible - 유연 모드)
-        self.mode_var = tk.StringVar(value="flexible")
+        # 모드 변수 초기화 (저장된 설정 또는 기본값: flexible)
+        default_mode = self.saved_config.get('mode', 'flexible')
+        self.mode_var = tk.StringVar(value=default_mode)
 
         # 정확 모드 라디오 버튼
         # ttk.Radiobutton은 font를 직접 지원하지 않으므로 tk.Radiobutton 사용
@@ -435,8 +450,9 @@ class InitDialog:
         section_frame.configure(labelwidget=ttk.Label(parent, text="출석 학생 수", font=("", 16, "bold")))
         section_frame.pack(fill=tk.X, pady=(0, 50))
 
-        # 학생 수 변수 초기화 (기본값: 1명)
-        self.student_count_var = tk.IntVar(value=1)
+        # 학생 수 변수 초기화 (저장된 설정 또는 기본값: 1명)
+        default_student_count = self.saved_config.get('student_count', 1)
+        self.student_count_var = tk.IntVar(value=default_student_count)
 
         # 입력 영역 생성
         self._create_count_input_area(section_frame)
@@ -675,6 +691,15 @@ class InitDialog:
             'mode': mode,
             'student_count': student_count
         }
+
+        # 설정을 config.json 파일에 저장
+        try:
+            self.config.save(self.result)
+            logger.info(f"설정 저장 완료: {self.result}")
+        except Exception as e:
+            logger.error(f"설정 저장 실패: {e}", exc_info=True)
+            # 저장 실패해도 프로그램은 계속 진행
+
         self.dialog.destroy()
 
     def on_cancel(self) -> None:
