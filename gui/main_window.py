@@ -20,6 +20,7 @@ from features.face_detection import FaceDetector
 from features.file_manager import FileManager
 from features.logger import CSVLogger
 from features.scheduler import CaptureScheduler
+from utils.config import Config
 
 # 로거 설정
 logger = logging.getLogger(__name__)
@@ -43,7 +44,7 @@ class MainWindow:
 
     Attributes:
         root (tk.Tk): tkinter 루트 윈도우
-        config (Dict): 초기 설정값
+        config_manager (Config): 설정 관리 인스턴스
         monitor_id (int): 선택된 모니터 ID
         save_path (str): 저장 경로
         mode (str): 캡처 모드 ('exact' or 'flexible')
@@ -54,31 +55,30 @@ class MainWindow:
         scheduler (CaptureScheduler): 스케줄러 인스턴스
 
     Example:
-        >>> window = MainWindow(config)
+        >>> config_manager = Config()
+        >>> window = MainWindow(config_manager)
         >>> window.run()
     """
 
     # ==================== Initialization ====================
 
-    def __init__(self, config: Dict):
+    def __init__(self, config_manager: Config):
         """
         메인 윈도우를 초기화합니다.
 
         Args:
-            config: InitDialog에서 반환된 설정값
-                   {'monitor_id': int, 'save_path': str,
-                    'mode': str, 'student_count': int}
+            config_manager: Config 인스턴스
         """
         self.root = tk.Tk()
         self.root.title("출결 관리 자동 캡처 시스템")
         self.root.resizable(True, True)
 
         # 설정값 저장
-        self.config = config
-        self.monitor_id: int = config.get('monitor_id', 1)
-        self.save_path: str = config.get('save_path', 'C:/IBM 비대면')
-        self.mode: str = config.get('mode', 'flexible')
-        self.student_count: int = config.get('student_count', 1)
+        self.config_manager: Config = config_manager
+        self.monitor_id: int = config_manager.get('monitor_id', 1)
+        self.save_path: str = config_manager.get('save_path', 'C:/IBM 비대면')
+        self.mode: str = config_manager.get('mode', 'flexible')
+        self.student_count: int = config_manager.get('student_count', 1)
 
         # Features 인스턴스 초기화
         logger.info("Features 모듈 초기화 시작")
@@ -728,6 +728,9 @@ class MainWindow:
         else:
             self.mode = "exact"
 
+        # Config에 저장
+        self.config_manager.set('mode', self.mode)
+
         # Helper 메서드 호출 (중복 로직 제거)
         self._update_threshold_display()
 
@@ -789,6 +792,9 @@ class MainWindow:
 
             # 인스턴스 변수 업데이트
             self.student_count = new_count
+
+            # Config에 저장
+            self.config_manager.set('student_count', new_count)
 
             # Helper 메서드 호출 (중복 로직 제거)
             self._update_threshold_display()

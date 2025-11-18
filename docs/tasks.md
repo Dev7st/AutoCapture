@@ -239,6 +239,8 @@
 - [x] 프로그램 시작 시 설정 로드 (InitDialog에서 Config.load() 호출)
 - [x] 프로그램 종료 시 설정 저장 (InitDialog에서 Config.save() 호출)
 - [x] 설정 파일 없을 시 기본값 사용
+- [x] MainWindow에 Config.save() 통합
+- [x] main.py에 config_manager 전달
 
 ### 3.2 저장 경로 변경 기능 연결
 - [ ] [📁 저장 경로 설정] 버튼 이벤트 핸들러
