@@ -32,13 +32,14 @@ class InitDialog:
 
     Attributes:
         dialog (tk.Tk): 다이얼로그 윈도우
-        result (Optional[Dict]): 사용자 입력 결과
+        config (Config): 설정 관리 인스턴스
+        result (Optional[Config]): 사용자 입력 결과 (Config 인스턴스)
 
     Example:
         >>> dialog = InitDialog()
-        >>> result = dialog.show()
-        >>> print(result)
-        {'monitor_id': 2, 'save_path': 'C:/IBM 비대면', 'mode': 'flexible', 'student_count': 1}
+        >>> config_manager = dialog.show()
+        >>> if config_manager:
+        ...     print(config_manager.get('monitor_id'))
     """
 
     # ==================== Public Methods ====================
@@ -62,7 +63,7 @@ class InitDialog:
         self.mode_var: Optional[tk.StringVar] = None
         self.student_count_var: Optional[tk.IntVar] = None
 
-    def show(self) -> Optional[Dict]:
+    def show(self) -> Optional[Config]:
         """
         다이얼로그를 표시하고 사용자 입력을 받습니다.
 
@@ -70,20 +71,14 @@ class InitDialog:
         선택할 때까지 대기합니다.
 
         Returns:
-            Optional[Dict]: 사용자가 입력한 설정값.
-                           취소 시 None 반환.
-                           {
-                               'monitor_id': int,      # 모니터 ID (1, 2, ...)
-                               'save_path': str,       # 저장 경로
-                               'mode': str,            # 'exact' or 'flexible'
-                               'student_count': int    # 학생 수
-                           }
+            Optional[Config]: Config 인스턴스.
+                             취소 시 None 반환.
 
         Example:
             >>> dialog = InitDialog()
-            >>> result = dialog.show()
-            >>> if result:
-            ...     print(f"선택된 모니터: {result['monitor_id']}")
+            >>> config_manager = dialog.show()
+            >>> if config_manager:
+            ...     print(f"선택된 모니터: {config_manager.get('monitor_id')}")
         """
         # 독립 윈도우 생성
         self.dialog = tk.Tk()
@@ -684,21 +679,19 @@ class InitDialog:
         # 학생 수 가져오기
         student_count = self.student_count_var.get() if self.student_count_var else 1
 
-        # 결과 dict 생성 및 저장
-        self.result = {
-            'monitor_id': monitor_id,
-            'save_path': save_path,
-            'mode': mode,
-            'student_count': student_count
-        }
-
         # 설정을 config.json 파일에 저장
         try:
-            self.config.save(self.result)
-            logger.info(f"설정 저장 완료: {self.result}")
+            self.config.set('monitor_id', monitor_id)
+            self.config.set('save_path', save_path)
+            self.config.set('mode', mode)
+            self.config.set('student_count', student_count)
+            logger.info(f"설정 저장 완료: monitor_id={monitor_id}, save_path={save_path}, mode={mode}, student_count={student_count}")
         except Exception as e:
             logger.error(f"설정 저장 실패: {e}", exc_info=True)
             # 저장 실패해도 프로그램은 계속 진행
+
+        # Config 인스턴스를 결과로 설정
+        self.result = self.config
 
         self.dialog.destroy()
 

@@ -53,23 +53,23 @@ def main() -> None:
         # 1. 초기 설정 다이얼로그 표시
         logger.info("초기 설정 다이얼로그 표시")
         dialog = InitDialog()
-        config = dialog.show()
+        config_manager = dialog.show()
 
         # 사용자가 취소를 선택한 경우
-        if config is None:
+        if config_manager is None:
             logger.info("사용자가 초기 설정을 취소했습니다. 프로그램을 종료합니다.")
             return
 
         # 설정값 로깅
         logger.info("초기 설정 완료:")
-        logger.info(f"  - 모니터 ID: {config.get('monitor_id')}")
-        logger.info(f"  - 저장 경로: {config.get('save_path')}")
-        logger.info(f"  - 캡처 모드: {config.get('mode')}")
-        logger.info(f"  - 학생 수: {config.get('student_count')}명")
+        logger.info(f"  - 모니터 ID: {config_manager.get('monitor_id')}")
+        logger.info(f"  - 저장 경로: {config_manager.get('save_path')}")
+        logger.info(f"  - 캡처 모드: {config_manager.get('mode')}")
+        logger.info(f"  - 학생 수: {config_manager.get('student_count')}명")
 
         # 2. 메인 윈도우 생성 및 실행
         logger.info("메인 윈도우 시작")
-        window = MainWindow(config)
+        window = MainWindow(config_manager)
         window.run()
 
         logger.info("=" * 60)
