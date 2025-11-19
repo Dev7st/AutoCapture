@@ -21,6 +21,7 @@ from features.file_manager import FileManager
 from features.logger import CSVLogger
 from features.scheduler import CaptureScheduler
 from utils.config import Config
+from utils.monitor import get_monitor_names
 
 # 로거 설정
 logger = logging.getLogger(__name__)
@@ -454,8 +455,6 @@ class MainWindow:
         monitor_label.pack(side=tk.LEFT, padx=(0, 10))
 
         # 모니터 선택 콤보박스
-        from utils.monitor import get_monitor_names
-
         self.monitor_var = tk.StringVar(value=f"모니터 {self.monitor_id}")
         monitor_combo = ttk.Combobox(
             monitor_frame,
