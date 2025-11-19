@@ -218,10 +218,10 @@
 - [x] MainWindow에 Config.save() 통합
 - [x] main.py에 config_manager 전달
 
-### 3.2 저장 경로 변경 기능 연결
-- [ ] Config.set()으로 설정 저장
-- [ ] FileManager 인스턴스 재생성
-- [ ] CSVLogger 인스턴스 재생성
+### 3.2 저장 경로 변경 기능 연결 ✅
+- [x] Config.set()으로 설정 저장
+- [x] FileManager 인스턴스 재생성
+- [x] CSVLogger 인스턴스 재생성
 
 ### 3.3 모니터 변경 기능 연결
 - [ ] [변경] 버튼 이벤트 핸들러
