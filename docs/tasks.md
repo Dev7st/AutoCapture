@@ -224,7 +224,7 @@
 - [x] CSVLogger 인스턴스 재생성
 
 ### 3.3 모니터 변경 기능 연결
-- [ ] 콤보박스 UI로 변경 (버튼 → 콤보박스)
+- [x] 콤보박스 UI로 변경 (버튼 → 콤보박스)
 - [ ] `_on_monitor_change()` 핸들러 구현
 - [ ] Config.set()으로 설정 저장
 - [ ] ScreenCapture 인스턴스 재생성
