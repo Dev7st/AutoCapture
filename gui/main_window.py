@@ -436,7 +436,7 @@ class MainWindow:
 
     def _create_monitor_display(self, parent: ttk.LabelFrame) -> None:
         """
-        캡처 모니터 표시 및 변경 버튼을 생성합니다.
+        캡처 모니터 선택 콤보박스를 생성합니다.
 
         Args:
             parent: 부모 프레임
@@ -445,25 +445,28 @@ class MainWindow:
         monitor_frame = ttk.Frame(parent)
         monitor_frame.pack(fill=tk.X)
 
-        # 모니터 정보 표시
-        self.monitor_var = tk.StringVar(
-            value=f"캡처 모니터: 모니터 {self.monitor_id}"
-        )
+        # 모니터 선택 레이블
         monitor_label = ttk.Label(
             monitor_frame,
-            textvariable=self.monitor_var,
+            text="🖥️ 캡처 모니터:",
             font=("", 14)
         )
-        monitor_label.pack(side=tk.LEFT)
+        monitor_label.pack(side=tk.LEFT, padx=(0, 10))
 
-        # [변경] 버튼
-        change_button = ttk.Button(
+        # 모니터 선택 콤보박스
+        from utils.monitor import get_monitor_names
+
+        self.monitor_var = tk.StringVar(value=f"모니터 {self.monitor_id}")
+        monitor_combo = ttk.Combobox(
             monitor_frame,
-            text="변경",
-            width=8,
-            command=self._on_monitor_change
+            textvariable=self.monitor_var,
+            values=get_monitor_names(),
+            state="readonly",
+            width=15,
+            font=("", 14)
         )
-        change_button.pack(side=tk.LEFT, padx=(10, 0))
+        monitor_combo.pack(side=tk.LEFT)
+        monitor_combo.bind("<<ComboboxSelected>>", self._on_monitor_change)
 
     def update_time(self) -> None:
         """
