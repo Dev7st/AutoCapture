@@ -74,7 +74,6 @@
 - [x] `utils/monitor.py` 생성
 - [x] 모니터 목록 조회 함수 구현
 - [x] 모니터 정보 반환 함수 구현 (해상도, 위치)
-- [x] 듀얼 모니터 환경 테스트
 
 ### 1.5 화면 캡처 기능
 - [x] `features/capture.py` 생성
@@ -84,7 +83,6 @@
 - [x] `get_monitor_info()`: 모니터 정보 조회
 - [x] mss 라이브러리로 캡처 구현
 - [x] 캡처 이미지 RGB 변환
-- [x] 캡처 기능 단위 테스트
 
 ### 1.6 얼굴 감지 기능
 - [x] `features/face_detection.py` 생성
@@ -93,10 +91,8 @@
 - [x] `initialize()`: InsightFace 모델 로드
 - [x] `detect()`: 얼굴 감지 및 개수 반환
 - [x] `cleanup()`: GPU 메모리 해제
-- [x] `tests/test_face_detection.py` 테스트 스크립트 작성
-- [x] InsightFace buffalo_l 모델 다운로드 및 테스트
+- [x] InsightFace buffalo_l 모델 다운로드
 - [x] GPU 감지 실패 시 CPU 전환 로직
-- [x] 얼굴 감지 정확도 테스트 (95% 이상) - 평균 98% 달성
 
 ### 1.7 파일 저장 기능
 - [x] `features/file_manager.py` 생성
@@ -108,7 +104,6 @@
 - [x] `_validate_image()`: 이미지 유효성 검사 (Private)
 - [x] `save_image(is_within_window)`: 이미지 저장 (시간대 기반 파일명)
 - [x] 에러 처리 강화 (권한, 디스크 공간, 잘못된 입력)
-- [x] `tests/test_file_manager.py` 테스트 스크립트 작성
 
 ### 1.8 스케줄링 기능
 - [x] `features/scheduler.py` 생성
@@ -121,9 +116,6 @@
 - [x] `skip_period()`: 건너뛰기
 - [x] `mark_completed()`: 교시 완료 처리 (캡처 성공 시)
 - [x] `reset_period()`: 재시도용 초기화 (재시도 버튼 클릭 시)
-- [x] 스케줄러 동작 테스트
-- [x] 8교시 + 퇴실 스케줄 등록 (09:30~09:45, ...)
-- [x] 10초 간격 재시도 로직
 
 ### 1.9 알림창
 - [x] `MainWindow.show_alert()` 메서드 구현
@@ -140,14 +132,7 @@
 - [x] InitDialog 화면 정중앙 배치
 - [x] MainWindow 화면 정중앙 배치
 - [x] Features 인스턴스 생성 (Capture, Detector, FileManager, Scheduler)
-  - [x] ScreenCapture 인스턴스 생성 및 초기화
-  - [x] FaceDetector 인스턴스 생성 및 모델 로드
-  - [x] FileManager 인스턴스 생성 및 폴더 생성
-  - [x] CaptureScheduler 인스턴스 생성 및 스케줄 등록 (9개)
 - [x] 프로그램 종료 시 cleanup 처리
-  - [x] WM_DELETE_WINDOW 이벤트 핸들러 등록
-  - [x] cleanup() 메서드 구현 (Scheduler 중지, GPU 메모리 해제)
-  - [x] _on_closing() 핸들러 구현
 
 ---
 
@@ -161,7 +146,6 @@
 - [x] `log_event()`: 이벤트 기록 메서드
 - [x] CSV 구조 정의 (날짜, 시간, 항목, 상태, 감지인원, 기준인원, 파일명, 비고)
 - [x] UTF-8-BOM 인코딩 (Excel 호환)
-- [x] `tests/test_logger.py` 테스트 스크립트 작성
 
 ### 2.2 캡처 프로세스 통합
 - [x] `MainWindow._on_capture_trigger(period)` 메서드 생성
@@ -184,9 +168,6 @@
 - [x] `Scheduler.start(root)` 호출하여 자동 트리거 활성화
 - [x] 재시도 버튼 콜백 연결 (`on_retry_button()` → `_on_capture_trigger()`)
 - [x] 캡처 프로세스 로그 추가 (단계별 추적)
-- [x] 전체 캡처 프로세스 테스트 (수동 트리거)
-- [x] Scheduler 자동 트리거 테스트 (시간 도달 시 자동 실행)
-- [x] 10초 자동 재시도 테스트 (실패 후 자동 재시도)
 
 ### 2.3 인원 관리 (이벤트 핸들러 연결)
 - [x] `MainWindow._on_student_count_change(*args)` 메서드 구현 (private)
@@ -195,7 +176,6 @@
 - [x] 기준 인원 재계산 (모드별)
 - [x] UI 레이블 업데이트 (Helper 메서드 호출)
 - [x] trace_add 이벤트 연결 (_on_student_count_change)
-- [x] 인원 변경 동작 테스트
 
 ### 2.4 캡처 모드 전환
 - [x] `MainWindow._on_mode_change(event)` 메서드 구현 (private)
@@ -203,14 +183,12 @@
 - [x] 기준 인원 재계산 (Helper 메서드 호출)
 - [x] UI 업데이트 (모드별 표시)
 - [x] Combobox 이벤트 연결 (_on_mode_change)
-- [x] 모드 전환 동작 테스트
 
 ### 2.5 건너뛰기 기능 통합 ✅
 - [x] `MainWindow.on_skip_button(period)` 메서드 구현
 - [x] `Scheduler.skip_period(period)` 호출
 - [x] `update_period_status()` 호출 (상태: 건너뛰기)
 - [x] `CSVLogger.log_event()` 호출
-- [x] 건너뛰기 동작 테스트
 
 ### 2.6 재시도 기능 통합 ✅
 - [x] `MainWindow.on_retry_button(period)` 메서드 구현
@@ -218,11 +196,9 @@
 - [x] `Scheduler.reset_period(period)` 상태 초기화
 - [x] `update_period_status()` UI 업데이트
 - [x] `CSVLogger.log_event()` 호출
-- [x] 재시도 동작 테스트
 
 ### 2.7 캡처 실패 알림창 추가 ✅
 - [x] `_process_capture_failure()` 메서드에 `show_alert()` 호출 추가
-- [x] 캡처 실패 알림 테스트
 
 ---
 
@@ -242,11 +218,10 @@
 - [x] MainWindow에 Config.save() 통합
 - [x] main.py에 config_manager 전달
 
-### 3.2 저장 경로 변경 기능 연결
-- [ ] [📁 저장 경로 설정] 버튼 이벤트 핸들러
-- [ ] 폴더 선택 다이얼로그 표시
-- [ ] 경로 유효성 검사 및 폴더 생성
-- [ ] Config.save()로 설정 저장
+### 3.2 저장 경로 변경 기능 연결 ✅
+- [x] Config.set()으로 설정 저장
+- [x] FileManager 인스턴스 재생성
+- [x] CSVLogger 인스턴스 재생성
 
 ### 3.3 모니터 변경 기능 연결
 - [ ] [변경] 버튼 이벤트 핸들러

@@ -1168,14 +1168,45 @@ class MainWindow:
             if selected_path:
                 # Path 객체로 정규화 후 문자열로 저장
                 normalized_path = str(Path(selected_path))
+
+                # FileManager 재생성 (먼저 검증)
+                try:
+                    temp_file_manager = FileManager(base_path=normalized_path)
+                    temp_file_manager.ensure_folder_exists()
+                    logger.info("FileManager 재생성 완료")
+                except Exception as e:
+                    logger.error(f"FileManager 재생성 실패: {e}", exc_info=True)
+                    messagebox.showerror(
+                        "오류",
+                        f"파일 관리 모듈 재생성 중 오류가 발생했습니다.\n\n{e}"
+                    )
+                    return
+
+                # CSVLogger 재생성
+                try:
+                    temp_csv_logger = CSVLogger(base_path=normalized_path)
+                    logger.info("CSVLogger 재생성 완료")
+                except Exception as e:
+                    logger.error(f"CSVLogger 재생성 실패: {e}", exc_info=True)
+                    messagebox.showerror(
+                        "오류",
+                        f"로그 모듈 재생성 중 오류가 발생했습니다.\n\n{e}"
+                    )
+                    return
+
+                # 모든 검증 통과 후 실제 적용
                 self.save_path = normalized_path
+                self.file_manager = temp_file_manager
+                self.csv_logger = temp_csv_logger
+
+                # Config에 저장
+                self.config_manager.set('save_path', normalized_path)
+
                 messagebox.showinfo(
                     "경로 변경 완료",
                     f"저장 경로가 변경되었습니다.\n\n{normalized_path}"
                 )
-                logger.info(f"저장 경로 변경: {normalized_path}")
-
-                # TODO: Config.save()로 설정 저장 (Phase 3)
+                logger.info(f"저장 경로 변경 완료: {normalized_path}")
 
         except Exception as e:
             logger.error(f"저장 경로 설정 실패: {e}")
