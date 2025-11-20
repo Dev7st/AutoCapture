@@ -21,6 +21,7 @@ from features.file_manager import FileManager
 from features.logger import CSVLogger
 from features.scheduler import CaptureScheduler
 from utils.config import Config
+from utils.monitor import get_monitor_names
 
 # 로거 설정
 logger = logging.getLogger(__name__)
@@ -436,7 +437,7 @@ class MainWindow:
 
     def _create_monitor_display(self, parent: ttk.LabelFrame) -> None:
         """
-        캡처 모니터 표시 및 변경 버튼을 생성합니다.
+        캡처 모니터 선택 콤보박스를 생성합니다.
 
         Args:
             parent: 부모 프레임
@@ -445,25 +446,26 @@ class MainWindow:
         monitor_frame = ttk.Frame(parent)
         monitor_frame.pack(fill=tk.X)
 
-        # 모니터 정보 표시
-        self.monitor_var = tk.StringVar(
-            value=f"캡처 모니터: 모니터 {self.monitor_id}"
-        )
+        # 모니터 선택 레이블
         monitor_label = ttk.Label(
             monitor_frame,
-            textvariable=self.monitor_var,
+            text="🖥️ 캡처 모니터:",
             font=("", 14)
         )
-        monitor_label.pack(side=tk.LEFT)
+        monitor_label.pack(side=tk.LEFT, padx=(0, 10))
 
-        # [변경] 버튼
-        change_button = ttk.Button(
+        # 모니터 선택 콤보박스
+        self.monitor_var = tk.StringVar(value=f"모니터 {self.monitor_id}")
+        monitor_combo = ttk.Combobox(
             monitor_frame,
-            text="변경",
-            width=8,
-            command=self._on_monitor_change
+            textvariable=self.monitor_var,
+            values=get_monitor_names(),
+            state="readonly",
+            width=15,
+            font=("", 14)
         )
-        change_button.pack(side=tk.LEFT, padx=(10, 0))
+        monitor_combo.pack(side=tk.LEFT)
+        monitor_combo.bind("<<ComboboxSelected>>", self._on_monitor_change)
 
     def update_time(self) -> None:
         """
@@ -489,25 +491,62 @@ class MainWindow:
         # 1초 후 재호출
         self.root.after(1000, self.update_time)
 
-    def _on_monitor_change(self) -> None:
+    def _on_monitor_change(self, event=None) -> None:
         """
-        모니터 변경 버튼 클릭 핸들러.
+        모니터 변경 콤보박스 이벤트 핸들러.
 
-        TODO: Phase 3에서 모니터 선택 다이얼로그 구현
+        선택된 모니터로 ScreenCapture를 재생성하고 설정을 저장합니다.
+        실패 시 기존 모니터로 롤백합니다.
+
+        Args:
+            event: 콤보박스 선택 이벤트 (optional)
         """
         try:
-            logger.info("모니터 변경 버튼 클릭")
+            # 1. 선택된 모니터 ID 추출
+            selected_text = self.monitor_var.get()  # "모니터 1" or "모니터 2"
+            new_monitor_id = int(selected_text.split()[1])
+
+            # 2. 동일한 모니터 선택 시 종료
+            if new_monitor_id == self.monitor_id:
+                logger.info("동일한 모니터 선택됨")
+                return
+
+            logger.info(f"모니터 변경 시도: 모니터 {self.monitor_id} → 모니터 {new_monitor_id}")
+
+            # 3. ScreenCapture 재생성 (임시 인스턴스로 검증)
+            try:
+                temp_capture = ScreenCapture(monitor_id=new_monitor_id)
+                logger.info(f"ScreenCapture 재생성 완료: 모니터 {new_monitor_id}")
+            except Exception as e:
+                logger.error(f"ScreenCapture 재생성 실패: {e}", exc_info=True)
+                # 롤백: 콤보박스를 기존 모니터로 복구
+                self.monitor_var.set(f"모니터 {self.monitor_id}")
+                messagebox.showerror(
+                    "오류",
+                    f"모니터 변경에 실패했습니다.\n\n{e}"
+                )
+                return
+
+            # 4. 검증 통과 후 실제 적용
+            old_monitor_id = self.monitor_id
+            self.monitor_id = new_monitor_id
+            self.capture = temp_capture
+
+            # 5. Config 저장
+            self.config_manager.set('monitor_id', new_monitor_id)
+
+            # 6. 성공 메시지
             messagebox.showinfo(
-                "개발 중",
-                "모니터 변경 기능은 Phase 3에서 구현 예정입니다."
+                "변경 완료",
+                f"캡처 모니터가 모니터 {new_monitor_id}로 변경되었습니다."
             )
-            # TODO: 모니터 선택 다이얼로그 표시 후
-            # self.monitor_id = selected_monitor_id
-            # self.monitor_var.set(f"캡처 모니터: 모니터 {self.monitor_id}")
-            # logger.info(f"모니터 변경: 모니터 {self.monitor_id}")
+            logger.info(f"모니터 변경 완료: 모니터 {old_monitor_id} → 모니터 {new_monitor_id}")
+
         except Exception as e:
-            logger.error(f"모니터 변경 처리 실패: {e}")
-            messagebox.showerror("오류", f"모니터 변경 중 오류가 발생했습니다.\n{e}")
+            logger.error(f"모니터 변경 처리 실패: {e}", exc_info=True)
+            # 롤백: 콤보박스를 기존 모니터로 복구
+            self.monitor_var.set(f"모니터 {self.monitor_id}")
+            messagebox.showerror("오류", f"모니터 변경 중 오류가 발생했습니다.\n\n{e}")
 
     def _check_timeout_periods(self, now: datetime) -> None:
         """
