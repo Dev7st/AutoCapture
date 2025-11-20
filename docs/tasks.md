@@ -229,12 +229,6 @@
 - [x] Config.set()으로 설정 저장
 - [x] ScreenCapture 인스턴스 재생성
 
-### 3.4 GPU/CPU 자동 전환
-- [ ] GPU 사용 가능 여부 확인
-- [ ] GPU 실패 시 CPU 모드로 자동 전환
-- [ ] 전환 시 경고 알림창
-- [ ] 현재 사용 중인 모드 로그 기록
-
 ---
 
 ## 📋 Phase 4: 최적화 및 마무리 (Optimization & Finalization)
