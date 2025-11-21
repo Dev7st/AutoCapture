@@ -4,10 +4,15 @@ CSV 로그 기록 모듈.
 이 모듈은 캡처 이벤트를 CSV 파일로 기록합니다.
 """
 
+# 표준 라이브러리
 import csv
+import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+
+# 로거 설정
+logger = logging.getLogger(__name__)
 
 
 class CSVLogger:
@@ -27,15 +32,25 @@ class CSVLogger:
         >>> logger.log_event("1교시", "캡처 성공", 20, 22, "251020_1교시.png")
     """
 
-    def __init__(self, base_path: str = "C:/IBM 비대면"):
+    def __init__(self, base_path: str = None) -> None:
         """
         CSVLogger 초기화.
 
         Args:
-            base_path: 기본 저장 경로
+            base_path: 기본 저장 경로 (기본값: 바탕화면)
+
+        Example:
+            >>> logger = CSVLogger()  # 바탕화면 사용
+            >>> logger = CSVLogger("C:/IBM 비대면")
+            >>> logger = CSVLogger("D:/출결관리")
         """
-        self.base_path = Path(base_path)
+        if base_path is None:
+            base_path = str(Path.home() / "Desktop")
+
+        self.base_path: Path = Path(base_path)
         self.log_path: Optional[Path] = None
+
+        logger.info(f"CSVLogger 초기화: base_path={self.base_path}")
 
     def _ensure_log_file(self) -> None:
         """
@@ -69,7 +84,9 @@ class CSVLogger:
                     '날짜', '시간', '항목', '상태',
                     '감지인원', '기준인원', '파일명', '비고'
                 ])
+            logger.info(f"로그 파일 생성 완료: {self.log_path}")
         except OSError as e:
+            logger.error(f"로그 파일 생성 실패: {self.log_path}", exc_info=True)
             raise OSError(f"로그 파일 생성 실패: {self.log_path}") from e
 
     def log_event(
@@ -124,5 +141,7 @@ class CSVLogger:
             with open(self.log_path, 'a', encoding='utf-8-sig', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(row)
+            logger.debug(f"로그 기록 완료: {period} - {status}")
         except OSError as e:
+            logger.error(f"로그 기록 실패: {self.log_path}", exc_info=True)
             raise OSError(f"로그 기록 실패: {self.log_path}") from e
