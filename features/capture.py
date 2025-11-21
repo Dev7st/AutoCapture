@@ -87,8 +87,8 @@ class ScreenCapture:
             uint8
         """
         try:
-            # mss.monitors[0]은 전체 화면, [1:]부터 실제 모니터
-            monitor = self._sct.monitors[self.monitor_id]
+            # 모니터 정보 조회 (중복 코드 제거)
+            monitor = self._get_monitor()
 
             # 화면 캡처
             screenshot = self._sct.grab(monitor)
@@ -102,12 +102,9 @@ class ScreenCapture:
 
             return image_rgb
 
-        except IndexError as e:
-            logger.error(f"유효하지 않은 모니터 ID: {self.monitor_id}", exc_info=True)
-            raise IndexError(
-                f"모니터 ID {self.monitor_id}를 찾을 수 없습니다. "
-                f"연결된 모니터 개수를 확인하세요."
-            )
+        except IndexError:
+            # _get_monitor()에서 이미 로깅 및 예외 발생
+            raise
         except Exception as e:
             logger.error(f"화면 캡처 실패: {e}", exc_info=True)
             raise RuntimeError(f"화면 캡처 실패: {e}")
@@ -137,8 +134,8 @@ class ScreenCapture:
             {'id': 1, 'width': 1920, 'height': 1080, 'left': 0, 'top': 0}
         """
         try:
-            # mss.monitors[0]은 전체 화면, [1:]부터 실제 모니터
-            monitor = self._sct.monitors[self.monitor_id]
+            # 모니터 정보 조회 (중복 코드 제거)
+            monitor = self._get_monitor()
 
             return {
                 'id': self.monitor_id,
@@ -148,12 +145,34 @@ class ScreenCapture:
                 'top': monitor['top']
             }
 
-        except IndexError as e:
+        except IndexError:
+            # _get_monitor()에서 이미 로깅 및 예외 발생
+            raise
+        except Exception as e:
+            logger.error(f"모니터 정보 조회 실패: {e}", exc_info=True)
+            raise RuntimeError(f"모니터 정보 조회 실패: {e}")
+
+    def _get_monitor(self) -> dict:
+        """
+        현재 모니터 정보를 반환합니다 (Private).
+
+        중복 코드 제거를 위한 헬퍼 메서드입니다.
+        mss.monitors 리스트에서 현재 monitor_id에 해당하는 정보를 반환합니다.
+
+        Returns:
+            dict: mss 모니터 정보 (width, height, left, top 포함)
+
+        Raises:
+            IndexError: 유효하지 않은 모니터 ID인 경우
+
+        Note:
+            mss.monitors[0]은 전체 화면이며, [1:]부터 실제 모니터입니다.
+        """
+        try:
+            return self._sct.monitors[self.monitor_id]
+        except IndexError:
             logger.error(f"유효하지 않은 모니터 ID: {self.monitor_id}", exc_info=True)
             raise IndexError(
                 f"모니터 ID {self.monitor_id}를 찾을 수 없습니다. "
                 f"연결된 모니터 개수를 확인하세요."
             )
-        except Exception as e:
-            logger.error(f"모니터 정보 조회 실패: {e}", exc_info=True)
-            raise RuntimeError(f"모니터 정보 조회 실패: {e}")
