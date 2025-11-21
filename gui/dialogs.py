@@ -44,7 +44,7 @@ class InitDialog:
 
     # ==================== Public Methods ====================
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         초기 설정 다이얼로그를 초기화합니다.
         """
@@ -160,6 +160,49 @@ class InitDialog:
         # 크기와 위치를 함께 설정
         self.dialog.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
+    # ==================== Helper Methods ====================
+
+    def _create_section_frame(
+        self,
+        parent: ttk.Frame,
+        title: str,
+        padding: str = "30 30 30 30",
+        pady: tuple = (0, 50)
+    ) -> ttk.LabelFrame:
+        """
+        공통 스타일의 섹션 프레임을 생성합니다 (Private).
+
+        중복 코드 제거를 위한 헬퍼 메서드입니다.
+        모든 섹션에서 일관된 LabelFrame 스타일을 적용합니다.
+
+        Args:
+            parent: 부모 프레임
+            title: 섹션 제목
+            padding: 프레임 패딩 (기본값: "30 30 30 30")
+            pady: 프레임 세로 여백 (기본값: (0, 50))
+
+        Returns:
+            ttk.LabelFrame: 생성된 섹션 프레임
+
+        Example:
+            >>> section = self._create_section_frame(parent, "캡처 모니터 선택")
+        """
+        # 섹션 프레임 생성
+        section_frame = ttk.LabelFrame(
+            parent,
+            text=title,
+            padding=padding
+        )
+
+        # LabelFrame 제목 폰트 설정 (16pt, bold)
+        label_widget = ttk.Label(parent, text=title, font=("", 16, "bold"))
+        section_frame.configure(labelwidget=label_widget)
+
+        # 프레임 배치
+        section_frame.pack(fill=tk.X, pady=pady)
+
+        return section_frame
+
     # ==================== Monitor Section ====================
 
     def _create_monitor_section(self, parent: ttk.Frame) -> None:
@@ -170,14 +213,7 @@ class InitDialog:
             parent: 부모 프레임
         """
         # 섹션 프레임
-        section_frame = ttk.LabelFrame(
-            parent,
-            text="캡처 모니터 선택",
-            padding="30 30 30 30"
-        )
-        # LabelFrame 제목 폰트 설정
-        section_frame.configure(labelwidget=ttk.Label(parent, text="캡처 모니터 선택", font=("", 16, "bold")))
-        section_frame.pack(fill=tk.X, pady=(0, 50))
+        section_frame = self._create_section_frame(parent, "캡처 모니터 선택")
 
         # 모니터 목록 조회
         try:
@@ -283,14 +319,7 @@ class InitDialog:
             parent: 부모 프레임
         """
         # 섹션 프레임
-        section_frame = ttk.LabelFrame(
-            parent,
-            text="저장 경로 선택",
-            padding="30 30 30 30"
-        )
-        # LabelFrame 제목 폰트 설정
-        section_frame.configure(labelwidget=ttk.Label(parent, text="저장 경로 선택", font=("", 16, "bold")))
-        section_frame.pack(fill=tk.X, pady=(0, 50))
+        section_frame = self._create_section_frame(parent, "저장 경로 선택")
 
         # 경로 입력 영역 (Entry + Button)
         path_frame = ttk.Frame(section_frame)
@@ -365,14 +394,7 @@ class InitDialog:
             parent: 부모 프레임
         """
         # 섹션 프레임
-        section_frame = ttk.LabelFrame(
-            parent,
-            text="캡처 모드 선택",
-            padding="30 30 30 30"
-        )
-        # LabelFrame 제목 폰트 설정
-        section_frame.configure(labelwidget=ttk.Label(parent, text="캡처 모드 선택", font=("", 16, "bold")))
-        section_frame.pack(fill=tk.X, pady=(0, 50))
+        section_frame = self._create_section_frame(parent, "캡처 모드 선택")
 
         # 모드 변수 초기화 (저장된 설정 또는 기본값: flexible)
         default_mode = self.saved_config.get('mode', 'flexible')
@@ -436,14 +458,7 @@ class InitDialog:
             parent: 부모 프레임
         """
         # 섹션 프레임
-        section_frame = ttk.LabelFrame(
-            parent,
-            text="출석 학생 수",
-            padding="30 30 30 30"
-        )
-        # LabelFrame 제목 폰트 설정
-        section_frame.configure(labelwidget=ttk.Label(parent, text="출석 학생 수", font=("", 16, "bold")))
-        section_frame.pack(fill=tk.X, pady=(0, 50))
+        section_frame = self._create_section_frame(parent, "출석 학생 수")
 
         # 학생 수 변수 초기화 (저장된 설정 또는 기본값: 1명)
         default_student_count = self.saved_config.get('student_count', 1)
