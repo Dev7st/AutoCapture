@@ -34,19 +34,23 @@ class FileManager:
         "C:/IBM 비대면/251104/251104_1교시.png"
     """
 
-    def __init__(self, base_path: str = "C:/IBM 비대면") -> None:
+    def __init__(self, base_path: str = None) -> None:
         """
         FileManager 인스턴스를 초기화합니다.
 
         기본 저장 경로를 설정하고 현재 날짜를 YYMMDD 형식으로 계산합니다.
 
         Args:
-            base_path: 기본 저장 경로 (기본값: "C:/IBM 비대면")
+            base_path: 기본 저장 경로 (기본값: 바탕화면)
 
         Example:
-            >>> fm = FileManager()  # 기본 경로 사용
+            >>> fm = FileManager()  # 바탕화면 사용
+            >>> fm = FileManager("C:/IBM 비대면")  # 사용자 지정 경로
             >>> fm = FileManager("D:/출결관리")  # 사용자 지정 경로
         """
+        if base_path is None:
+            base_path = str(Path.home() / "Desktop")
+
         self.base_path: Path = Path(base_path)
         self.current_date: str = datetime.now().strftime("%y%m%d")
 
