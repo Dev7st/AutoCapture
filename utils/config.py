@@ -42,12 +42,16 @@ class Config:
         >>> config.set('student_count', 22)
     """
 
-    def __init__(self, config_path: str = "config.json"):
+    def __init__(self, config_path: str = "config.json") -> None:
         """
         설정 관리 인스턴스를 초기화합니다.
 
         Args:
             config_path: 설정 파일 경로 (기본값: "config.json")
+
+        Example:
+            >>> config = Config()
+            >>> config = Config("custom_config.json")
         """
         self.config_path: Path = Path(config_path)
         self.data: Dict[str, Any] = {}
@@ -74,8 +78,7 @@ class Config:
                 logger.warning(
                     f"설정 파일이 없습니다. 기본값을 사용합니다: {self.config_path}"
                 )
-                self.data = DEFAULT_CONFIG.copy()
-                return self.data
+                return self._use_default_config()
 
             # JSON 파일 읽기
             with open(self.config_path, 'r', encoding='utf-8') as f:
@@ -89,24 +92,21 @@ class Config:
                 f"설정 파일 JSON 파싱 실패: {e}. 기본값을 사용합니다.",
                 exc_info=True
             )
-            self.data = DEFAULT_CONFIG.copy()
-            return self.data
+            return self._use_default_config()
 
         except PermissionError as e:
             logger.error(
                 f"설정 파일 읽기 권한 없음: {e}. 기본값을 사용합니다.",
                 exc_info=True
             )
-            self.data = DEFAULT_CONFIG.copy()
-            return self.data
+            return self._use_default_config()
 
         except Exception as e:
             logger.error(
                 f"설정 파일 로드 실패: {e}. 기본값을 사용합니다.",
                 exc_info=True
             )
-            self.data = DEFAULT_CONFIG.copy()
-            return self.data
+            return self._use_default_config()
 
     def save(self, data: Dict[str, Any]) -> None:
         """
@@ -190,3 +190,22 @@ class Config:
         except Exception as e:
             logger.error(f"설정 값 저장 실패: {e}", exc_info=True)
             # 저장 실패 시 메모리에는 남아있음
+
+    def _use_default_config(self) -> Dict[str, Any]:
+        """
+        기본 설정을 적용합니다 (Private).
+
+        중복 코드 제거를 위한 헬퍼 메서드입니다.
+        load() 메서드의 여러 예외 처리 블록에서 공통으로 사용됩니다.
+
+        Returns:
+            Dict[str, Any]: 기본 설정 데이터
+
+        Example:
+            >>> config = Config()
+            >>> default = config._use_default_config()
+            >>> print(default['mode'])
+            'flexible'
+        """
+        self.data = DEFAULT_CONFIG.copy()
+        return self.data
