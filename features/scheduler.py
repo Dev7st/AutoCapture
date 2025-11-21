@@ -127,15 +127,9 @@ class CaptureScheduler:
             >>> scheduler.is_in_capture_window(1)
             True  # 현재 시간이 09:30~09:45 사이인 경우
         """
-        # 해당 교시의 스케줄 찾기
-        schedule = None
-        for s in self.schedules:
-            if s["period"] == period:
-                schedule = s
-                break
-
+        # 해당 교시의 스케줄 찾기 (중복 코드 제거)
+        schedule = self._find_schedule(period)
         if schedule is None:
-            logger.warning(f"교시 {period}의 스케줄을 찾을 수 없습니다")
             return False
 
         # 현재 시간 가져오기
@@ -254,15 +248,9 @@ class CaptureScheduler:
         Example:
             >>> scheduler.skip_period(1)  # 1교시 건너뛰기
         """
-        # 해당 교시의 스케줄 찾기
-        schedule = None
-        for s in self.schedules:
-            if s["period"] == period:
-                schedule = s
-                break
-
+        # 해당 교시의 스케줄 찾기 (중복 코드 제거)
+        schedule = self._find_schedule(period)
         if schedule is None:
-            logger.warning(f"교시 {period}의 스케줄을 찾을 수 없습니다")
             return
 
         # 건너뛰기 플래그 설정
@@ -282,15 +270,9 @@ class CaptureScheduler:
         Example:
             >>> scheduler.mark_completed(1)  # 1교시 완료 처리
         """
-        # 해당 교시의 스케줄 찾기
-        schedule = None
-        for s in self.schedules:
-            if s["period"] == period:
-                schedule = s
-                break
-
+        # 해당 교시의 스케줄 찾기 (중복 코드 제거)
+        schedule = self._find_schedule(period)
         if schedule is None:
-            logger.warning(f"교시 {period}의 스케줄을 찾을 수 없습니다")
             return
 
         # 완료 플래그 설정
@@ -310,18 +292,37 @@ class CaptureScheduler:
         Example:
             >>> scheduler.reset_period(1)  # 1교시 재시도
         """
-        # 해당 교시의 스케줄 찾기
-        schedule = None
-        for s in self.schedules:
-            if s["period"] == period:
-                schedule = s
-                break
-
+        # 해당 교시의 스케줄 찾기 (중복 코드 제거)
+        schedule = self._find_schedule(period)
         if schedule is None:
-            logger.warning(f"교시 {period}의 스케줄을 찾을 수 없습니다")
             return
 
         # 상태 초기화
         schedule["is_completed"] = False
         schedule["is_skipped"] = False
         logger.info(f"교시 {period} 상태 초기화 (재시도 가능)")
+
+    def _find_schedule(self, period: int) -> Optional[Dict]:
+        """
+        교시 번호로 스케줄을 찾습니다 (Private).
+
+        중복 코드 제거를 위한 헬퍼 메서드입니다.
+        여러 메서드에서 공통으로 사용되는 스케줄 검색 로직을 추출했습니다.
+
+        Args:
+            period: 교시 번호 (1~8: 교시, 0: 퇴실)
+
+        Returns:
+            Optional[Dict]: 찾은 스케줄 또는 None
+
+        Example:
+            >>> schedule = self._find_schedule(1)
+            >>> if schedule:
+            >>>     print(schedule["start_time"])
+        """
+        for schedule in self.schedules:
+            if schedule["period"] == period:
+                return schedule
+
+        logger.warning(f"교시 {period}의 스케줄을 찾을 수 없습니다")
+        return None
