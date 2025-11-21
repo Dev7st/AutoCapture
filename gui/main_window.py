@@ -63,7 +63,7 @@ class MainWindow:
 
     # ==================== Initialization ====================
 
-    def __init__(self, config_manager: Config):
+    def __init__(self, config_manager: Config) -> None:
         """
         메인 윈도우를 초기화합니다.
 
