@@ -11,6 +11,9 @@ from typing import Optional
 # 외부 라이브러리
 import numpy as np
 
+# 내부 모듈
+from features.exceptions import FaceDetectionError, ModelLoadError, InvalidImageError
+
 # 로거 설정
 logger = logging.getLogger(__name__)
 
@@ -112,13 +115,13 @@ class FaceDetector:
 
         except ImportError as e:
             logger.error(f"InsightFace 라이브러리를 찾을 수 없습니다: {e}", exc_info=True)
-            raise RuntimeError(
+            raise ModelLoadError(
                 "InsightFace가 설치되지 않았습니다. "
                 "'pip install insightface' 명령으로 설치하세요."
             )
         except Exception as e:
             logger.error(f"모델 로드 실패: {e}", exc_info=True)
-            raise RuntimeError(f"InsightFace 모델 로드 실패: {e}")
+            raise ModelLoadError(f"InsightFace 모델 로드 실패: {e}")
 
     def detect(self, image: np.ndarray) -> int:
         """
@@ -150,7 +153,7 @@ class FaceDetector:
         # 초기화 확인
         if not self.is_initialized:
             logger.error("모델이 초기화되지 않았습니다")
-            raise ValueError(
+            raise FaceDetectionError(
                 "모델이 초기화되지 않았습니다. "
                 "initialize() 메서드를 먼저 호출하세요."
             )
@@ -158,11 +161,11 @@ class FaceDetector:
         # 이미지 유효성 검사
         if not isinstance(image, np.ndarray):
             logger.error(f"이미지 타입이 잘못되었습니다: {type(image)}")
-            raise ValueError(f"이미지는 numpy array여야 합니다. 현재: {type(image)}")
+            raise InvalidImageError(f"이미지는 numpy array여야 합니다. 현재: {type(image)}")
 
         if len(image.shape) != 3 or image.shape[2] != 3:
             logger.error(f"이미지 shape이 잘못되었습니다: {image.shape}")
-            raise ValueError(
+            raise InvalidImageError(
                 f"이미지는 (height, width, 3) 형식이어야 합니다. "
                 f"현재: {image.shape}"
             )
@@ -179,7 +182,7 @@ class FaceDetector:
 
         except Exception as e:
             logger.error(f"얼굴 감지 실패: {e}", exc_info=True)
-            raise RuntimeError(f"얼굴 감지 중 오류 발생: {e}")
+            raise FaceDetectionError(f"얼굴 감지 중 오류 발생: {e}")
 
     def cleanup(self) -> None:
         """
