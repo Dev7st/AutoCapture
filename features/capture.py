@@ -13,6 +13,9 @@ import mss
 import numpy as np
 from typing import Optional
 
+# 내부 모듈
+from features.exceptions import ScreenCaptureError, InvalidMonitorError
+
 # 로거 설정
 logger = logging.getLogger(__name__)
 
@@ -62,7 +65,7 @@ class ScreenCapture:
             self._sct = mss.mss()
         except Exception as e:
             logger.error(f"mss 인스턴스 생성 실패: {e}", exc_info=True)
-            raise RuntimeError(f"mss 인스턴스 생성 실패: {e}")
+            raise ScreenCaptureError(f"mss 인스턴스 생성 실패: {e}")
 
     def capture(self) -> np.ndarray:
         """
@@ -102,12 +105,12 @@ class ScreenCapture:
 
             return image_rgb
 
-        except IndexError:
+        except InvalidMonitorError:
             # _get_monitor()에서 이미 로깅 및 예외 발생
             raise
         except Exception as e:
             logger.error(f"화면 캡처 실패: {e}", exc_info=True)
-            raise RuntimeError(f"화면 캡처 실패: {e}")
+            raise ScreenCaptureError(f"화면 캡처 실패: {e}")
 
     def get_monitor_info(self) -> dict:
         """
@@ -145,12 +148,12 @@ class ScreenCapture:
                 'top': monitor['top']
             }
 
-        except IndexError:
+        except InvalidMonitorError:
             # _get_monitor()에서 이미 로깅 및 예외 발생
             raise
         except Exception as e:
             logger.error(f"모니터 정보 조회 실패: {e}", exc_info=True)
-            raise RuntimeError(f"모니터 정보 조회 실패: {e}")
+            raise ScreenCaptureError(f"모니터 정보 조회 실패: {e}")
 
     def _get_monitor(self) -> dict:
         """
@@ -163,7 +166,7 @@ class ScreenCapture:
             dict: mss 모니터 정보 (width, height, left, top 포함)
 
         Raises:
-            IndexError: 유효하지 않은 모니터 ID인 경우
+            InvalidMonitorError: 유효하지 않은 모니터 ID인 경우
 
         Note:
             mss.monitors[0]은 전체 화면이며, [1:]부터 실제 모니터입니다.
@@ -172,7 +175,7 @@ class ScreenCapture:
             return self._sct.monitors[self.monitor_id]
         except IndexError:
             logger.error(f"유효하지 않은 모니터 ID: {self.monitor_id}", exc_info=True)
-            raise IndexError(
+            raise InvalidMonitorError(
                 f"모니터 ID {self.monitor_id}를 찾을 수 없습니다. "
                 f"연결된 모니터 개수를 확인하세요."
             )
