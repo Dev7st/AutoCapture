@@ -20,6 +20,12 @@ from features.face_detection import FaceDetector
 from features.file_manager import FileManager
 from features.logger import CSVLogger
 from features.scheduler import CaptureScheduler
+from features.exceptions import (
+    InsufficientStorageError,
+    InvalidMonitorError,
+    FilePermissionError,
+    ModelLoadError
+)
 from utils.config import Config
 from utils.monitor import get_monitor_names
 
@@ -104,6 +110,15 @@ class MainWindow:
             self.detector = FaceDetector(gpu_id=0)
             self.detector.initialize()
             logger.info("FaceDetector 초기화 완료")
+        except ModelLoadError as e:
+            logger.error(f"InsightFace 모델 로드 실패: {e}", exc_info=True)
+            messagebox.showerror(
+                "모델 로드 실패",
+                f"InsightFace 모델을 로드할 수 없습니다.\n\n"
+                f"오류: {e}\n\n"
+                f"InsightFace가 설치되어 있는지 확인하세요.\n"
+                f"'pip install insightface' 명령으로 설치할 수 있습니다."
+            )
         except Exception as e:
             logger.error(f"FaceDetector 초기화 실패: {e}", exc_info=True)
             messagebox.showerror(
@@ -1306,6 +1321,18 @@ class MainWindow:
         try:
             image = self.capture.capture()
             logger.info(f"{period_name} 화면 캡처 완료 (크기: {image.shape})")
+        except InvalidMonitorError as e:
+            logger.error(f"{period_name} 유효하지 않은 모니터 ID: {e}", exc_info=True)
+            self.csv_logger.log_event(
+                period_name, "캡처 실패", 0, self.student_count + 1, "", "유효하지 않은 모니터"
+            )
+            self.show_alert(
+                "모니터 오류",
+                f"{period_name} 선택한 모니터를 찾을 수 없습니다.\n\n"
+                "모니터 연결을 확인하거나 상단에서 모니터를 다시 선택해주세요.",
+                "error"
+            )
+            return
         except RuntimeError as e:
             logger.error(f"{period_name} 화면 캡처 실패: {e}")
             self.csv_logger.log_event(period_name, "캡처 실패", 0, self.student_count + 1, "", str(e))
@@ -1428,6 +1455,28 @@ class MainWindow:
 
             logger.info(f"{period_name} 캡처 성공: {file_path}")
 
+        except InsufficientStorageError as e:
+            logger.error(f"{period_name} 디스크 공간 부족: {e}", exc_info=True)
+            self.csv_logger.log_event(
+                period_name, "저장 실패", detected_count, threshold, "", "디스크 공간 부족"
+            )
+            self.show_alert(
+                "디스크 공간 부족",
+                f"{period_name} 파일을 저장할 디스크 공간이 부족합니다.\n\n"
+                "불필요한 파일을 삭제한 후 재시도 버튼을 눌러주세요.",
+                "error"
+            )
+        except FilePermissionError as e:
+            logger.error(f"{period_name} 파일 저장 권한 없음: {e}", exc_info=True)
+            self.csv_logger.log_event(
+                period_name, "저장 실패", detected_count, threshold, "", "권한 없음"
+            )
+            self.show_alert(
+                "권한 오류",
+                f"{period_name} 파일 저장 권한이 없습니다.\n\n"
+                "저장 경로를 변경해주세요.",
+                "error"
+            )
         except PermissionError as e:
             logger.error(f"{period_name} 파일 저장 권한 오류: {e}")
             self.csv_logger.log_event(period_name, "저장 실패", detected_count, threshold, "", "권한 오류")
