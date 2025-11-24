@@ -13,6 +13,9 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
+# 내부 모듈
+from features.exceptions import FileSaveError, InsufficientStorageError, FilePermissionError
+
 # 로거 설정
 logger = logging.getLogger(__name__)
 
@@ -79,11 +82,19 @@ class FileManager:
 
         except PermissionError as e:
             logger.error(f"폴더 생성 권한 없음: {folder_path}", exc_info=True)
-            raise PermissionError(f"폴더를 생성할 권한이 없습니다: {folder_path}")
+            raise FilePermissionError(f"폴더를 생성할 권한이 없습니다: {folder_path}")
+
+        except OSError as e:
+            # 디스크 공간 부족 확인 (errno 28 = ENOSPC)
+            if e.errno == 28 or "No space left" in str(e):
+                logger.error(f"디스크 공간 부족: {folder_path}", exc_info=True)
+                raise InsufficientStorageError(f"디스크 공간이 부족합니다: {folder_path}")
+            logger.error(f"폴더 생성 실패: {e}", exc_info=True)
+            raise FileSaveError(f"폴더 생성 중 오류 발생: {e}")
 
         except Exception as e:
             logger.error(f"폴더 생성 실패: {e}", exc_info=True)
-            raise OSError(f"폴더 생성 중 오류 발생: {e}")
+            raise FileSaveError(f"폴더 생성 중 오류 발생: {e}")
 
     def get_file_path(self, period: int, is_within_window: bool) -> Path:
         """
@@ -198,15 +209,19 @@ class FileManager:
 
         except PermissionError as e:
             logger.error(f"파일 저장 권한 없음: {file_path}", exc_info=True)
-            raise PermissionError(f"파일을 저장할 권한이 없습니다: {file_path}")
+            raise FilePermissionError(f"파일을 저장할 권한이 없습니다: {file_path}")
 
         except OSError as e:
-            logger.error(f"파일 저장 실패 (디스크 공간 부족 가능): {e}", exc_info=True)
-            raise OSError(f"파일 저장 중 오류 발생: {e}")
+            # 디스크 공간 부족 확인 (errno 28 = ENOSPC)
+            if e.errno == 28 or "No space left" in str(e):
+                logger.error(f"디스크 공간 부족: {file_path}", exc_info=True)
+                raise InsufficientStorageError(f"디스크 공간이 부족합니다: {file_path}")
+            logger.error(f"파일 저장 실패: {e}", exc_info=True)
+            raise FileSaveError(f"파일 저장 중 오류 발생: {e}")
 
         except Exception as e:
             logger.error(f"예상치 못한 오류 발생: {e}", exc_info=True)
-            raise RuntimeError(f"이미지 저장 중 예상치 못한 오류: {e}")
+            raise FileSaveError(f"이미지 저장 중 예상치 못한 오류: {e}")
 
     def _validate_image(self, image: np.ndarray) -> None:
         """
