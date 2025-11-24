@@ -250,7 +250,7 @@
   - `features/file_manager.py`: RuntimeError/OSError/PermissionError → FileSaveError/InsufficientStorageError/FilePermissionError
   - `features/scheduler.py`: RuntimeError/ValueError → SchedulerError/InvalidScheduleError
 
-- [ ] 3. `gui/main_window.py`에 사용자 알림 추가
+- [x] 3. `gui/main_window.py`에 사용자 알림 추가
   - `InsufficientStorageError` catch → 디스크 공간 부족 알림
   - `InvalidMonitorError` catch → 모니터 재선택 알림
   - `FilePermissionError` catch → 저장 경로 변경 알림
