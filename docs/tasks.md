@@ -238,7 +238,7 @@
 - [x] 중복 코드 제거 및 리팩토링
 
 ### 4.2 예외 처리 강화
-- [ ] 1. `features/exceptions.py` 파일 생성 및 커스텀 예외 클래스 구현
+- [x] 1. `features/exceptions.py` 파일 생성 및 커스텀 예외 클래스 구현
   - `CaptureException`, `ScreenCaptureError`, `InvalidMonitorError`
   - `FaceDetectionError`, `ModelLoadError`, `InvalidImageError`
   - `FileSaveError`, `InsufficientStorageError`, `FilePermissionError`
