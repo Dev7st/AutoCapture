@@ -238,10 +238,23 @@
 - [x] 중복 코드 제거 및 리팩토링
 
 ### 4.2 예외 처리 강화
-- [ ] 커스텀 예외 클래스 정의 및 계층 구조 구현
-  - `ScreenCaptureError`, `FaceDetectionError`, `GPUNotAvailableError`, `FileSaveError`, `SchedulerError`
-- [ ] 복구 가능한 에러 재시도 로직
-- [ ] 치명적 에러 안전 종료 로직
+- [ ] 1. `features/exceptions.py` 파일 생성 및 커스텀 예외 클래스 구현
+  - `CaptureException`, `ScreenCaptureError`, `InvalidMonitorError`
+  - `FaceDetectionError`, `ModelLoadError`, `InvalidImageError`
+  - `FileSaveError`, `InsufficientStorageError`, `FilePermissionError`
+  - `SchedulerError`, `InvalidScheduleError`
+
+- [ ] 2. 기존 코드를 커스텀 예외로 교체
+  - `features/capture.py`: RuntimeError → ScreenCaptureError, IndexError → InvalidMonitorError
+  - `features/face_detection.py`: RuntimeError/ValueError → FaceDetectionError/ModelLoadError/InvalidImageError
+  - `features/file_manager.py`: RuntimeError/OSError/PermissionError → FileSaveError/InsufficientStorageError/FilePermissionError
+  - `features/scheduler.py`: RuntimeError/ValueError → SchedulerError/InvalidScheduleError
+
+- [ ] 3. `gui/main_window.py`에 사용자 알림 추가
+  - `InsufficientStorageError` catch → 디스크 공간 부족 알림
+  - `InvalidMonitorError` catch → 모니터 재선택 알림
+  - `FilePermissionError` catch → 저장 경로 변경 알림
+  - `ModelLoadError` catch → InsightFace 설치 확인 알림
 
 ### 4.3 성능 최적화
 - [ ] FaceDetector 인스턴스 재사용
