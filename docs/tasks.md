@@ -244,7 +244,7 @@
   - `FileSaveError`, `InsufficientStorageError`, `FilePermissionError`
   - `SchedulerError`, `InvalidScheduleError`
 
-- [ ] 2. 기존 코드를 커스텀 예외로 교체
+- [x] 2. 기존 코드를 커스텀 예외로 교체
   - `features/capture.py`: RuntimeError → ScreenCaptureError, IndexError → InvalidMonitorError
   - `features/face_detection.py`: RuntimeError/ValueError → FaceDetectionError/ModelLoadError/InvalidImageError
   - `features/file_manager.py`: RuntimeError/OSError/PermissionError → FileSaveError/InsufficientStorageError/FilePermissionError
