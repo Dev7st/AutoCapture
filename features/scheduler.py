@@ -5,8 +5,11 @@
 """
 
 import logging
-from datetime import datetime, time
+from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional
+
+# 내부 모듈
+from features.exceptions import SchedulerError, InvalidScheduleError
 
 logger = logging.getLogger(__name__)
 
@@ -76,11 +79,11 @@ class CaptureScheduler:
 
             # 시간 범위 검증
             if not (0 <= start_hour < 24 and 0 <= start_min < 60):
-                raise ValueError(
+                raise InvalidScheduleError(
                     f"잘못된 시작 시간: {start_time}"
                 )
             if not (0 <= end_hour < 24 and 0 <= end_min < 60):
-                raise ValueError(
+                raise InvalidScheduleError(
                     f"잘못된 종료 시간: {end_time}"
                 )
 
@@ -88,7 +91,7 @@ class CaptureScheduler:
             start_minutes = start_hour * 60 + start_min
             end_minutes = end_hour * 60 + end_min
             if start_minutes >= end_minutes:
-                raise ValueError(
+                raise InvalidScheduleError(
                     f"시작 시간이 종료 시간보다 늦습니다: "
                     f"{start_time} >= {end_time}"
                 )
@@ -169,7 +172,7 @@ class CaptureScheduler:
         """
         if self.is_running:
             logger.warning("스케줄러가 이미 실행 중입니다")
-            raise RuntimeError("스케줄러가 이미 실행 중입니다")
+            raise SchedulerError("스케줄러가 이미 실행 중입니다")
 
         self._root = root
         self.is_running = True
