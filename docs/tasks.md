@@ -247,8 +247,8 @@
   - `ModelLoadError` catch → InsightFace 설치 확인 알림
 
 ### 4.3 성능 최적화
-- [ ] 1. 인스턴스 재사용 확인 (FaceDetector, mss)
-- [ ] 2. 이미지 메모리 명시적 해제 확인 (`del image`)
+- [x] 1. 인스턴스 재사용 확인 (FaceDetector, mss)
+- [x] 2. 이미지 메모리 명시적 해제 확인 (`del image`)
 - [ ] 3. 실제 캡처 테스트 및 로그 타임스탬프로 성능 확인
 
 ### 4.4 통합 테스트
