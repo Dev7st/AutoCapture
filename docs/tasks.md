@@ -253,8 +253,8 @@
 
 ### 4.4 EXE 빌드
 - [x] PyInstaller 설치 및 기본 빌드 테스트
-- [ ] InsightFace 모델 포함 및 경로 문제 해결
-- [ ] .spec 파일 작성 및 최적화
+- [x] InsightFace 모델 포함 및 경로 문제 해결
+- [x] .spec 파일 작성 및 최적화
 - [ ] EXE 실행 테스트 (GPU 동작 확인)
 
 ### 4.5 문서화
