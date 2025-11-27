@@ -256,7 +256,7 @@
 - [x] InsightFace 모델 포함 및 경로 문제 해결
 - [x] .spec 파일 작성 및 최적화
 - [x] EXE 실행 테스트
-- [ ] build.bat 스크립트 작성
+- [x] build.bat 스크립트 작성
 
 ### 4.5 문서화
 - [ ] README.md 작성
