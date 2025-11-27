@@ -255,7 +255,8 @@
 - [x] PyInstaller 설치 및 기본 빌드 테스트
 - [x] InsightFace 모델 포함 및 경로 문제 해결
 - [x] .spec 파일 작성 및 최적화
-- [ ] EXE 실행 테스트 (GPU 동작 확인)
+- [x] EXE 실행 테스트
+- [ ] build.bat 스크립트 작성
 
 ### 4.5 문서화
 - [ ] README.md 작성
