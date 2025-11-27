@@ -6,6 +6,8 @@ InsightFace 라이브러리를 사용하여 GPU 가속 얼굴 감지 기능을 �
 
 # 표준 라이브러리
 import logging
+import os
+import sys
 from typing import Optional
 
 # 외부 라이브러리
@@ -90,8 +92,22 @@ class FaceDetector:
 
             logger.info("InsightFace 모델 로드 중...")
 
+            # PyInstaller 실행 환경 확인 및 모델 경로 설정
+            if getattr(sys, 'frozen', False):
+                # PyInstaller로 패키징된 경우
+                base_path = sys._MEIPASS
+                model_root = os.path.join(base_path, '.insightface')
+                logger.info(f"PyInstaller 환경 감지: 모델 루트={model_root}")
+            else:
+                # 일반 Python 실행 환경
+                model_root = None
+                logger.info("일반 Python 환경: 기본 모델 경로 사용")
+
             # FaceAnalysis 인스턴스 생성 (buffalo_l 모델)
-            self.model = FaceAnalysis(name='buffalo_l')
+            if model_root:
+                self.model = FaceAnalysis(name='buffalo_l', root=model_root)
+            else:
+                self.model = FaceAnalysis(name='buffalo_l')
 
             # GPU 사용 시도
             try:
