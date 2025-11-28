@@ -802,6 +802,98 @@ class CloudUploader:
 
 ---
 
+## 9. EXE 배포 아키텍처
+
+### 9.1 PyInstaller 빌드 구성
+
+**빌드 도구:**
+- PyInstaller 6.11.0
+- 빌드 모드: --onedir (폴더형 배포)
+- 설정 파일: `출결관리.spec`
+
+**spec 파일 주요 구성:**
+```python
+# 데이터 수집
+- InsightFace buffalo_l 모델 번들링 (~/.insightface/models/buffalo_l)
+- onnxruntime, insightface, mss, PIL, numpy 자동 수집
+
+# Hidden Imports
+- 내부 패키지: gui, features, utils
+- 외부 의존성: jaraco.context, backports.tarfile
+
+# 제외 항목
+- IPython, jupyter (불필요한 개발 도구)
+
+# 실행 옵션
+- console=False (GUI 모드, 콘솔 창 숨김)
+- upx=True (압축 활성화)
+```
+
+### 9.2 PyInstaller 환경 감지
+
+**FaceDetector 클래스 모델 경로 처리:**
+```python
+# features/face_detection.py - initialize() 메서드
+if getattr(sys, 'frozen', False):
+    # PyInstaller 환경: sys._MEIPASS 사용
+    base_path = sys._MEIPASS
+    model_root = os.path.join(base_path, '.insightface')
+else:
+    # 일반 Python 환경: 기본 경로 사용
+    model_root = None
+```
+
+**주요 특징:**
+- `sys.frozen`: PyInstaller 패키징 여부 감지
+- `sys._MEIPASS`: 임시 추출 디렉토리 경로 (실행 시 생성)
+- 모델 파일: EXE 내부에 번들링, GitHub 다운로드 불필요
+
+### 9.3 배포 구조
+
+**빌드 결과물 (`dist/출결관리/`):**
+```
+출결관리/
+├─ 출결관리.exe                    # 메인 실행 파일
+├─ _internal/                      # PyInstaller 생성 폴더
+│  ├─ .insightface/                # 번들링된 InsightFace 모델
+│  │  └─ models/
+│  │     └─ buffalo_l/
+│  │        ├─ det_10g.onnx        # 얼굴 감지 모델
+│  │        ├─ genderage.onnx      # 연령/성별 분석 모델
+│  │        ├─ w600k_r50.onnx      # 얼굴 인식 모델
+│  │        └─ ...                 # 기타 모델 파일
+│  ├─ onnxruntime/                 # ONNX Runtime (GPU/CPU)
+│  ├─ mss/                         # 화면 캡처 라이브러리
+│  ├─ PIL/                         # 이미지 처리
+│  ├─ numpy/                       # 배열 처리
+│  ├─ tkinter/                     # GUI (Python DLL 포함)
+│  └─ base_library.zip             # Python 표준 라이브러리
+└─ config.json                     # 사용자 설정 (최초 실행 시 생성)
+```
+
+**크기:**
+- 전체 배포 크기: ~500MB
+- InsightFace 모델: ~340MB
+- ONNX Runtime + 라이브러리: ~160MB
+
+### 9.4 빌드 자동화
+
+**build.bat 스크립트:**
+```batch
+1. 가상환경 활성화 확인
+2. 기존 빌드 폴더 삭제 (build/, dist/)
+3. PyInstaller 실행 (출결관리.spec --clean --noconfirm)
+4. 결과 안내 및 실행 방법 표시
+```
+
+**사용법:**
+```bash
+# 가상환경 활성화 후
+build.bat
+```
+
+---
+
 ## 10. 보안 고려사항
 
 ### 10.1 데이터 보호
@@ -817,5 +909,8 @@ class CloudUploader:
 
 ---
 
-**문서 버전**: 1.0  
-**최종 수정일**: 2025-10-23
+**문서 버전**: 1.1
+**최종 수정일**: 2025-11-28
+**주요 변경사항**:
+- 섹션 9: EXE 배포 아키텍처 추가 (PyInstaller 빌드 구성, 환경 감지, 배포 구조, 빌드 자동화)
+- 섹션 번호 재정렬 (기존 9→10, 10→11)
