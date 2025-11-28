@@ -8,10 +8,11 @@
 import logging
 import os
 import platform
+import threading
 import tkinter as tk
+from datetime import datetime
 from pathlib import Path
 from tkinter import ttk, filedialog, messagebox
-from datetime import datetime
 from typing import Optional, Dict
 
 # 내부 모듈
@@ -1571,9 +1572,10 @@ class MainWindow:
 
     def show_alert(self, title: str, message: str, alert_type: str = "info") -> None:
         """
-        알림창을 표시합니다.
+        알림창을 표시합니다 (non-blocking).
 
         캡처 성공, 실패, 에러 등 다양한 상황에서 사용자에게 알림을 제공합니다.
+        알림창이 표시되는 동안에도 감지 프로세스는 계속 진행됩니다.
 
         Args:
             title: 알림창 제목
@@ -1582,6 +1584,10 @@ class MainWindow:
                 - "info": 정보 알림 (성공, 완료 등)
                 - "warning": 경고 알림 (실패, 재시도 필요 등)
                 - "error": 에러 알림 (파일 저장 실패, 권한 오류 등)
+
+        Note:
+            알림창은 non-blocking 방식으로 표시됩니다.
+            사용자가 확인 버튼을 누르지 않아도 백그라운드 작업이 계속됩니다.
 
         Example:
             >>> # 성공 알림
@@ -1594,19 +1600,24 @@ class MainWindow:
             >>> window.show_alert("저장 실패", "파일 저장 권한이 없습니다.", "error")
         """
         try:
-            # alert_type에 따라 적절한 messagebox 호출
-            if alert_type == "info":
-                messagebox.showinfo(title, message)
-            elif alert_type == "warning":
-                messagebox.showwarning(title, message)
-            elif alert_type == "error":
-                messagebox.showerror(title, message)
-            else:
-                # 잘못된 타입이면 기본값 사용
-                logger.warning(f"알 수 없는 alert_type: {alert_type}, info로 대체")
-                messagebox.showinfo(title, message)
+            # 별도 스레드에서 알림창 표시 (non-blocking)
+            def _show_messagebox():
+                if alert_type == "info":
+                    messagebox.showinfo(title, message)
+                elif alert_type == "warning":
+                    messagebox.showwarning(title, message)
+                elif alert_type == "error":
+                    messagebox.showerror(title, message)
+                else:
+                    # 잘못된 타입이면 기본값 사용
+                    logger.warning(f"알 수 없는 alert_type: {alert_type}, info로 대체")
+                    messagebox.showinfo(title, message)
 
-            logger.info(f"알림 표시: [{alert_type}] {title} - {message}")
+            # 별도 스레드에서 실행
+            alert_thread = threading.Thread(target=_show_messagebox, daemon=True)
+            alert_thread.start()
+
+            logger.info(f"알림 표시 (non-blocking): [{alert_type}] {title} - {message}")
 
         except Exception as e:
             logger.error(f"알림창 표시 실패: {e}", exc_info=True)
