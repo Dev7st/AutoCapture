@@ -255,3 +255,163 @@ v<major>.<minor>.<patch>
 
 ---
 
+## 🎮 GPU 가속 관련 개념
+
+### 📌 NVIDIA 드라이버 vs CUDA Toolkit
+
+딥러닝 프로그램에서 GPU를 사용하려면 여러 소프트웨어 계층이 필요합니다. 각각의 역할을 이해하면 GPU 설정과 문제 해결이 쉬워집니다.
+
+### 🔧 NVIDIA 드라이버
+
+**역할:**
+- GPU 하드웨어와 운영체제(Windows)를 연결하는 **기본 소프트웨어**
+- GPU가 컴퓨터에서 인식되고 기본 작동하도록 하는 필수 프로그램
+
+**기능:**
+- GPU 하드웨어 인식 및 제어
+- DirectX, OpenGL 등 그래픽 API 지원
+- GPU 메모리 관리
+- 디스플레이 출력 관리
+
+**비유:**
+- GPU를 자동차라고 하면, NVIDIA 드라이버는 **"운전면허증"**
+- 이것이 없으면 GPU를 아예 사용할 수 없음
+
+**설치 시점:**
+- GPU를 처음 설치할 때 필수
+- 게임, 영상 편집, 일반 사용에도 필요
+- 정기적으로 업데이트 권장
+
+**다운로드:**
+```
+https://www.nvidia.com/download/index.aspx
+→ GPU 모델 선택 (예: GTX 960)
+→ 최신 드라이버 다운로드 및 설치
+```
+
+---
+
+### 🧰 CUDA Toolkit
+
+**역할:**
+- NVIDIA GPU에서 **병렬 연산(딥러닝, 과학계산)**을 수행하기 위한 **개발 도구 모음**
+- 일반 그래픽 작업이 아닌, GPU를 "계산기"로 사용하기 위한 전문 도구
+
+**구성요소:**
+- **CUDA 런타임 라이브러리**: GPU 병렬 연산 실행 환경
+- **CUDA 컴파일러(nvcc)**: GPU 프로그램 개발용
+- **개발 도구**: 디버거, 프로파일러 등
+- **샘플 코드**: CUDA 프로그래밍 예제
+
+**기능:**
+- GPU 병렬 연산 API 제공
+- 딥러닝 프레임워크(PyTorch, TensorFlow)가 GPU를 활용하도록 지원
+- 과학 계산, 데이터 분석에 GPU 사용 가능
+
+**비유:**
+- NVIDIA 드라이버가 "운전면허증"이라면, CUDA Toolkit은 **"특수 작업용 도구"**
+- 일반 운전(그래픽)에는 불필요하지만, 특수 작업(딥러닝)에는 필수
+
+**설치 시점:**
+- 딥러닝, 과학계산 등 GPU 병렬 연산이 필요할 때만
+- 게임, 영상 편집에는 불필요
+
+**다운로드:**
+```
+https://developer.nvidia.com/cuda-toolkit-archive
+→ CUDA Toolkit 11.x 버전 선택 (프로젝트에서는 11.8 권장)
+→ Windows용 다운로드 및 설치
+```
+
+---
+
+### 🔗 의존성 관계
+
+```
+[하드웨어]
+NVIDIA GPU (GTX 960)
+    ↓
+[1단계: 운영체제 인식]
+NVIDIA 드라이버
+    ↓
+[2단계: 병렬 연산 지원]
+CUDA Toolkit (개발 도구)
+    ↓
+[3단계: Python 인터페이스]
+onnxruntime-gpu (Python 패키지)
+    ↓
+[4단계: 딥러닝 라이브러리]
+InsightFace (얼굴 감지)
+```
+
+**각 단계 설명:**
+1. **NVIDIA 드라이버**: GPU를 컴퓨터가 인식하고 사용할 수 있게 함
+2. **CUDA Toolkit**: GPU로 병렬 연산을 할 수 있는 기반 제공
+3. **onnxruntime-gpu**: Python에서 CUDA를 쉽게 사용하도록 연결
+4. **InsightFace**: 실제 얼굴 감지 기능 제공
+
+---
+
+### 🎯 본 프로젝트에서의 활용
+
+#### Python 소스 실행 시
+```
+[필수 설치 순서]
+1. NVIDIA 드라이버 설치
+2. CUDA Toolkit 11.x 설치
+3. pip install onnxruntime-gpu
+4. pip install insightface
+
+[동작 과정]
+onnxruntime-gpu가 시스템의 CUDA Toolkit을 찾아서 GPU 사용
+```
+
+#### EXE 실행 시 (PyInstaller 빌드)
+```
+[필수 설치]
+1. NVIDIA 드라이버만 설치 ✅
+
+[불필요한 설치]
+2. CUDA Toolkit ❌ (EXE에 포함됨)
+3. Python 패키지 ❌ (EXE에 포함됨)
+
+[동작 과정]
+PyInstaller가 onnxruntime-gpu의 CUDA 런타임 DLL을 함께 번들링
+→ dist/출결관리/_internal/onnxruntime/ 폴더에 CUDA 관련 DLL 포함
+→ NVIDIA 드라이버만 있으면 GPU 사용 가능
+```
+
+**핵심 차이:**
+- **Python 소스**: CUDA Toolkit을 시스템에서 찾아서 사용 (별도 설치 필요)
+- **EXE**: CUDA 런타임을 EXE 안에 포함 (별도 설치 불필요)
+
+---
+
+### 🔍 실제 파일 위치 확인
+
+#### Python 소스 실행 시
+```
+# CUDA Toolkit 설치 경로 (Windows)
+C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.8\
+├─ bin/
+│  ├─ cudart64_110.dll     # CUDA 런타임
+│  ├─ cublas64_11.dll      # CUDA 행렬 연산
+│  └─ ...
+└─ lib/
+
+# onnxruntime-gpu가 위 경로의 DLL을 찾아서 사용
+```
+
+#### EXE 실행 시
+```
+# PyInstaller 빌드 결과
+dist/출결관리/_internal/onnxruntime/
+├─ onnxruntime_providers_cuda.dll
+├─ cudart64_110.dll        # CUDA 런타임 (번들링됨!)
+├─ cublas64_11.dll         # CUDA 행렬 연산 (번들링됨!)
+└─ ...
+
+# CUDA Toolkit 설치 없이도 위 DLL로 GPU 사용 가능
+```
+
+---
