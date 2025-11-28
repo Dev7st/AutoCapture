@@ -225,6 +225,43 @@ python -m pytest tests/test_face_detection.py
 python -m pytest --cov=features tests/
 ```
 
+## EXE Build & Deployment
+
+**Build Environment**:
+- PyInstaller 6.11.0
+- Build mode: --onedir (folder + EXE)
+- InsightFace model bundled (~340MB)
+
+**Build Process**:
+```bash
+# Automated build (recommended)
+build.bat
+
+# Manual build
+pyinstaller 출결관리.spec --clean --noconfirm
+```
+
+**Output Structure**:
+```
+dist/출결관리/
+├─ 출결관리.exe          # Main executable
+├─ _internal/            # Dependencies & libraries
+│  ├─ .insightface/      # Bundled InsightFace model
+│  └─ ...                # Other DLLs and libraries
+└─ config.json           # User settings (created on first run)
+```
+
+**PyInstaller Environment Detection**:
+- `sys.frozen`: Detects if running in PyInstaller environment
+- `sys._MEIPASS`: Temporary extraction directory for bundled files
+- Model path: `os.path.join(sys._MEIPASS, '.insightface')` in EXE mode
+- No GitHub download required - model is bundled in EXE
+
+**Key Files**:
+- `출결관리.spec`: PyInstaller configuration
+- `build.bat`: Automated build script
+- `.gitignore`: Excludes build/ and dist/ but includes .spec file
+
 ## Key Implementation Details
 
 **Dual Monitor Handling**:
@@ -298,10 +335,12 @@ When making changes, always consult these documents:
 ## Special Notes
 
 **InsightFace GPU Usage**:
-- First run downloads ~100MB model to `~/.insightface/models/buffalo_l/`
+- **Python source mode**: First run downloads ~100MB model to `~/.insightface/models/buffalo_l/`
+- **EXE mode**: Model bundled in executable (~340MB), no download required
 - GPU context: `ctx_id=0` (for GTX 960)
 - Fallback to CPU if GPU unavailable (show warning to user)
 - Model provides 95-99% accuracy, far superior to Haar Cascade (60-70%)
+- Environment detection: `sys.frozen` to switch between bundled vs downloaded model path
 
 **Dual Monitor Context**:
 - School computer has 2 monitors
@@ -340,11 +379,9 @@ When implementing new features, follow the specifications in `docs/architecture.
 
 ---
 
-**Document Version**: 2.1
-**Last Updated**: 2025-11-05
+**Document Version**: 2.2
+**Last Updated**: 2025-11-28
 **Major Changes**:
-- Updated Core Workflow: `update_status()` → `update_period_status()`
-- Updated Data Flow: Added `is_within_window` parameter to `FileManager.save_image()`
-- Updated Face Detection Flow: Added file naming logic based on capture window
-- Updated File Naming Rules: Added `is_within_window` parameter explanation
-- Synchronized with architecture.md v2.0 changes
+- Added "EXE Build & Deployment" section (PyInstaller configuration, build process, output structure)
+- Updated "InsightFace GPU Usage": Added EXE mode model bundling explanation
+- Updated to reflect Phase 4.4 completion (EXE build with bundled model)
