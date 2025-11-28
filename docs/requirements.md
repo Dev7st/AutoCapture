@@ -834,16 +834,52 @@ attendance_capture/                    # 프로젝트 루트
 ### 13.1 시스템 요구사항
 - **OS**: Windows 10
 - **RAM**: 4GB 이상
-- **GPU**: NVIDIA GTX 960 이상
+- **GPU**: NVIDIA GTX 960 이상 (권장, CPU 모드 fallback 지원)
 - **VRAM**: 2GB 이상
-- **디스크**: 2GB 이상
-- **CUDA**: 11.x
+- **디스크**: 2GB 이상 (모델 포함 시 약 500MB)
+- **CUDA**: 11.x (GPU 사용 시, 선택사항)
 
-### 13.2 설치
-1. GPU 드라이버 설치
-2. CUDA Toolkit 설치
-3. 프로그램 실행
-4. InsightFace 모델 다운로드 (자동)
+### 13.2 EXE 배포 방식
+
+**PyInstaller를 사용한 독립 실행 파일 생성:**
+- **빌드 도구**: PyInstaller 6.11.0
+- **배포 형태**: --onedir (폴더 + EXE)
+- **모델 포함**: InsightFace buffalo_l 모델 (~340MB) 번들링
+- **실행 환경**: Python 설치 불필요
+
+**빌드 프로세스:**
+```bash
+# 가상환경 활성화 후
+pyinstaller 출결관리.spec --clean --noconfirm
+```
+
+**빌드 결과물:**
+```
+dist/출결관리/
+├─ 출결관리.exe          # 실행 파일
+├─ _internal/            # 의존성 라이브러리
+│  ├─ .insightface/      # 번들링된 InsightFace 모델
+│  ├─ onnxruntime/       # GPU/CPU 런타임
+│  └─ ...                # 기타 DLL 및 라이브러리
+└─ config.json           # 사용자 설정 파일 (최초 실행 시 생성)
+```
+
+**자동 빌드 스크립트:**
+- `build.bat`: 기존 빌드 삭제 → PyInstaller 실행 → 결과 안내
+
+### 13.3 사용자 설치 가이드
+
+**방법 1: EXE 실행 (권장)**
+1. `dist/출결관리/` 폴더 전체 복사
+2. `출결관리.exe` 더블클릭 실행
+3. GPU 사용 시 NVIDIA 드라이버만 설치 필요 (CUDA 불필요)
+4. CPU 모드 자동 fallback 지원
+
+**방법 2: Python 소스 실행 (개발자용)**
+1. Python 3.10.11 설치
+2. GPU 드라이버 및 CUDA Toolkit 11.x 설치
+3. 가상환경 생성 및 패키지 설치
+4. `python main.py` 실행
 
 ---
 
@@ -873,7 +909,9 @@ attendance_capture/                    # 프로젝트 루트
 15. 성능 최적화
 16. 예외 처리
 17. 테스트
-18. 배포
+18. EXE 빌드
+19. 문서화
+20. 배포
 
 ---
 
