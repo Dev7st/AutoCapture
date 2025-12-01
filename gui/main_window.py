@@ -8,7 +8,6 @@
 import logging
 import os
 import platform
-import threading
 import tkinter as tk
 from datetime import datetime
 from pathlib import Path
@@ -1441,18 +1440,10 @@ class MainWindow:
             # 4. Scheduler 완료 처리
             self.scheduler.mark_completed(period)
 
-            # 5. UI 업데이트
-            self.update_period_status(period, "완료")
-
-            # 6. 성공 알림창
-            message = (
-                f"{period_name} 캡처가 완료되었습니다.\n\n"
-                f"파일: {file_name}\n"
-                f"감지 인원: {detected_count}명\n"
-                f"기준 인원: {threshold}명\n"
-                f"모드: {mode_note}"
-            )
-            self.show_alert("캡처 성공", message, "info")
+            # 5. UI 업데이트 (완료 시각 표시)
+            from datetime import datetime
+            current_time = datetime.now().strftime("%H:%M")
+            self.update_period_status(period, f"완료 ({current_time})")
 
             logger.info(f"{period_name} 캡처 성공: {file_path}")
 
