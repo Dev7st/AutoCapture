@@ -396,8 +396,8 @@ class InitDialog:
         # 섹션 프레임
         section_frame = self._create_section_frame(parent, "캡처 모드 선택")
 
-        # 모드 변수 초기화 (저장된 설정 또는 기본값: flexible)
-        default_mode = self.saved_config.get('mode', 'flexible')
+        # 모드 변수 초기화 (저장된 설정 또는 기본값: exact)
+        default_mode = self.saved_config.get('mode', 'exact')
         self.mode_var = tk.StringVar(value=default_mode)
 
         # 정확 모드 라디오 버튼
@@ -689,7 +689,7 @@ class InitDialog:
         save_path = str(Path(save_path_str))
 
         # 캡처 모드 가져오기
-        mode = self.mode_var.get() if self.mode_var else "flexible"
+        mode = self.mode_var.get() if self.mode_var else "exact"
 
         # 학생 수 가져오기
         student_count = self.student_count_var.get() if self.student_count_var else 1
