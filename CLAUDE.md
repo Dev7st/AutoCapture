@@ -127,10 +127,11 @@ MainWindow.show_alert() → Success notification
 **Two Capture Modes**:
 - **Exact Mode**: Detected count must exactly match threshold
   - Example: 22 detected = 22 threshold ✓ | 21 detected = 22 threshold ✗
-- **Flexible Mode (Recommended)**: Detected count ≥ threshold × 0.9
+  - Default mode for strict attendance management
+- **Flexible Mode**: Detected count ≥ threshold × 0.9
   - Example: 20 detected ≥ 19.8 (22 × 0.9) ✓
   - Accounts for poor lighting, camera angles, low webcam quality
-  - Default mode due to real-world student webcam environment variability
+  - Use when webcam environment is not perfect
 
 **State Management**:
 - Configuration stored in `config.json` (via `utils/config.py`)
