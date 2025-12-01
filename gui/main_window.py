@@ -1478,18 +1478,10 @@ class MainWindow:
                 "저장 경로를 변경해주세요.",
                 "error"
             )
-        except PermissionError as e:
-            logger.error(f"{period_name} 파일 저장 권한 오류: {e}")
-            self.csv_logger.log_event(period_name, "저장 실패", detected_count, threshold, "", "권한 오류")
-            self.show_alert("저장 실패", f"{period_name} 파일 저장 권한이 없습니다.", "error")
-        except OSError as e:
-            logger.error(f"{period_name} 파일 저장 실패: {e}")
-            self.csv_logger.log_event(period_name, "저장 실패", detected_count, threshold, "", str(e))
-            self.show_alert("저장 실패", f"{period_name} 파일 저장 중 오류 발생", "error")
         except Exception as e:
-            logger.error(f"{period_name} 예상치 못한 오류: {e}")
+            logger.error(f"{period_name} 파일 저장 실패: {e}", exc_info=True)
             self.csv_logger.log_event(period_name, "저장 실패", detected_count, threshold, "", str(e))
-            self.show_alert("오류", f"{period_name} 저장 중 예상치 못한 오류", "error")
+            self.show_alert("저장 실패", f"{period_name} 파일 저장 중 오류가 발생했습니다.", "error")
         finally:
             # 메모리 해제
             del image
