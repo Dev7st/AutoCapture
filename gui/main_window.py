@@ -655,7 +655,7 @@ class MainWindow:
         mode_combo = ttk.Combobox(
             mode_frame,
             textvariable=self.mode_var,
-            values=["유연 모드 (권장)", "정확 모드"],
+            values=["유연 모드", "정확 모드"],
             state="readonly",
             width=20,
             font=("", 11)

@@ -428,7 +428,7 @@ class InitDialog:
         # 유연 모드 라디오 버튼
         flexible_radio = tk.Radiobutton(
             section_frame,
-            text="유연 모드 (권장)",
+            text="유연 모드",
             variable=self.mode_var,
             value="flexible",
             font=("", 11),
