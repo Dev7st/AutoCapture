@@ -1044,38 +1044,6 @@ class MainWindow:
         )
         retry_button.pack(side=tk.LEFT)
 
-    def _format_status_with_emoji(self, status: str) -> str:
-        """
-        상태 문자열에 이모지를 자동으로 추가합니다.
-
-        Args:
-            status: 상태 문자열 (예: "대기중", "감지중", "완료 (09:32)")
-
-        Returns:
-            str: 이모지가 추가된 상태 문자열
-
-        Example:
-            >>> self._format_status_with_emoji("대기중")
-            "🕒 대기중"
-            >>> self._format_status_with_emoji("완료 (09:32)")
-            "✅ 완료 (09:32)"
-        """
-        # 상태별 이모지 매핑
-        if "대기중" in status:
-            return f"🕒 {status}"
-        elif "감지중" in status or "재시도" in status:
-            return f"🔍 {status}"
-        elif "완료" in status:
-            return f"✅ {status}"
-        elif "실패" in status:
-            return f"❌ {status}"
-        elif "건너뛰기" in status:
-            return f"⏭️ {status}"
-        elif "시간 초과" in status:
-            return f"⏰ {status}"
-        else:
-            return status
-
     def update_period_status(self, period: int, status: str) -> None:
         """
         교시 상태를 업데이트합니다.
@@ -1326,6 +1294,40 @@ class MainWindow:
         except Exception as e:
             logger.error(f"저장 폴더 열기 실패: {e}")
             messagebox.showerror("오류", f"저장 폴더 열기 중 오류가 발생했습니다.\n{e}")
+
+    # ==================== Private 메서드 (유틸리티) ====================
+
+    def _format_status_with_emoji(self, status: str) -> str:
+        """
+        상태 문자열에 이모지를 자동으로 추가합니다.
+
+        Args:
+            status: 상태 문자열 (예: "대기중", "감지중", "완료 (09:32)")
+
+        Returns:
+            str: 이모지가 추가된 상태 문자열
+
+        Example:
+            >>> self._format_status_with_emoji("대기중")
+            "🕒 대기중"
+            >>> self._format_status_with_emoji("완료 (09:32)")
+            "✅ 완료 (09:32)"
+        """
+        # 상태별 이모지 매핑
+        if "대기중" in status:
+            return f"🕒 {status}"
+        elif "감지중" in status or "재시도" in status:
+            return f"🔍 {status}"
+        elif "완료" in status:
+            return f"✅ {status}"
+        elif "실패" in status:
+            return f"❌ {status}"
+        elif "건너뛰기" in status:
+            return f"⏭️ {status}"
+        elif "시간 초과" in status:
+            return f"⏰ {status}"
+        else:
+            return status
 
     # ==================== Private 메서드 (캡처 프로세스) ====================
 
