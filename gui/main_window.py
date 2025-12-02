@@ -174,7 +174,6 @@ class MainWindow:
         # UI 변수
         self.date_var: Optional[tk.StringVar] = None
         self.time_var: Optional[tk.StringVar] = None
-        self.status_var: Optional[tk.StringVar] = None
         self.monitor_var: Optional[tk.StringVar] = None
         self.mode_var: Optional[tk.StringVar] = None
         self.student_count_var: Optional[tk.IntVar] = None
@@ -438,15 +437,6 @@ class MainWindow:
         )
         time_label.pack(anchor=tk.W, pady=(0, 10))
 
-        # 현재 상태 표시
-        self.status_var = tk.StringVar(value="현재: 프로그램 시작")
-        status_label = ttk.Label(
-            section_frame,
-            textvariable=self.status_var,
-            font=("Segoe UI Emoji", 14)
-        )
-        status_label.pack(anchor=tk.W, pady=(0, 10))
-
         # 캡처 모니터 표시
         self._create_monitor_display(section_frame)
 
@@ -493,9 +483,6 @@ class MainWindow:
             now = datetime.now()
             self.date_var.set(f"📅 날짜: {now.strftime('%Y-%m-%d')}")
             self.time_var.set(f"⏰ 시간: {now.strftime('%H:%M:%S')}")
-
-            # TODO: 다음 교시까지 남은 시간 계산 (Phase 2에서 구현)
-            self.status_var.set("📚 현재: 대기 중")
 
             # 시간 초과된 교시 체크
             self._check_timeout_periods(now)
