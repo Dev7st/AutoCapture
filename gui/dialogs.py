@@ -416,10 +416,14 @@ class InitDialog:
         )
         exact_radio.pack(anchor=tk.W, pady=(0, 8))
 
+        # 기본값이 exact일 때 명시적으로 선택
+        if default_mode == "exact":
+            exact_radio.select()
+
         # 정확 모드 설명
         exact_desc = ttk.Label(
             section_frame,
-            text="  → 얼굴 감지 정확도 우선 (느림, 높은 정확도)",
+            text="  → 기준 인원과 정확히 일치해야 캡처",
             font=("", 10),
             foreground="gray"
         )
@@ -442,7 +446,7 @@ class InitDialog:
         # 유연 모드 설명
         flexible_desc = ttk.Label(
             section_frame,
-            text="  → 속도와 정확도 균형 (빠름, 충분한 정확도)",
+            text="  → 기준 인원의 90% 이상이면 캡처 (캠 환경 문제 고려)",
             font=("", 10),
             foreground="gray"
         )
