@@ -1044,29 +1044,67 @@ class MainWindow:
         )
         retry_button.pack(side=tk.LEFT)
 
+    def _format_status_with_emoji(self, status: str) -> str:
+        """
+        상태 문자열에 이모지를 자동으로 추가합니다.
+
+        Args:
+            status: 상태 문자열 (예: "대기중", "감지중", "완료 (09:32)")
+
+        Returns:
+            str: 이모지가 추가된 상태 문자열
+
+        Example:
+            >>> self._format_status_with_emoji("대기중")
+            "🕒 대기중"
+            >>> self._format_status_with_emoji("완료 (09:32)")
+            "✅ 완료 (09:32)"
+        """
+        # 이미 이모지가 포함되어 있으면 그대로 반환
+        if any(emoji in status for emoji in ["🕒", "🔍", "✅", "❌", "⏭️", "⏰"]):
+            return status
+
+        # 상태별 이모지 매핑
+        if "대기중" in status:
+            return f"🕒 {status}"
+        elif "감지중" in status:
+            return f"🔍 {status}"
+        elif "완료" in status:
+            return f"✅ {status}"
+        elif "실패" in status:
+            return f"❌ {status}"
+        elif "건너뛰기" in status:
+            return f"⏭️ {status}"
+        elif "시간 초과" in status:
+            return f"⏰ {status}"
+        else:
+            return status
+
     def update_period_status(self, period: int, status: str) -> None:
         """
         교시 상태를 업데이트합니다.
 
         Args:
             period: 교시 번호 (0=퇴실, 1~8=교시)
-            status: 상태 문자열
-                   - "🕒 대기중"
-                   - "🔍 감지중 (N명)"
-                   - "✅ 완료"
-                   - "⏭️ 건너뛰기"
-                   - "⏰ 시간 초과"
+            status: 상태 문자열 (이모지 자동 추가됨)
+                   - "대기중" → "🕒 대기중"
+                   - "감지중" → "🔍 감지중"
+                   - "완료 (09:32)" → "✅ 완료 (09:32)"
+                   - "실패 (18/22명)" → "❌ 실패 (18/22명)"
+                   - "건너뛰기" → "⏭️ 건너뛰기"
+                   - "시간 초과" → "⏰ 시간 초과"
 
         Example:
-            >>> window.update_period_status(1, "✅ 완료")
-            >>> window.update_period_status(2, "🔍 감지중 (20명)")
-            >>> window.update_period_status(3, "⏰ 시간 초과")
+            >>> window.update_period_status(1, "완료 (09:32)")
+            # 실제 표시: "✅ 완료 (09:32)"
         """
         try:
             if period in self.period_status_vars:
-                self.period_status_vars[period].set(status)
+                # 이모지 자동 추가
+                formatted_status = self._format_status_with_emoji(status)
+                self.period_status_vars[period].set(formatted_status)
                 period_name = "퇴실" if period == 0 else f"{period}교시"
-                logger.info(f"{period_name} 상태 변경: {status}")
+                logger.info(f"{period_name} 상태 변경: {formatted_status}")
             else:
                 logger.warning(f"존재하지 않는 교시 번호: {period}")
         except Exception as e:
