@@ -457,7 +457,7 @@ class MainWindow:
             text="🖥️ 캡처 모니터:",
             font=("Segoe UI Emoji", 14)
         )
-        monitor_label.pack(side=tk.LEFT, padx=(0, 10))
+        monitor_label.pack(side=tk.LEFT, padx=(0, 5))
 
         # 모니터 선택 콤보박스
         self.monitor_var = tk.StringVar(value=f"모니터 {self.monitor_id}")
@@ -482,7 +482,7 @@ class MainWindow:
         try:
             now = datetime.now()
             self.date_var.set(f"📅 날짜: {now.strftime('%Y-%m-%d')}")
-            self.time_var.set(f"⏰ 시간: {now.strftime('%H:%M:%S')}")
+            self.time_var.set(f"🕐 시간: {now.strftime('%H:%M:%S')}")
 
             # 시간 초과된 교시 체크
             self._check_timeout_periods(now)
