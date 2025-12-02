@@ -590,8 +590,8 @@ class MainWindow:
                 if (current_hour > end_hour or
                     (current_hour == end_hour and current_minute > end_minute)):
                     # 대기중 상태만 시간 초과로 변경 (감지중은 그대로 유지)
-                    if "🕒" in status_text:
-                        self.update_period_status(period, "⏰ 시간 초과")
+                    if "대기중" in status_text:
+                        self.update_period_status(period, "시간 초과")
         except Exception as e:
             logger.error(f"시간 초과 교시 체크 실패: {e}")
 
@@ -1060,10 +1060,6 @@ class MainWindow:
             >>> self._format_status_with_emoji("완료 (09:32)")
             "✅ 완료 (09:32)"
         """
-        # 이미 이모지가 포함되어 있으면 그대로 반환
-        if any(emoji in status for emoji in ["🕒", "🔍", "✅", "❌", "⏭️", "⏰"]):
-            return status
-
         # 상태별 이모지 매핑
         if "대기중" in status:
             return f"🕒 {status}"
@@ -1128,7 +1124,7 @@ class MainWindow:
             self.scheduler.skip_period(period)
 
             # 2. 상태 업데이트
-            self.update_period_status(period, "⏭️ 건너뛰기")
+            self.update_period_status(period, "건너뛰기")
 
             # 3. CSV 로그 기록
             self.csv_logger.log_event(
@@ -1177,7 +1173,7 @@ class MainWindow:
             self.scheduler.reset_period(period)
 
             # 4. UI 상태 업데이트
-            self.update_period_status(period, "🔍 재시도 중")
+            self.update_period_status(period, "재시도 중")
 
             # 5. 이전 상태를 임시 저장 (실패 처리에서 사용)
             self._retry_previous_status = {period: previous_status}
