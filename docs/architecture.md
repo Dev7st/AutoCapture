@@ -482,10 +482,19 @@ class MainWindow:
     def update_period_status(self, period: int, status: str) -> None:
         """
         교시 상태를 업데이트합니다.
-        
+
         Args:
             period: 교시 번호
-            status: 상태 (대기중, 감지중, 완료 등)
+            status: 상태 문자열
+                - "대기중"
+                - "감지중 (N명)"
+                - "완료 (HH:MM)"
+                - "실패 (N명/M명)"
+                - "건너뛰기"
+                - "시간 초과"
+
+        Note:
+            이모지는 _format_status_with_emoji() 메서드에서 자동으로 추가됩니다.
         """
         pass
     
@@ -497,14 +506,18 @@ class MainWindow:
         """재시도 버튼 클릭 핸들러"""
         pass
 
-    def show_alert(self, title: str, message: str, alert_type: str = "info") -> None:
+    def show_alert(self, title: str, message: str, alert_type: str = "error") -> None:
         """
-        알림창을 표시합니다.
+        알림창을 표시합니다 (에러 전용).
 
         Args:
             title: 알림창 제목
             message: 알림 메시지
-            alert_type: 알림 타입 ("info", "warning", "error")
+            alert_type: 알림 타입 ("error" 권장)
+
+        Note:
+            캡처 성공/실패는 알림창 대신 상태 메시지로 표시합니다.
+            이 메서드는 디스크 공간 부족, 권한 오류 등 사용자 개입이 필요한 에러에만 사용합니다.
         """
         pass
 
@@ -909,8 +922,8 @@ build.bat
 
 ---
 
-**문서 버전**: 1.1
-**최종 수정일**: 2025-11-28
+**문서 버전**: 1.2
+**최종 수정일**: 2025-12-02
 **주요 변경사항**:
-- 섹션 9: EXE 배포 아키텍처 추가 (PyInstaller 빌드 구성, 환경 감지, 배포 구조, 빌드 자동화)
-- 섹션 번호 재정렬 (기존 9→10, 10→11)
+- MainWindow.update_period_status() docstring 업데이트 (상태 형식 명시)
+- MainWindow.show_alert() docstring 업데이트 (에러 전용으로 변경, 캡처 성공/실패는 상태 메시지 사용)
