@@ -1007,13 +1007,13 @@ class MainWindow:
             parent: 부모 프레임
             period: 교시 번호
         """
-        # 상태 표시 레이블
+        # 상태 표시 레이블 (Segoe UI Emoji 폰트로 컬러 이모지 표시)
         status_var = tk.StringVar(value="🕒 대기중")
         self.period_status_vars[period] = status_var
         status_label = ttk.Label(
             parent,
             textvariable=status_var,
-            font=("", 10),
+            font=("Segoe UI Emoji", 10),
             width=15
         )
         status_label.pack(side=tk.LEFT, padx=(0, 10))
