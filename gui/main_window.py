@@ -425,7 +425,7 @@ class MainWindow:
         date_label = ttk.Label(
             section_frame,
             textvariable=self.date_var,
-            font=("", 14)
+            font=("Segoe UI Emoji", 14)
         )
         date_label.pack(anchor=tk.W, pady=(0, 10))
 
@@ -434,7 +434,7 @@ class MainWindow:
         time_label = ttk.Label(
             section_frame,
             textvariable=self.time_var,
-            font=("", 14)
+            font=("Segoe UI Emoji", 14)
         )
         time_label.pack(anchor=tk.W, pady=(0, 10))
 
@@ -443,7 +443,7 @@ class MainWindow:
         status_label = ttk.Label(
             section_frame,
             textvariable=self.status_var,
-            font=("", 14)
+            font=("Segoe UI Emoji", 14)
         )
         status_label.pack(anchor=tk.W, pady=(0, 10))
 
@@ -465,7 +465,7 @@ class MainWindow:
         monitor_label = ttk.Label(
             monitor_frame,
             text="🖥️ 캡처 모니터:",
-            font=("", 14)
+            font=("Segoe UI Emoji", 14)
         )
         monitor_label.pack(side=tk.LEFT, padx=(0, 10))
 
