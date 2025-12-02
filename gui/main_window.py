@@ -583,7 +583,7 @@ class MainWindow:
                 status_text = current_status.get()
 
                 # 이미 완료, 건너뛰기, 시간 초과 상태면 변경하지 않음
-                if "✅" in status_text or "⏭️" in status_text or "⏰" in status_text:
+                if "완료" in status_text or "건너뛰기" in status_text or "시간 초과" in status_text:
                     continue
 
                 # 현재 시간이 캡처 종료 시간을 지났는지 확인
@@ -1063,7 +1063,7 @@ class MainWindow:
         # 상태별 이모지 매핑
         if "대기중" in status:
             return f"🕒 {status}"
-        elif "감지중" in status:
+        elif "감지중" in status or "재시도" in status:
             return f"🔍 {status}"
         elif "완료" in status:
             return f"✅ {status}"
