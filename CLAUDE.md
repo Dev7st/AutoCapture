@@ -102,9 +102,7 @@ FileManager.save_image(is_within_window) → File path
     ↓
 CSVLogger.log_event() → CSV entry
     ↓
-MainWindow.update_period_status() → UI update
-    ↓
-MainWindow.show_alert() → Success notification
+MainWindow.update_period_status() → UI status update (✅ 완료 or ❌ 실패)
 ```
 
 **Capture Process Details**:
@@ -115,10 +113,11 @@ MainWindow.show_alert() → Success notification
 5. **If threshold met**:
    - Save image (already captured) to file
    - Log event to CSV
-   - Show success alert
+   - Update status: "✅ 완료 (HH:MM)"
    - Stop detection for this period
 6. **If failed**:
    - Discard image
+   - Update status: "❌ 실패 (N명/M명)"
    - Wait 10 seconds
    - Retry from step 2 (only if still within capture window)
 
@@ -136,7 +135,8 @@ MainWindow.show_alert() → Success notification
 **State Management**:
 - Configuration stored in `config.json` (via `utils/config.py`)
 - Runtime state managed by `MainWindow` class
-- Each period has independent state: 대기중 → 감지중 → 완료 | 건너뛰기 | 시간 초과
+- Each period has independent state: 대기중 → 감지중 → 완료 (HH:MM) | 실패 (N명/M명) | 건너뛰기 | 시간 초과
+- Status updates shown in UI labels, not popup alerts (except for critical errors)
 
 ## Coding Standards
 
@@ -276,10 +276,15 @@ dist/출결관리/
 3. GPU-accelerated face detection (GTX 960)
 4. Count detected faces
 5. Compare with threshold
-6. If met: Save the already-captured image with `is_within_window` parameter
-   - Within capture window: Overwrite existing file
-   - After capture window: Save as `_수정.png`
-7. If failed: Discard image, wait 10 seconds, retry from step 1
+6. If met:
+   - Save the already-captured image with `is_within_window` parameter
+     - Within capture window: Overwrite existing file
+     - After capture window: Save as `_수정.png`
+   - Update status: "✅ 완료 (HH:MM)"
+7. If failed:
+   - Discard image
+   - Update status: "❌ 실패 (N명/M명)"
+   - Wait 10 seconds, retry from step 1
 
 **File Naming Convention**:
 - Folder: `YYMMDD/` (e.g., `251020/`)
@@ -380,9 +385,10 @@ When implementing new features, follow the specifications in `docs/architecture.
 
 ---
 
-**Document Version**: 2.2
-**Last Updated**: 2025-11-28
+**Document Version**: 2.3
+**Last Updated**: 2025-12-02
 **Major Changes**:
-- Added "EXE Build & Deployment" section (PyInstaller configuration, build process, output structure)
-- Updated "InsightFace GPU Usage": Added EXE mode model bundling explanation
-- Updated to reflect Phase 4.4 completion (EXE build with bundled model)
+- Updated "Data Flow Architecture": Removed alert popup, changed to status message update
+- Updated "Capture Process Details": Added status update steps for success/failure
+- Updated "State Management": Added status format details and non-intrusive UI approach
+- Updated "Face Detection Flow": Added status update in success/failure cases
