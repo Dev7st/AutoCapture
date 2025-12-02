@@ -416,10 +416,6 @@ class InitDialog:
         )
         exact_radio.pack(anchor=tk.W, pady=(0, 8))
 
-        # 기본값이 exact일 때 명시적으로 선택
-        if default_mode == "exact":
-            exact_radio.select()
-
         # 정확 모드 설명
         exact_desc = ttk.Label(
             section_frame,
