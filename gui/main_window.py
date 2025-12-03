@@ -1128,7 +1128,7 @@ class MainWindow:
             self.scheduler.reset_period(period)
 
             # 4. UI 상태 업데이트
-            self.update_period_status(period, "재시도 중")
+            self.update_period_status(period, "감지중")
 
             # 5. 이전 상태를 임시 저장 (실패 처리에서 사용)
             self._retry_previous_status = {period: previous_status}
@@ -1303,7 +1303,7 @@ class MainWindow:
         # 상태별 이모지 매핑
         if "대기중" in status:
             return f"🕒 {status}"
-        elif "감지중" in status or "재시도" in status:
+        elif "감지중" in status:
             return f"🔍 {status}"
         elif "완료" in status:
             return f"✅ {status}"
