@@ -263,7 +263,7 @@ class MainWindow:
     def _center_window(self) -> None:
         """메인 윈도우를 화면 중앙에 배치합니다."""
         # 윈도우 크기 (1920x1080 해상도 대응)
-        window_width = 900
+        window_width = 800
         window_height = 800
 
         # HiDPI/Retina 디스플레이 처리
