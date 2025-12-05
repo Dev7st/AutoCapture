@@ -1116,22 +1116,16 @@ class MainWindow:
         logger.info(f"재시도 버튼 클릭: {period_name}")
 
         try:
-            # 1. 이전 상태 저장 (실패 시 복원용)
-            previous_status = self.period_status_vars[period].get()
-
-            # 2. 캡처 시간대 확인
+            # 1. 캡처 시간대 확인
             is_within = self.scheduler.is_in_capture_window(period)
             time_status = "시간대 내" if is_within else "시간대 종료 후"
             logger.info(f"{period_name} 재시도: {time_status}")
 
-            # 3. Scheduler 상태 초기화 (is_completed, is_skipped 플래그 제거)
+            # 2. Scheduler 상태 초기화 (is_completed, is_skipped 플래그 제거)
             self.scheduler.reset_period(period)
 
-            # 4. UI 상태 업데이트
+            # 3. UI 상태 업데이트
             self.update_period_status(period, "감지중")
-
-            # 5. 이전 상태를 임시 저장 (실패 처리에서 사용)
-            self._retry_previous_status = {period: previous_status}
 
             # 4. CSV 로그 기록
             self.csv_logger.log_event(
@@ -1542,22 +1536,10 @@ class MainWindow:
         # 3. 로그만 기록 (UI는 "감지중" 유지, Scheduler가 10초 후 자동 재시도)
         logger.info(f"{period_name} 감지 실패: {detected_count}/{threshold}명")
 
-        # 4. 재시도 실패 여부 확인
-        is_retry_failure = (
-            hasattr(self, '_retry_previous_status') and period in self._retry_previous_status
-        )
-
-        # 5. 재시도 실패 시 이전 상태 복원
-        if is_retry_failure:
-            previous_status = self._retry_previous_status[period]
-            self.update_period_status(period, previous_status)
-            del self._retry_previous_status[period]
-            logger.info(f"{period_name} 재시도 실패: 이전 상태({previous_status})로 복원")
-        else:
-            # 6. 상태 메시지 업데이트 (자동 재시도인 경우)
-            # 실패 정보를 상태에 표시: "❌ 실패 (N명/M명)"
-            self.update_period_status(period, f"실패 ({detected_count}/{threshold}명)")
-            logger.info(f"{period_name} 상태 업데이트: 실패 ({detected_count}/{threshold}명)")
+        # 4. 상태 메시지 업데이트
+        # 실패 정보를 상태에 표시: "❌ 실패 (N명/M명)"
+        self.update_period_status(period, f"실패 ({detected_count}/{threshold}명)")
+        logger.info(f"{period_name} 상태 업데이트: 실패 ({detected_count}/{threshold}명)")
 
     # ==================== Alert ====================
 
