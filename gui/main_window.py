@@ -1300,6 +1300,11 @@ class MainWindow:
             >>> self._format_status_with_emoji("완료 (09:32)")
             "✅ 완료 (09:32)"
         """
+        # 이미 이모지가 있으면 그대로 반환
+        emoji_list = ["🕒", "🔍", "✅", "❌", "⏭️", "⏰"]
+        if any(emoji in status for emoji in emoji_list):
+            return status
+
         # 상태별 이모지 매핑
         if "대기중" in status:
             return f"🕒 {status}"
