@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_CONFIG: Dict[str, Any] = {
     "monitor_id": 1,
     "save_path": str(Path.home() / "Desktop"),
-    "mode": "flexible",
+    "mode": "exact",
     "student_count": 1,
     "threshold_ratio": 0.9,
     "last_updated": None

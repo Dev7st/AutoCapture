@@ -142,6 +142,10 @@ class CSVLogger:
                 writer = csv.writer(f)
                 writer.writerow(row)
             logger.debug(f"로그 기록 완료: {period} - {status}")
+        except PermissionError as e:
+            logger.warning(f"CSV 파일이 다른 프로그램에서 사용 중입니다: {self.log_path}")
+            logger.warning("Excel 등으로 CSV 파일을 열어둔 경우 로그 기록이 실패할 수 있습니다.")
+            # 프로그램은 계속 진행 (raise 없음)
         except OSError as e:
             logger.error(f"로그 기록 실패: {self.log_path}", exc_info=True)
             raise OSError(f"로그 기록 실패: {self.log_path}") from e

@@ -9,9 +9,9 @@ import logging
 import os
 import platform
 import tkinter as tk
+from datetime import datetime
 from pathlib import Path
 from tkinter import ttk, filedialog, messagebox
-from datetime import datetime
 from typing import Optional, Dict
 
 # 내부 모듈
@@ -174,7 +174,6 @@ class MainWindow:
         # UI 변수
         self.date_var: Optional[tk.StringVar] = None
         self.time_var: Optional[tk.StringVar] = None
-        self.status_var: Optional[tk.StringVar] = None
         self.monitor_var: Optional[tk.StringVar] = None
         self.mode_var: Optional[tk.StringVar] = None
         self.student_count_var: Optional[tk.IntVar] = None
@@ -263,9 +262,9 @@ class MainWindow:
 
     def _center_window(self) -> None:
         """메인 윈도우를 화면 중앙에 배치합니다."""
-        # 윈도우 크기
-        window_width = 900
-        window_height = 1100
+        # 윈도우 크기 (1920x1080 해상도 대응)
+        window_width = 750
+        window_height = 800
 
         # HiDPI/Retina 디스플레이 처리
         if platform.system() == "Windows":
@@ -425,7 +424,7 @@ class MainWindow:
         date_label = ttk.Label(
             section_frame,
             textvariable=self.date_var,
-            font=("", 14)
+            font=("Segoe UI Emoji", 14)
         )
         date_label.pack(anchor=tk.W, pady=(0, 10))
 
@@ -434,18 +433,9 @@ class MainWindow:
         time_label = ttk.Label(
             section_frame,
             textvariable=self.time_var,
-            font=("", 14)
+            font=("Segoe UI Emoji", 14)
         )
         time_label.pack(anchor=tk.W, pady=(0, 10))
-
-        # 현재 상태 표시
-        self.status_var = tk.StringVar(value="현재: 프로그램 시작")
-        status_label = ttk.Label(
-            section_frame,
-            textvariable=self.status_var,
-            font=("", 14)
-        )
-        status_label.pack(anchor=tk.W, pady=(0, 10))
 
         # 캡처 모니터 표시
         self._create_monitor_display(section_frame)
@@ -465,9 +455,9 @@ class MainWindow:
         monitor_label = ttk.Label(
             monitor_frame,
             text="🖥️ 캡처 모니터:",
-            font=("", 14)
+            font=("Segoe UI Emoji", 14)
         )
-        monitor_label.pack(side=tk.LEFT, padx=(0, 10))
+        monitor_label.pack(side=tk.LEFT, padx=(0, 5))
 
         # 모니터 선택 콤보박스
         self.monitor_var = tk.StringVar(value=f"모니터 {self.monitor_id}")
@@ -492,10 +482,7 @@ class MainWindow:
         try:
             now = datetime.now()
             self.date_var.set(f"📅 날짜: {now.strftime('%Y-%m-%d')}")
-            self.time_var.set(f"⏰ 시간: {now.strftime('%H:%M:%S')}")
-
-            # TODO: 다음 교시까지 남은 시간 계산 (Phase 2에서 구현)
-            self.status_var.set("📚 현재: 대기 중")
+            self.time_var.set(f"🕐 시간: {now.strftime('%H:%M:%S')}")
 
             # 시간 초과된 교시 체크
             self._check_timeout_periods(now)
@@ -583,15 +570,15 @@ class MainWindow:
                 status_text = current_status.get()
 
                 # 이미 완료, 건너뛰기, 시간 초과 상태면 변경하지 않음
-                if "✅" in status_text or "⏭️" in status_text or "⏰" in status_text:
+                if "완료" in status_text or "건너뛰기" in status_text or "시간 초과" in status_text:
                     continue
 
                 # 현재 시간이 캡처 종료 시간을 지났는지 확인
                 if (current_hour > end_hour or
                     (current_hour == end_hour and current_minute > end_minute)):
                     # 대기중 상태만 시간 초과로 변경 (감지중은 그대로 유지)
-                    if "🕒" in status_text:
-                        self.update_period_status(period, "⏰ 시간 초과")
+                    if "대기중" in status_text:
+                        self.update_period_status(period, "시간 초과")
         except Exception as e:
             logger.error(f"시간 초과 교시 체크 실패: {e}")
 
@@ -654,7 +641,7 @@ class MainWindow:
         mode_combo = ttk.Combobox(
             mode_frame,
             textvariable=self.mode_var,
-            values=["유연 모드 (권장)", "정확 모드"],
+            values=["유연 모드", "정확 모드"],
             state="readonly",
             width=20,
             font=("", 11)
@@ -1007,13 +994,13 @@ class MainWindow:
             parent: 부모 프레임
             period: 교시 번호
         """
-        # 상태 표시 레이블
+        # 상태 표시 레이블 (Segoe UI Emoji 폰트로 컬러 이모지 표시)
         status_var = tk.StringVar(value="🕒 대기중")
         self.period_status_vars[period] = status_var
         status_label = ttk.Label(
             parent,
             textvariable=status_var,
-            font=("", 10),
+            font=("Segoe UI Emoji", 10),
             width=15
         )
         status_label.pack(side=tk.LEFT, padx=(0, 10))
@@ -1050,23 +1037,25 @@ class MainWindow:
 
         Args:
             period: 교시 번호 (0=퇴실, 1~8=교시)
-            status: 상태 문자열
-                   - "🕒 대기중"
-                   - "🔍 감지중 (N명)"
-                   - "✅ 완료"
-                   - "⏭️ 건너뛰기"
-                   - "⏰ 시간 초과"
+            status: 상태 문자열 (이모지 자동 추가됨)
+                   - "대기중" → "🕒 대기중"
+                   - "감지중" → "🔍 감지중"
+                   - "완료 (09:32)" → "✅ 완료 (09:32)"
+                   - "실패 (18/22명)" → "❌ 실패 (18/22명)"
+                   - "건너뛰기" → "⏭️ 건너뛰기"
+                   - "시간 초과" → "⏰ 시간 초과"
 
         Example:
-            >>> window.update_period_status(1, "✅ 완료")
-            >>> window.update_period_status(2, "🔍 감지중 (20명)")
-            >>> window.update_period_status(3, "⏰ 시간 초과")
+            >>> window.update_period_status(1, "완료 (09:32)")
+            # 실제 표시: "✅ 완료 (09:32)"
         """
         try:
             if period in self.period_status_vars:
-                self.period_status_vars[period].set(status)
+                # 이모지 자동 추가
+                formatted_status = self._format_status_with_emoji(status)
+                self.period_status_vars[period].set(formatted_status)
                 period_name = "퇴실" if period == 0 else f"{period}교시"
-                logger.info(f"{period_name} 상태 변경: {status}")
+                logger.info(f"{period_name} 상태 변경: {formatted_status}")
             else:
                 logger.warning(f"존재하지 않는 교시 번호: {period}")
         except Exception as e:
@@ -1090,7 +1079,7 @@ class MainWindow:
             self.scheduler.skip_period(period)
 
             # 2. 상태 업데이트
-            self.update_period_status(period, "⏭️ 건너뛰기")
+            self.update_period_status(period, "건너뛰기")
 
             # 3. CSV 로그 기록
             self.csv_logger.log_event(
@@ -1127,22 +1116,16 @@ class MainWindow:
         logger.info(f"재시도 버튼 클릭: {period_name}")
 
         try:
-            # 1. 이전 상태 저장 (실패 시 복원용)
-            previous_status = self.period_status_vars[period].get()
-
-            # 2. 캡처 시간대 확인
+            # 1. 캡처 시간대 확인
             is_within = self.scheduler.is_in_capture_window(period)
             time_status = "시간대 내" if is_within else "시간대 종료 후"
             logger.info(f"{period_name} 재시도: {time_status}")
 
-            # 3. Scheduler 상태 초기화 (is_completed, is_skipped 플래그 제거)
+            # 2. Scheduler 상태 초기화 (is_completed, is_skipped 플래그 제거)
             self.scheduler.reset_period(period)
 
-            # 4. UI 상태 업데이트
-            self.update_period_status(period, "🔍 재시도 중")
-
-            # 5. 이전 상태를 임시 저장 (실패 처리에서 사용)
-            self._retry_previous_status = {period: previous_status}
+            # 3. UI 상태 업데이트
+            self.update_period_status(period, "감지중")
 
             # 4. CSV 로그 기록
             self.csv_logger.log_event(
@@ -1293,6 +1276,45 @@ class MainWindow:
             logger.error(f"저장 폴더 열기 실패: {e}")
             messagebox.showerror("오류", f"저장 폴더 열기 중 오류가 발생했습니다.\n{e}")
 
+    # ==================== Private 메서드 (유틸리티) ====================
+
+    def _format_status_with_emoji(self, status: str) -> str:
+        """
+        상태 문자열에 이모지를 자동으로 추가합니다.
+
+        Args:
+            status: 상태 문자열 (예: "대기중", "감지중", "완료 (09:32)")
+
+        Returns:
+            str: 이모지가 추가된 상태 문자열
+
+        Example:
+            >>> self._format_status_with_emoji("대기중")
+            "🕒 대기중"
+            >>> self._format_status_with_emoji("완료 (09:32)")
+            "✅ 완료 (09:32)"
+        """
+        # 이미 이모지가 있으면 그대로 반환
+        emoji_list = ["🕒", "🔍", "✅", "❌", "⏭️", "⏰"]
+        if any(emoji in status for emoji in emoji_list):
+            return status
+
+        # 상태별 이모지 매핑
+        if "대기중" in status:
+            return f"🕒 {status}"
+        elif "감지중" in status:
+            return f"🔍 {status}"
+        elif "완료" in status:
+            return f"✅ {status}"
+        elif "실패" in status:
+            return f"❌ {status}"
+        elif "건너뛰기" in status:
+            return f"⏭️ {status}"
+        elif "시간 초과" in status:
+            return f"⏰ {status}"
+        else:
+            return status
+
     # ==================== Private 메서드 (캡처 프로세스) ====================
 
     def _on_capture_trigger(self, period: int) -> None:
@@ -1315,6 +1337,7 @@ class MainWindow:
 
         # UI 상태: "감지중"으로 변경
         self.update_period_status(period, "감지중")
+        self.root.update_idletasks()  # UI 강제 업데이트 (CPU 작업 전 반영)
 
         # 화면 캡처
         logger.info(f"{period_name} 화면 캡처 시작...")
@@ -1440,18 +1463,10 @@ class MainWindow:
             # 4. Scheduler 완료 처리
             self.scheduler.mark_completed(period)
 
-            # 5. UI 업데이트
-            self.update_period_status(period, "완료")
-
-            # 6. 성공 알림창
-            message = (
-                f"{period_name} 캡처가 완료되었습니다.\n\n"
-                f"파일: {file_name}\n"
-                f"감지 인원: {detected_count}명\n"
-                f"기준 인원: {threshold}명\n"
-                f"모드: {mode_note}"
-            )
-            self.show_alert("캡처 성공", message, "info")
+            # 5. UI 업데이트 (완료 시각 표시)
+            from datetime import datetime
+            current_time = datetime.now().strftime("%H:%M")
+            self.update_period_status(period, f"완료 ({current_time})")
 
             logger.info(f"{period_name} 캡처 성공: {file_path}")
 
@@ -1477,18 +1492,10 @@ class MainWindow:
                 "저장 경로를 변경해주세요.",
                 "error"
             )
-        except PermissionError as e:
-            logger.error(f"{period_name} 파일 저장 권한 오류: {e}")
-            self.csv_logger.log_event(period_name, "저장 실패", detected_count, threshold, "", "권한 오류")
-            self.show_alert("저장 실패", f"{period_name} 파일 저장 권한이 없습니다.", "error")
-        except OSError as e:
-            logger.error(f"{period_name} 파일 저장 실패: {e}")
-            self.csv_logger.log_event(period_name, "저장 실패", detected_count, threshold, "", str(e))
-            self.show_alert("저장 실패", f"{period_name} 파일 저장 중 오류 발생", "error")
         except Exception as e:
-            logger.error(f"{period_name} 예상치 못한 오류: {e}")
+            logger.error(f"{period_name} 파일 저장 실패: {e}", exc_info=True)
             self.csv_logger.log_event(period_name, "저장 실패", detected_count, threshold, "", str(e))
-            self.show_alert("오류", f"{period_name} 저장 중 예상치 못한 오류", "error")
+            self.show_alert("저장 실패", f"{period_name} 파일 저장 중 오류가 발생했습니다.", "error")
         finally:
             # 메모리 해제
             del image
@@ -1529,69 +1536,32 @@ class MainWindow:
         # 3. 로그만 기록 (UI는 "감지중" 유지, Scheduler가 10초 후 자동 재시도)
         logger.info(f"{period_name} 감지 실패: {detected_count}/{threshold}명")
 
-        # 4. 재시도 실패 여부 확인
-        is_retry_failure = (
-            hasattr(self, '_retry_previous_status') and period in self._retry_previous_status
-        )
-
-        # 5. 재시도 실패 시 이전 상태 복원
-        if is_retry_failure:
-            previous_status = self._retry_previous_status[period]
-            self.update_period_status(period, previous_status)
-            del self._retry_previous_status[period]
-            logger.info(f"{period_name} 재시도 실패: 이전 상태({previous_status})로 복원")
-
-        # 6. 실패 알림창 표시
-        # 재시도 여부에 따라 다른 안내 문구 표시
-        retry_note = "" if is_retry_failure else "10초 후 재시도합니다."
-
-        # 유연 모드일 때만 최소 필요 인원 표시
-        if self.mode == "flexible":
-            min_required = int(threshold * 0.9)
-            message = (
-                f"{period_name} 얼굴 감지 실패\n\n"
-                f"감지 인원: {detected_count}명\n"
-                f"기준 인원: {threshold}명\n"
-                f"(유연 모드: 최소 {min_required}명 필요)"
-            )
-        else:
-            message = (
-                f"{period_name} 얼굴 감지 실패\n\n"
-                f"감지 인원: {detected_count}명\n"
-                f"기준 인원: {threshold}명"
-            )
-
-        # 재시도 안내 문구 추가 (자동 재시도인 경우만)
-        if retry_note:
-            message += f"\n\n{retry_note}"
-
-        self.show_alert(title="캡처 실패", message=message, alert_type="warning")
+        # 4. 상태 메시지 업데이트
+        # 실패 정보를 상태에 표시: "❌ 실패 (N명/M명)"
+        self.update_period_status(period, f"실패 ({detected_count}/{threshold}명)")
+        logger.info(f"{period_name} 상태 업데이트: 실패 ({detected_count}/{threshold}명)")
 
     # ==================== Alert ====================
 
     def show_alert(self, title: str, message: str, alert_type: str = "info") -> None:
         """
-        알림창을 표시합니다.
+        알림창을 표시합니다 (에러 상황만).
 
-        캡처 성공, 실패, 에러 등 다양한 상황에서 사용자에게 알림을 제공합니다.
+        사용자 개입이 필요한 에러 상황에서만 알림창을 표시합니다.
+        캡처 성공/실패는 교시별 상태 영역에 표시됩니다.
 
         Args:
             title: 알림창 제목
             message: 알림 메시지
-            alert_type: 알림 타입 ("info", "warning", "error")
-                - "info": 정보 알림 (성공, 완료 등)
-                - "warning": 경고 알림 (실패, 재시도 필요 등)
-                - "error": 에러 알림 (파일 저장 실패, 권한 오류 등)
+            alert_type: 알림 타입 ("error"만 사용)
+                - "error": 에러 알림 (디스크 부족, 권한 오류 등)
 
         Example:
-            >>> # 성공 알림
-            >>> window.show_alert("캡처 완료", "1교시 캡처가 완료되었습니다.", "info")
+            >>> # 디스크 공간 부족
+            >>> window.show_alert("디스크 공간 부족", "파일을 저장할 공간이 부족합니다.", "error")
 
-            >>> # 실패 알림
-            >>> window.show_alert("감지 실패", "얼굴이 감지되지 않았습니다.", "warning")
-
-            >>> # 에러 알림
-            >>> window.show_alert("저장 실패", "파일 저장 권한이 없습니다.", "error")
+            >>> # 권한 오류
+            >>> window.show_alert("권한 오류", "파일 저장 권한이 없습니다.", "error")
         """
         try:
             # alert_type에 따라 적절한 messagebox 호출
