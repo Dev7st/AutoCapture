@@ -211,42 +211,56 @@ class FaceDetector:
             valid_faces = []
 
             for face in faces:
-                # Filter 1: Detection score (가림 감지)
-                if face.det_score < min_det_score:
-                    logger.debug(f"얼굴 제외: 낮은 신뢰도 {face.det_score:.2f}")
+                try:
+                    # Filter 1: Detection score (가림 감지)
+                    if face.det_score < min_det_score:
+                        logger.debug(f"얼굴 제외: 낮은 신뢰도 {face.det_score:.2f}")
+                        continue
+
+                    # 특징점 존재 여부 검증
+                    if not hasattr(face, 'kps') or face.kps is None:
+                        logger.warning("얼굴 특징점 누락, 건너뜀")
+                        continue
+
+                    if len(face.kps) < 5:
+                        logger.warning(f"얼굴 특징점 불완전 ({len(face.kps)}/5), 건너뜀")
+                        continue
+
+                    # 특징점 추출
+                    left_eye = face.kps[0]
+                    right_eye = face.kps[1]
+                    nose = face.kps[2]
+                    mouth_left = face.kps[3]
+                    mouth_right = face.kps[4]
+
+                    # Filter 2: 눈 + 코 (필수)
+                    eyes_nose_visible = (
+                        self._is_landmark_visible(left_eye, img_width, img_height) and
+                        self._is_landmark_visible(right_eye, img_width, img_height) and
+                        self._is_landmark_visible(nose, img_width, img_height)
+                    )
+
+                    if not eyes_nose_visible:
+                        logger.debug("얼굴 제외: 눈 또는 코 안 보임")
+                        continue
+
+                    # Filter 3: 입 (최소 한쪽)
+                    mouth_visible = (
+                        self._is_landmark_visible(mouth_left, img_width, img_height) or
+                        self._is_landmark_visible(mouth_right, img_width, img_height)
+                    )
+
+                    if not mouth_visible:
+                        logger.debug("얼굴 제외: 입 안 보임")
+                        continue
+
+                    # 모든 필터 통과
+                    valid_faces.append(face)
+                    logger.debug(f"유효 얼굴: score={face.det_score:.2f}, 모든 특징점 확인")
+
+                except Exception as e:
+                    logger.warning(f"얼굴 처리 오류: {e}, 건너뜀")
                     continue
-
-                # 특징점 추출
-                left_eye = face.kps[0]
-                right_eye = face.kps[1]
-                nose = face.kps[2]
-                mouth_left = face.kps[3]
-                mouth_right = face.kps[4]
-
-                # Filter 2: 눈 + 코 (필수)
-                eyes_nose_visible = (
-                    self._is_landmark_visible(left_eye, img_width, img_height) and
-                    self._is_landmark_visible(right_eye, img_width, img_height) and
-                    self._is_landmark_visible(nose, img_width, img_height)
-                )
-
-                if not eyes_nose_visible:
-                    logger.debug("얼굴 제외: 눈 또는 코 안 보임")
-                    continue
-
-                # Filter 3: 입 (최소 한쪽)
-                mouth_visible = (
-                    self._is_landmark_visible(mouth_left, img_width, img_height) or
-                    self._is_landmark_visible(mouth_right, img_width, img_height)
-                )
-
-                if not mouth_visible:
-                    logger.debug("얼굴 제외: 입 안 보임")
-                    continue
-
-                # 모든 필터 통과
-                valid_faces.append(face)
-                logger.debug(f"유효 얼굴: score={face.det_score:.2f}, 모든 특징점 확인")
 
             face_count = len(valid_faces)
             logger.info(
