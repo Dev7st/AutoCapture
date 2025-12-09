@@ -231,3 +231,33 @@ class FaceDetector:
                 logger.error(f"FaceDetector 정리 실패: {e}", exc_info=True)
         else:
             logger.info("정리할 모델이 없습니다")
+
+    def _is_landmark_visible(
+        self,
+        landmark: np.ndarray,
+        img_width: int,
+        img_height: int
+    ) -> bool:
+        """
+        특징점이 이미지 범위 내에 있는지 확인합니다.
+
+        얼굴 특징점(눈, 코, 입)이 이미지 경계 내부에 위치하는지 검사합니다.
+        화면 경계에 얼굴이 잘린 경우를 감지하는 데 사용됩니다.
+
+        Args:
+            landmark: 특징점 좌표 (x, y)
+            img_width: 이미지 너비 (픽셀)
+            img_height: 이미지 높이 (픽셀)
+
+        Returns:
+            특징점이 이미지 범위 내에 있으면 True, 아니면 False
+
+        Example:
+            >>> detector = FaceDetector(gpu_id=0)
+            >>> landmark = np.array([100, 150])
+            >>> is_visible = detector._is_landmark_visible(landmark, 1920, 1080)
+            >>> print(is_visible)
+            True
+        """
+        x, y = landmark
+        return (0 <= x <= img_width and 0 <= y <= img_height)
