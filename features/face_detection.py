@@ -168,7 +168,7 @@ class FaceDetector:
 
         Filtering Criteria:
             - Detection score >= min_det_score
-            - 양쪽 눈 보임
+            - 최소 한쪽 눈 보임 (옆모습 지원)
             - 코 보임
             - 최소 한쪽 입꼬리 보임
 
@@ -233,15 +233,15 @@ class FaceDetector:
                     mouth_left = face.kps[3]
                     mouth_right = face.kps[4]
 
-                    # Filter 2: 눈 + 코 (필수)
-                    eyes_nose_visible = (
-                        self._is_landmark_visible(left_eye, img_width, img_height) and
-                        self._is_landmark_visible(right_eye, img_width, img_height) and
-                        self._is_landmark_visible(nose, img_width, img_height)
+                    # Filter 2: 눈 (최소 한쪽) + 코 (필수)
+                    eyes_visible = (
+                        self._is_landmark_visible(left_eye, img_width, img_height) or
+                        self._is_landmark_visible(right_eye, img_width, img_height)
                     )
+                    nose_visible = self._is_landmark_visible(nose, img_width, img_height)
 
-                    if not eyes_nose_visible:
-                        logger.debug("얼굴 제외: 눈 또는 코 안 보임")
+                    if not (eyes_visible and nose_visible):
+                        logger.debug("얼굴 제외: 눈(최소 한쪽) 또는 코 안 보임")
                         continue
 
                     # Filter 3: 입 (최소 한쪽)
