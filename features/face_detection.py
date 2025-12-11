@@ -111,7 +111,7 @@ class FaceDetector:
 
             # GPU 사용 시도
             try:
-                self.model.prepare(ctx_id=self.gpu_id, det_size=(640, 640))
+                self.model.prepare(ctx_id=self.gpu_id, det_size=(1024, 1024))
                 if self.gpu_id >= 0:
                     logger.info(f"GPU {self.gpu_id} 모드로 모델 로드 완료")
                 else:
@@ -123,7 +123,7 @@ class FaceDetector:
                 logger.info("CPU 모드로 전환 중...")
 
                 self.gpu_id = -1
-                self.model.prepare(ctx_id=-1, det_size=(640, 640))
+                self.model.prepare(ctx_id=-1, det_size=(1024, 1024))
                 logger.info("CPU 모드로 모델 로드 완료")
 
             self.is_initialized = True
@@ -139,7 +139,7 @@ class FaceDetector:
             logger.error(f"모델 로드 실패: {e}", exc_info=True)
             raise ModelLoadError(f"InsightFace 모델 로드 실패: {e}")
 
-    def detect(self, image: np.ndarray, min_det_score: float = 0.6) -> int:
+    def detect(self, image: np.ndarray, min_det_score: float = 0.7) -> int:
         """
         이미지에서 얼굴을 감지하고 유효한 얼굴 개수를 반환합니다.
 
@@ -157,7 +157,7 @@ class FaceDetector:
                   dtype: uint8
             min_det_score: 최소 감지 신뢰도 점수 (0.0~1.0)
                           가려진 얼굴 필터링 (손/컵 가림)
-                          기본값: 0.6
+                          기본값: 0.7
 
         Returns:
             유효한 얼굴의 개수 (0 이상의 정수)
@@ -313,6 +313,7 @@ class FaceDetector:
 
         얼굴 특징점(눈, 코, 입)이 이미지 경계 내부에 위치하는지 검사합니다.
         화면 경계에 얼굴이 잘린 경우를 감지하는 데 사용됩니다.
+        경계에서 10픽셀 여유를 두어 경계 근처 특징점을 필터링합니다.
 
         Args:
             landmark: 특징점 좌표 (x, y)
@@ -330,4 +331,6 @@ class FaceDetector:
             True
         """
         x, y = landmark
-        return (0 <= x <= img_width and 0 <= y <= img_height)
+        margin = 10  # 경계 여유 (픽셀)
+        return (margin <= x <= img_width - margin and
+                margin <= y <= img_height - margin)
