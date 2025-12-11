@@ -139,7 +139,7 @@ class FaceDetector:
             logger.error(f"모델 로드 실패: {e}", exc_info=True)
             raise ModelLoadError(f"InsightFace 모델 로드 실패: {e}")
 
-    def detect(self, image: np.ndarray, min_det_score: float = 0.7) -> int:
+    def detect(self, image: np.ndarray, min_det_score: float = 0.65) -> int:
         """
         이미지에서 얼굴을 감지하고 유효한 얼굴 개수를 반환합니다.
 
@@ -157,7 +157,7 @@ class FaceDetector:
                   dtype: uint8
             min_det_score: 최소 감지 신뢰도 점수 (0.0~1.0)
                           가려진 얼굴 필터링 (손/컵 가림)
-                          기본값: 0.7
+                          기본값: 0.65
 
         Returns:
             유효한 얼굴의 개수 (0 이상의 정수)
