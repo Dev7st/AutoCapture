@@ -129,7 +129,7 @@ def visualize_faces(image_path: str, output_path: str = None):
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("사용법: python visualize_faces.py <이미지_파일_경로> [출력_파일_경로]")
-        print("예: python visualize_faces.py C:/Users/imgan/Desktop/123.png")
+        print("예: python visualize_faces.py C:/Users/imgan/Desktop/1.png")
         sys.exit(1)
 
     image_path = sys.argv[1]
