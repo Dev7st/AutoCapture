@@ -12,9 +12,9 @@ binaries = []
 hiddenimports = []
 
 # InsightFace 모델 파일 추가
-insightface_models_src = os.path.join(os.path.expanduser('~'), '.insightface', 'models', 'buffalo_l')
+insightface_models_src = os.path.join(os.path.expanduser('~'), '.insightface', 'models', 'antelopev2')
 if os.path.exists(insightface_models_src):
-    datas.append((insightface_models_src, '.insightface/models/buffalo_l'))
+    datas.append((insightface_models_src, '.insightface/models/antelopev2'))
 
 # onnxruntime 수집 (CPU 모드)
 onnx_datas, onnx_binaries, onnx_hiddenimports = collect_all('onnxruntime')
