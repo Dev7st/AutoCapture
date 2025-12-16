@@ -114,12 +114,104 @@ def visualize_faces(image_path: str, output_path: str = None):
     img_vis.save(output_path)
     print(f"\n시각화 이미지 저장: {output_path}")
 
-    # 필터링 테스트
-    print("\n필터링 테스트:")
+    # 필터링 상세 분석 (min_det_score=0.7 기준)
+    print("\n" + "=" * 80)
+    print("필터링 상세 분석 (min_det_score=0.7)")
+    print("=" * 80)
+
+    min_det_score = 0.7
+    margin = 5  # features/face_detection.py와 동일
+
+    passed = []
+    filtered = []
+
+    for idx, face in enumerate(faces, 1):
+        bbox = face.bbox
+        x1, y1, x2, y2 = bbox
+
+        # Filter 1: det_score
+        if face.det_score < min_det_score:
+            filtered.append({
+                'idx': idx,
+                'score': face.det_score,
+                'reason': f'낮은 det_score ({face.det_score:.3f} < {min_det_score})'
+            })
+            continue
+
+        # 특징점 확인
+        if not hasattr(face, 'kps') or face.kps is None or len(face.kps) < 5:
+            filtered.append({
+                'idx': idx,
+                'score': face.det_score,
+                'reason': '특징점 누락'
+            })
+            continue
+
+        left_eye = face.kps[0]
+        right_eye = face.kps[1]
+        nose = face.kps[2]
+        mouth_left = face.kps[3]
+        mouth_right = face.kps[4]
+
+        # Helper function (bbox 기반)
+        def is_visible(landmark):
+            x, y = landmark
+            return (x1 + margin <= x <= x2 - margin and
+                    y1 + margin <= y <= y2 - margin)
+
+        # Filter 2: 눈 + 코
+        eyes_visible = is_visible(left_eye) or is_visible(right_eye)
+        nose_visible = is_visible(nose)
+
+        if not (eyes_visible and nose_visible):
+            reason_parts = []
+            if not eyes_visible:
+                reason_parts.append("양쪽 눈 모두 bbox 경계 근처")
+            if not nose_visible:
+                reason_parts.append("코 bbox 경계 근처")
+            filtered.append({
+                'idx': idx,
+                'score': face.det_score,
+                'reason': ', '.join(reason_parts)
+            })
+            continue
+
+        # Filter 3: 입
+        mouth_visible = is_visible(mouth_left) or is_visible(mouth_right)
+
+        if not mouth_visible:
+            # 상세 정보
+            ml_x, ml_y = mouth_left
+            mr_x, mr_y = mouth_right
+
+            ml_dist_bottom = y2 - ml_y
+            mr_dist_bottom = y2 - mr_y
+
+            filtered.append({
+                'idx': idx,
+                'score': face.det_score,
+                'reason': f'입 bbox 경계 근처 (왼쪽:{ml_dist_bottom:.1f}px, 오른쪽:{mr_dist_bottom:.1f}px from bottom, margin={margin}px)'
+            })
+            continue
+
+        # 통과
+        passed.append({'idx': idx, 'score': face.det_score})
+
+    print(f"\n✅ 통과: {len(passed)}명")
+    for p in passed:
+        print(f"  #{p['idx']}: det_score={p['score']:.3f}")
+
+    print(f"\n❌ 필터링: {len(filtered)}명")
+    for f in filtered:
+        print(f"  #{f['idx']}: det_score={f['score']:.3f} - {f['reason']}")
+
+    print("\n" + "=" * 80)
+    print("간단 필터링 테스트 (det_score만)")
+    print("=" * 80)
     for threshold in [0.5, 0.6, 0.65, 0.7, 0.75, 0.8]:
         count = detector.detect(img_array, min_det_score=threshold)
-        filtered = len(faces) - count
-        print(f"  min_det_score={threshold:.2f} → {count}명 통과 ({filtered}명 필터링)")
+        filtered_count = len(faces) - count
+        print(f"  min_det_score={threshold:.2f} → {count}명 통과 ({filtered_count}명 필터링)")
 
     # Cleanup
     detector.cleanup()
