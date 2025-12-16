@@ -160,22 +160,20 @@ def visualize_faces(image_path: str, output_path: str = None):
         mouth_left = face.kps[3]
         mouth_right = face.kps[4]
 
-        # Helper function (bbox 기반)
-        def is_visible(landmark):
-            x, y = landmark
-            return (x1 + margin <= x <= x2 - margin and
-                    y1 + margin <= y <= y2 - margin)
+        # Filter 2: 눈 + 코 (bbox 범위만 체크, margin 없음)
+        def _is_in_bbox(landmark):
+            lx, ly = landmark
+            return x1 <= lx <= x2 and y1 <= ly <= y2
 
-        # Filter 2: 눈 + 코
-        eyes_visible = is_visible(left_eye) or is_visible(right_eye)
-        nose_visible = is_visible(nose)
+        eyes_visible = _is_in_bbox(left_eye) or _is_in_bbox(right_eye)
+        nose_visible = _is_in_bbox(nose)
 
         if not (eyes_visible and nose_visible):
             reason_parts = []
             if not eyes_visible:
-                reason_parts.append("양쪽 눈 모두 bbox 경계 근처")
+                reason_parts.append("양쪽 눈 모두 bbox 밖")
             if not nose_visible:
-                reason_parts.append("코 bbox 경계 근처")
+                reason_parts.append("코 bbox 밖")
             filtered.append({
                 'idx': idx,
                 'score': face.det_score,
@@ -183,8 +181,13 @@ def visualize_faces(image_path: str, output_path: str = None):
             })
             continue
 
-        # Filter 3: 입
-        mouth_visible = is_visible(mouth_left) or is_visible(mouth_right)
+        # Filter 3: 입 (bbox + margin 체크)
+        def _is_visible_with_margin(landmark):
+            x, y = landmark
+            return (x1 + margin <= x <= x2 - margin and
+                    y1 + margin <= y <= y2 - margin)
+
+        mouth_visible = _is_visible_with_margin(mouth_left) or _is_visible_with_margin(mouth_right)
 
         if not mouth_visible:
             # 상세 정보
