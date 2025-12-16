@@ -205,7 +205,6 @@ class FaceDetector:
 
             # 얼굴 감지 수행
             faces = self.model.get(image)
-            img_height, img_width = image.shape[:2]
 
             # 필터링된 유효 얼굴 리스트
             valid_faces = []
@@ -226,6 +225,9 @@ class FaceDetector:
                         logger.warning(f"얼굴 특징점 불완전 ({len(face.kps)}/5), 건너뜀")
                         continue
 
+                    # bbox 추출
+                    bbox = face.bbox
+
                     # 특징점 추출
                     left_eye = face.kps[0]
                     right_eye = face.kps[1]
@@ -235,10 +237,10 @@ class FaceDetector:
 
                     # Filter 2: 눈 (최소 한쪽) + 코 (필수)
                     eyes_visible = (
-                        self._is_landmark_visible(left_eye, img_width, img_height) or
-                        self._is_landmark_visible(right_eye, img_width, img_height)
+                        self._is_landmark_visible(left_eye, bbox) or
+                        self._is_landmark_visible(right_eye, bbox)
                     )
-                    nose_visible = self._is_landmark_visible(nose, img_width, img_height)
+                    nose_visible = self._is_landmark_visible(nose, bbox)
 
                     if not (eyes_visible and nose_visible):
                         logger.debug("얼굴 제외: 눈(최소 한쪽) 또는 코 안 보임")
@@ -246,8 +248,8 @@ class FaceDetector:
 
                     # Filter 3: 입 (최소 한쪽)
                     mouth_visible = (
-                        self._is_landmark_visible(mouth_left, img_width, img_height) or
-                        self._is_landmark_visible(mouth_right, img_width, img_height)
+                        self._is_landmark_visible(mouth_left, bbox) or
+                        self._is_landmark_visible(mouth_right, bbox)
                     )
 
                     if not mouth_visible:
@@ -305,32 +307,32 @@ class FaceDetector:
     def _is_landmark_visible(
         self,
         landmark: np.ndarray,
-        img_width: int,
-        img_height: int
+        bbox: np.ndarray
     ) -> bool:
         """
-        특징점이 이미지 범위 내에 있는지 확인합니다.
+        특징점이 얼굴 bbox 범위 내에 있는지 확인합니다.
 
-        얼굴 특징점(눈, 코, 입)이 이미지 경계 내부에 위치하는지 검사합니다.
-        화면 경계에 얼굴이 잘린 경우를 감지하는 데 사용됩니다.
-        경계에서 20픽셀 여유를 두어 경계 근처 특징점을 필터링합니다.
+        얼굴 특징점(눈, 코, 입)이 얼굴 bounding box 경계 내부에 위치하는지 검사합니다.
+        Zoom 갤러리 뷰에서 개별 참여자 칸 경계에 얼굴이 잘린 경우를 감지합니다.
+        bbox 경계에서 20픽셀 여유를 두어 경계 근처 특징점을 필터링합니다.
 
         Args:
             landmark: 특징점 좌표 (x, y)
-            img_width: 이미지 너비 (픽셀)
-            img_height: 이미지 높이 (픽셀)
+            bbox: 얼굴 bounding box [x1, y1, x2, y2]
 
         Returns:
-            특징점이 이미지 범위 내에 있으면 True, 아니면 False
+            특징점이 bbox 범위 내에 있으면 True, 아니면 False
 
         Example:
             >>> detector = FaceDetector(gpu_id=0)
             >>> landmark = np.array([100, 150])
-            >>> is_visible = detector._is_landmark_visible(landmark, 1920, 1080)
+            >>> bbox = np.array([80, 120, 200, 250])
+            >>> is_visible = detector._is_landmark_visible(landmark, bbox)
             >>> print(is_visible)
             True
         """
         x, y = landmark
-        margin = 20  # 경계 여유 (픽셀)
-        return (margin <= x <= img_width - margin and
-                margin <= y <= img_height - margin)
+        x1, y1, x2, y2 = bbox
+        margin = 20  # bbox 경계 여유 (픽셀)
+        return (x1 + margin <= x <= x2 - margin and
+                y1 + margin <= y <= y2 - margin)
