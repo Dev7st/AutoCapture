@@ -333,6 +333,6 @@ class FaceDetector:
         """
         x, y = landmark
         x1, y1, x2, y2 = bbox
-        margin = 20  # bbox 경계 여유 (픽셀)
+        margin = 5  # bbox 경계 여유 (픽셀)
         return (x1 + margin <= x <= x2 - margin and
                 y1 + margin <= y <= y2 - margin)
