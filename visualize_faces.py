@@ -95,6 +95,13 @@ def visualize_faces(image_path: str, output_path: str = None):
         # 박스 그리기 (두께 5)
         draw.rectangle([x1, y1, x2, y2], outline=color, width=5)
 
+        # 특징점(kps) 빨간 점으로 표시
+        if hasattr(face, 'kps') and face.kps is not None:
+            for kp in face.kps:
+                kp_x, kp_y = kp
+                # 빨간 원 (반지름 3px)
+                draw.ellipse([kp_x - 3, kp_y - 3, kp_x + 3, kp_y + 3], fill=(255, 0, 0))
+
         # 번호와 점수 표시
         text = f"#{idx}\n{face.det_score:.3f}"
 
