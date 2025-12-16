@@ -235,25 +235,25 @@ class FaceDetector:
                     mouth_left = face.kps[3]
                     mouth_right = face.kps[4]
 
-                    # Filter 2: 눈 (최소 한쪽) + 코 (필수)
+                    # Filter 2: 눈 (최소 한쪽) + 코 (필수) - bbox 범위만 체크 (margin 없음)
                     eyes_visible = (
-                        self._is_landmark_visible(left_eye, bbox) or
-                        self._is_landmark_visible(right_eye, bbox)
+                        self._is_in_bbox(left_eye, bbox) or
+                        self._is_in_bbox(right_eye, bbox)
                     )
-                    nose_visible = self._is_landmark_visible(nose, bbox)
+                    nose_visible = self._is_in_bbox(nose, bbox)
 
                     if not (eyes_visible and nose_visible):
-                        logger.debug("얼굴 제외: 눈(최소 한쪽) 또는 코 안 보임")
+                        logger.debug("얼굴 제외: 눈(최소 한쪽) 또는 코 bbox 밖")
                         continue
 
-                    # Filter 3: 입 (최소 한쪽)
+                    # Filter 3: 입 (최소 한쪽) - bbox + margin 체크
                     mouth_visible = (
                         self._is_landmark_visible(mouth_left, bbox) or
                         self._is_landmark_visible(mouth_right, bbox)
                     )
 
                     if not mouth_visible:
-                        logger.debug("얼굴 제외: 입 안 보임")
+                        logger.debug("얼굴 제외: 입 bbox 경계 근처")
                         continue
 
                     # 모든 필터 통과
@@ -304,17 +304,47 @@ class FaceDetector:
         else:
             logger.info("정리할 모델이 없습니다")
 
+    def _is_in_bbox(
+        self,
+        landmark: np.ndarray,
+        bbox: np.ndarray
+    ) -> bool:
+        """
+        특징점이 bbox 범위 내에 있는지 확인합니다 (margin 없음).
+
+        얼굴 특징점(눈, 코)이 얼굴 bounding box 내부에 위치하는지 검사합니다.
+        margin 없이 순수하게 bbox 범위만 체크합니다.
+
+        Args:
+            landmark: 특징점 좌표 (x, y)
+            bbox: 얼굴 bounding box [x1, y1, x2, y2]
+
+        Returns:
+            특징점이 bbox 범위 내에 있으면 True, 아니면 False
+
+        Example:
+            >>> detector = FaceDetector(gpu_id=0)
+            >>> landmark = np.array([100, 150])
+            >>> bbox = np.array([80, 120, 200, 250])
+            >>> is_in = detector._is_in_bbox(landmark, bbox)
+            >>> print(is_in)
+            True
+        """
+        x, y = landmark
+        x1, y1, x2, y2 = bbox
+        return x1 <= x <= x2 and y1 <= y <= y2
+
     def _is_landmark_visible(
         self,
         landmark: np.ndarray,
         bbox: np.ndarray
     ) -> bool:
         """
-        특징점이 얼굴 bbox 범위 내에 있는지 확인합니다.
+        특징점이 bbox 범위 내에 있는지 확인합니다 (margin 포함).
 
-        얼굴 특징점(눈, 코, 입)이 얼굴 bounding box 경계 내부에 위치하는지 검사합니다.
-        Zoom 갤러리 뷰에서 개별 참여자 칸 경계에 얼굴이 잘린 경우를 감지합니다.
-        bbox 경계에서 20픽셀 여유를 두어 경계 근처 특징점을 필터링합니다.
+        얼굴 특징점(입)이 얼굴 bounding box 경계 내부에 위치하는지 검사합니다.
+        Zoom 갤러리 뷰에서 개별 참여자 칸 하단에 입이 잘린 경우를 감지합니다.
+        bbox 경계에서 5픽셀 여유를 두어 경계 근처 특징점을 필터링합니다.
 
         Args:
             landmark: 특징점 좌표 (x, y)
