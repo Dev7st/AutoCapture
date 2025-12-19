@@ -103,11 +103,11 @@ class FaceDetector:
                 model_root = None
                 logger.info("일반 Python 환경: 기본 모델 경로 사용")
 
-            # FaceAnalysis 인스턴스 생성 (antelopev2 모델)
+            # FaceAnalysis 인스턴스 생성 (buffalo_l 모델)
             if model_root:
-                self.model = FaceAnalysis(name='antelopev2', root=model_root)
+                self.model = FaceAnalysis(name='buffalo_l', root=model_root)
             else:
-                self.model = FaceAnalysis(name='antelopev2')
+                self.model = FaceAnalysis(name='buffalo_l')
 
             # GPU 사용 시도
             try:
