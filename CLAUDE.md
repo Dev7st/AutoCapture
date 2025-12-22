@@ -274,7 +274,13 @@ dist/출결관리/
 1. Capture screen to memory (mss)
 2. Load captured image into InsightFace
 3. GPU-accelerated face detection (GTX 960)
-4. Count detected faces
+4. Filter and count valid faces
+   - Detection score >= min_det_score (default: 0.65)
+   - Landmark visibility check (bbox-based):
+     - Eyes (at least one side): bbox range only
+     - Nose: bbox range only
+     - Mouth corners (at least one side): bbox + 5px margin
+   - Filters out faces with mouth cut off at Zoom tile edges
 5. Compare with threshold
 6. If met:
    - Save the already-captured image with `is_within_window` parameter
@@ -385,10 +391,10 @@ When implementing new features, follow the specifications in `docs/architecture.
 
 ---
 
-**Document Version**: 2.3
-**Last Updated**: 2025-12-02
+**Document Version**: 2.4
+**Last Updated**: 2025-12-22
 **Major Changes**:
-- Updated "Data Flow Architecture": Removed alert popup, changed to status message update
-- Updated "Capture Process Details": Added status update steps for success/failure
-- Updated "State Management": Added status format details and non-intrusive UI approach
-- Updated "Face Detection Flow": Added status update in success/failure cases
+- Updated "Face Detection Flow": Added filtering step with detailed criteria
+  - Detection score check (min_det_score >= 0.65)
+  - Landmark visibility check (bbox-based)
+  - Zoom tile edge filtering for mouth landmarks
