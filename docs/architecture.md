@@ -203,8 +203,8 @@ class FaceDetector:
            - 입꼬리(최소 한쪽): bbox + 5px margin 체크
 
         3. Zoom 갤러리 뷰 대응
-           - 개별 참여자 칸(bbox) 기준으로 필터링
-           - 입이 칸 하단에서 잘린 경우 감지 및 필터링
+           - 개별 참여자 칸(bbox) 기준으로 개선
+           - 입이 칸 하단에서 잘린 경우 감지 보완
 
         Args:
             image: 입력 이미지 (RGB)

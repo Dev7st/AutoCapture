@@ -280,7 +280,7 @@ dist/출결관리/
      - Eyes (at least one side): bbox range only
      - Nose: bbox range only
      - Mouth corners (at least one side): bbox + 5px margin
-   - Filters out faces with mouth cut off at Zoom tile edges
+   - Reduces false positives from faces with mouth cut off at Zoom tile edges
 5. Compare with threshold
 6. If met:
    - Save the already-captured image with `is_within_window` parameter
