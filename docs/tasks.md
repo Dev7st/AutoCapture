@@ -307,7 +307,7 @@
 - [x] 문서 업데이트 (requirements.md, architecture.md, CLAUDE.md)
 
 ### 4.8 릴리스 관리
-- [ ] 최종 버전 태그 생성 (v1.0.0)
+- [x] 최종 버전 태그 생성 (v1.0.0)
 - [ ] GitHub Release 작성
 
 ---
