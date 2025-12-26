@@ -185,18 +185,37 @@ class FaceDetector:
         """
         pass
     
-    def detect(self, image: np.ndarray) -> int:
+    def detect(self, image: np.ndarray, min_det_score: float = 0.65) -> int:
         """
-        이미지에서 얼굴을 감지합니다.
-        
+        이미지에서 얼굴을 감지하고 유효한 얼굴 개수를 반환합니다.
+
+        감지된 얼굴에 대해 신뢰도 점수와 특징점 가시성을 기반으로
+        필터링하여 유효한 얼굴만 카운트합니다.
+
+        필터링 기준:
+        1. Detection score (가림 감지)
+           - min_det_score 이상
+           - 손/컵으로 가린 경우 낮은 점수
+
+        2. 특징점 가시성 (bbox 기반)
+           - 눈(최소 한쪽): bbox 범위만 체크
+           - 코: bbox 범위만 체크
+           - 입꼬리(최소 한쪽): bbox + 5px margin 체크
+
+        3. Zoom 갤러리 뷰 대응
+           - 개별 참여자 칸(bbox) 기준으로 개선
+           - 입이 칸 하단에서 잘린 경우 감지 보완
+
         Args:
             image: 입력 이미지 (RGB)
-        
+            min_det_score: 최소 감지 신뢰도 점수 (기본값: 0.65)
+
         Returns:
-            int: 감지된 얼굴 개수
-        
+            int: 유효한 얼굴 개수
+
         Raises:
             ValueError: 이미지가 유효하지 않을 때
+            FaceDetectionError: 얼굴 감지 실패 시
         """
         pass
     
@@ -207,7 +226,10 @@ class FaceDetector:
 
 **주요 메서드:**
 - `initialize()`: 모델 로드 (무거운 작업)
-- `detect()`: 얼굴 감지 및 개수 반환
+- `detect()`: 얼굴 감지 및 필터링 후 유효한 얼굴 개수 반환
+  - Detection score 체크 (가림 감지)
+  - 특징점 가시성 체크 (bbox 기반)
+  - Zoom 칸 경계 필터링
 - `cleanup()`: GPU 메모리 해제
 
 **의존성:**
@@ -922,8 +944,11 @@ build.bat
 
 ---
 
-**문서 버전**: 1.2
-**최종 수정일**: 2025-12-02
+**문서 버전**: 1.3
+**최종 수정일**: 2025-12-22
 **주요 변경사항**:
-- MainWindow.update_period_status() docstring 업데이트 (상태 형식 명시)
-- MainWindow.show_alert() docstring 업데이트 (에러 전용으로 변경, 캡처 성공/실패는 상태 메시지 사용)
+- FaceDetector.detect() 필터링 로직 상세 설명 추가 (3.2)
+  - Detection score 기반 가림 감지
+  - bbox 기반 특징점 가시성 체크
+  - Zoom 갤러리 뷰 칸 경계 필터링
+- 주요 메서드 설명 업데이트

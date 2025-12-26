@@ -111,7 +111,7 @@ class FaceDetector:
 
             # GPU 사용 시도
             try:
-                self.model.prepare(ctx_id=self.gpu_id, det_size=(640, 640))
+                self.model.prepare(ctx_id=self.gpu_id, det_size=(1024, 1024))
                 if self.gpu_id >= 0:
                     logger.info(f"GPU {self.gpu_id} 모드로 모델 로드 완료")
                 else:
@@ -123,7 +123,7 @@ class FaceDetector:
                 logger.info("CPU 모드로 전환 중...")
 
                 self.gpu_id = -1
-                self.model.prepare(ctx_id=-1, det_size=(640, 640))
+                self.model.prepare(ctx_id=-1, det_size=(1024, 1024))
                 logger.info("CPU 모드로 모델 로드 완료")
 
             self.is_initialized = True
@@ -139,32 +139,46 @@ class FaceDetector:
             logger.error(f"모델 로드 실패: {e}", exc_info=True)
             raise ModelLoadError(f"InsightFace 모델 로드 실패: {e}")
 
-    def detect(self, image: np.ndarray) -> int:
+    def detect(self, image: np.ndarray, min_det_score: float = 0.72) -> int:
         """
-        이미지에서 얼굴을 감지하고 개수를 반환합니다.
+        이미지에서 얼굴을 감지하고 유효한 얼굴 개수를 반환합니다.
 
         InsightFace 모델을 사용하여 이미지에서 얼굴을 감지합니다.
-        GPU 또는 CPU 모드에서 동작하며, 감지된 얼굴의 개수를 반환합니다.
+        감지된 얼굴에 대해 신뢰도 점수와 특징점 가시성을 기반으로 필터링하여
+        유효한 얼굴만 카운트합니다.
+
+        필터링 기준:
+        1. 감지 신뢰도 점수 (가림 감지)
+        2. 특징점 가시성 (눈, 코, 입)
 
         Args:
             image: 얼굴을 감지할 이미지 (numpy array, RGB 형식)
                   shape: (height, width, 3)
                   dtype: uint8
+            min_det_score: 최소 감지 신뢰도 점수 (0.0~1.0)
+                          가려진 얼굴 필터링 (손/컵 가림)
+                          기본값: 0.72
 
         Returns:
-            감지된 얼굴의 개수 (0 이상의 정수)
+            유효한 얼굴의 개수 (0 이상의 정수)
 
         Raises:
-            ValueError: 모델이 초기화되지 않았거나 이미지 형식이 잘못된 경우
-            RuntimeError: 얼굴 감지 실패 시
+            FaceDetectionError: 모델이 초기화되지 않았거나 얼굴 감지 실패 시
+            InvalidImageError: 이미지 형식이 잘못된 경우
+
+        Filtering Criteria:
+            - Detection score >= min_det_score
+            - 최소 한쪽 눈 보임 (옆모습 지원)
+            - 코 보임
+            - 최소 한쪽 입꼬리 보임
 
         Example:
             >>> detector = FaceDetector(gpu_id=0)
             >>> detector.initialize()
             >>> image = capturer.capture()  # numpy array
-            >>> face_count = detector.detect(image)
-            >>> print(face_count)
-            22
+            >>> face_count = detector.detect(image, min_det_score=0.6)
+            >>> print(face_count)  # 유효하고 가려지지 않은 얼굴만
+            20
         """
         # 초기화 확인
         if not self.is_initialized:
@@ -191,9 +205,70 @@ class FaceDetector:
 
             # 얼굴 감지 수행
             faces = self.model.get(image)
-            face_count = len(faces)
 
-            logger.info(f"얼굴 감지 완료: {face_count}명")
+            # 필터링된 유효 얼굴 리스트
+            valid_faces = []
+
+            for face in faces:
+                try:
+                    # Filter 1: Detection score (가림 감지)
+                    if face.det_score < min_det_score:
+                        logger.debug(f"얼굴 제외: 낮은 신뢰도 {face.det_score:.2f}")
+                        continue
+
+                    # 특징점 존재 여부 검증
+                    if not hasattr(face, 'kps') or face.kps is None:
+                        logger.warning("얼굴 특징점 누락, 건너뜀")
+                        continue
+
+                    if len(face.kps) < 5:
+                        logger.warning(f"얼굴 특징점 불완전 ({len(face.kps)}/5), 건너뜀")
+                        continue
+
+                    # bbox 추출
+                    bbox = face.bbox
+
+                    # 특징점 추출
+                    left_eye = face.kps[0]
+                    right_eye = face.kps[1]
+                    nose = face.kps[2]
+                    mouth_left = face.kps[3]
+                    mouth_right = face.kps[4]
+
+                    # Filter 2: 눈 (최소 한쪽) + 코 (필수) - bbox 범위만 체크 (margin 없음)
+                    eyes_visible = (
+                        self._is_in_bbox(left_eye, bbox) or
+                        self._is_in_bbox(right_eye, bbox)
+                    )
+                    nose_visible = self._is_in_bbox(nose, bbox)
+
+                    if not (eyes_visible and nose_visible):
+                        logger.debug("얼굴 제외: 눈(최소 한쪽) 또는 코 bbox 밖")
+                        continue
+
+                    # Filter 3: 입 (최소 한쪽) - bbox + margin 체크
+                    mouth_visible = (
+                        self._is_landmark_visible(mouth_left, bbox) or
+                        self._is_landmark_visible(mouth_right, bbox)
+                    )
+
+                    if not mouth_visible:
+                        logger.debug("얼굴 제외: 입 bbox 경계 근처")
+                        continue
+
+                    # 모든 필터 통과
+                    valid_faces.append(face)
+                    logger.debug(f"유효 얼굴: score={face.det_score:.2f}, 모든 특징점 확인")
+
+                except Exception as e:
+                    logger.warning(f"얼굴 처리 오류: {e}, 건너뜀")
+                    continue
+
+            face_count = len(valid_faces)
+            logger.info(
+                f"얼굴 감지 완료: {face_count}명 유효 "
+                f"(필터링 {len(faces) - face_count}명)"
+            )
             return face_count
 
         except Exception as e:
@@ -228,3 +303,66 @@ class FaceDetector:
                 logger.error(f"FaceDetector 정리 실패: {e}", exc_info=True)
         else:
             logger.info("정리할 모델이 없습니다")
+
+    def _is_in_bbox(
+        self,
+        landmark: np.ndarray,
+        bbox: np.ndarray
+    ) -> bool:
+        """
+        특징점이 bbox 범위 내에 있는지 확인합니다 (margin 없음).
+
+        얼굴 특징점(눈, 코)이 얼굴 bounding box 내부에 위치하는지 검사합니다.
+        margin 없이 순수하게 bbox 범위만 체크합니다.
+
+        Args:
+            landmark: 특징점 좌표 (x, y)
+            bbox: 얼굴 bounding box [x1, y1, x2, y2]
+
+        Returns:
+            특징점이 bbox 범위 내에 있으면 True, 아니면 False
+
+        Example:
+            >>> detector = FaceDetector(gpu_id=0)
+            >>> landmark = np.array([100, 150])
+            >>> bbox = np.array([80, 120, 200, 250])
+            >>> is_in = detector._is_in_bbox(landmark, bbox)
+            >>> print(is_in)
+            True
+        """
+        x, y = landmark
+        x1, y1, x2, y2 = bbox
+        return x1 <= x <= x2 and y1 <= y <= y2
+
+    def _is_landmark_visible(
+        self,
+        landmark: np.ndarray,
+        bbox: np.ndarray
+    ) -> bool:
+        """
+        특징점이 bbox 범위 내에 있는지 확인합니다 (margin 포함).
+
+        얼굴 특징점(입)이 얼굴 bounding box 경계 내부에 위치하는지 검사합니다.
+        Zoom 갤러리 뷰에서 개별 참여자 칸 하단에 입이 잘린 경우를 감지합니다.
+        bbox 경계에서 5픽셀 여유를 두어 경계 근처 특징점을 필터링합니다.
+
+        Args:
+            landmark: 특징점 좌표 (x, y)
+            bbox: 얼굴 bounding box [x1, y1, x2, y2]
+
+        Returns:
+            특징점이 bbox 범위 내에 있으면 True, 아니면 False
+
+        Example:
+            >>> detector = FaceDetector(gpu_id=0)
+            >>> landmark = np.array([100, 150])
+            >>> bbox = np.array([80, 120, 200, 250])
+            >>> is_visible = detector._is_landmark_visible(landmark, bbox)
+            >>> print(is_visible)
+            True
+        """
+        x, y = landmark
+        x1, y1, x2, y2 = bbox
+        margin = 5  # bbox 경계 여유 (픽셀)
+        return (x1 + margin <= x <= x2 - margin and
+                y1 + margin <= y <= y2 - margin)
