@@ -22,6 +22,16 @@ datas += onnx_datas
 binaries += onnx_binaries
 hiddenimports += onnx_hiddenimports
 
+# CUDA Provider DLL 수동 추가 (PyInstaller가 자동으로 수집하지 못하는 경우)
+import sys
+cuda_provider_dll = os.path.join(
+    os.path.dirname(sys.executable),
+    'Lib', 'site-packages', 'onnxruntime', 'capi', 'onnxruntime_providers_cuda.dll'
+)
+if os.path.exists(cuda_provider_dll):
+    binaries.append((cuda_provider_dll, 'onnxruntime/capi'))
+    print(f"✅ CUDA Provider DLL 추가: {cuda_provider_dll}")
+
 # insightface 수집
 insight_datas, insight_binaries, insight_hiddenimports = collect_all('insightface')
 datas += insight_datas
