@@ -16,7 +16,7 @@ insightface_models_src = os.path.join(os.path.expanduser('~'), '.insightface', '
 if os.path.exists(insightface_models_src):
     datas.append((insightface_models_src, '.insightface/models/buffalo_l'))
 
-# onnxruntime 수집 (CPU 모드)
+# onnxruntime 수집 (GPU/CPU 자동 감지, CUDA 런타임 포함)
 onnx_datas, onnx_binaries, onnx_hiddenimports = collect_all('onnxruntime')
 datas += onnx_datas
 binaries += onnx_binaries
