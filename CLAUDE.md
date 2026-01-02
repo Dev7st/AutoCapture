@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 An automated screenshot capture system for online class (Zoom) attendance verification using face detection with InsightFace.
 
-- **Environment**: Windows 10, Python 3.10.11, Dual Monitor, NVIDIA GTX 960
+- **Environment**: Windows 10, Python 3.10.11, Dual Monitor
 - **Purpose**: Automatically capture Zoom gallery view screenshots when attendance threshold is met
 - **Key Features**: Face detection (InsightFace), scheduled capture by class period, dual monitor support
 
@@ -37,7 +37,7 @@ python main.py
 
 **Key Dependencies**:
 - `insightface==0.7.3` - Face detection
-- `onnxruntime-gpu==1.16.3` - GPU acceleration (requires CUDA 11.x)
+- `onnxruntime==1.16.3` - CPU-based inference runtime
 - `mss==9.0.1` - Screen capture
 - `Pillow==10.1.0` - Image processing
 - `numpy==1.24.3` - Array processing
@@ -108,7 +108,7 @@ MainWindow.update_period_status() → UI status update (✅ 완료 or ❌ 실패
 **Capture Process Details**:
 1. **Scheduler triggers** at scheduled time (e.g., 09:30 for period 1)
 2. **ScreenCapture** captures selected monitor → image in memory
-3. **FaceDetector** detects faces in captured image using GPU (GTX 960)
+3. **FaceDetector** detects faces in captured image using CPU
 4. **Compare** face count with threshold (student count + 1 teacher)
 5. **If threshold met**:
    - Save image (already captured) to file
@@ -273,7 +273,7 @@ dist/출결관리/
 **Face Detection Flow** (Critical Order):
 1. Capture screen to memory (mss)
 2. Load captured image into InsightFace
-3. GPU-accelerated face detection (GTX 960)
+3. CPU-based face detection
 4. Filter and count valid faces
    - Detection score >= min_det_score (default: 0.65)
    - Landmark visibility check (bbox-based):
@@ -318,12 +318,12 @@ When making changes, always consult these documents:
 ## Performance Targets
 
 - Screen capture: ≤ 0.5s
-- Face detection (GPU): ≤ 0.5s
+- Face detection (CPU): ~5s
 - File save: ≤ 0.5s
-- **Total processing**: ≤ 2s
+- **Total processing**: ~6s
 
 **Memory Management**:
-- InsightFace model: ~500MB GPU memory
+- InsightFace model: ~500MB memory
 - Explicitly release with `cleanup()` method
 - Delete large image objects after processing
 
@@ -346,11 +346,10 @@ When making changes, always consult these documents:
 
 ## Special Notes
 
-**InsightFace GPU Usage**:
+**InsightFace CPU Usage**:
 - **Python source mode**: First run downloads ~100MB model to `~/.insightface/models/buffalo_l/`
 - **EXE mode**: Model bundled in executable (~340MB), no download required
-- GPU context: `ctx_id=0` (for GTX 960)
-- Fallback to CPU if GPU unavailable (show warning to user)
+- CPU mode: `ctx_id=-1` (fixed, no GPU support)
 - Model provides 95-99% accuracy, far superior to Haar Cascade (60-70%)
 - Environment detection: `sys.frozen` to switch between bundled vs downloaded model path
 
@@ -391,10 +390,11 @@ When implementing new features, follow the specifications in `docs/architecture.
 
 ---
 
-**Document Version**: 2.4
-**Last Updated**: 2025-12-22
+**Document Version**: 2.5
+**Last Updated**: 2026-01-02
 **Major Changes**:
-- Updated "Face Detection Flow": Added filtering step with detailed criteria
-  - Detection score check (min_det_score >= 0.65)
-  - Landmark visibility check (bbox-based)
-  - Zoom tile edge filtering for mouth landmarks
+- GPU 지원 제거, CPU 전용 모드로 전환
+  - onnxruntime-gpu → onnxruntime로 변경
+  - FaceDetector CPU 모드 고정 (ctx_id=-1)
+  - 성능 목표 업데이트 (얼굴 감지 ~5초)
+  - 모든 GPU 관련 문서 제거
