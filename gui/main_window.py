@@ -104,10 +104,10 @@ class MainWindow:
             )
 
         # 2. FaceDetector 인스턴스 생성
-        logger.info("FaceDetector 초기화 (GPU 사용 시도)")
+        logger.info("FaceDetector 초기화 (CPU 모드)")
         self.detector: Optional[FaceDetector] = None
         try:
-            self.detector = FaceDetector(gpu_id=0)
+            self.detector = FaceDetector()
             self.detector.initialize()
             logger.info("FaceDetector 초기화 완료")
         except ModelLoadError as e:

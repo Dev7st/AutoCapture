@@ -28,18 +28,10 @@ def test_init():
     print("=" * 60)
 
     try:
-        # 기본값으로 초기화 (GPU)
+        # CPU 모드로 초기화
         detector = FaceDetector()
-        print(f"✅ 기본값 초기화 성공")
-        print(f"   gpu_id: {detector.gpu_id}")
+        print(f"✅ 초기화 성공 (CPU 모드)")
         print(f"   is_initialized: {detector.is_initialized}")
-        print()
-
-        # CPU 모드 초기화
-        detector_cpu = FaceDetector(gpu_id=-1)
-        print(f"✅ CPU 모드 초기화 성공")
-        print(f"   gpu_id: {detector_cpu.gpu_id}")
-        print(f"   is_initialized: {detector_cpu.is_initialized}")
         print()
 
         return True
@@ -58,8 +50,8 @@ def test_initialize():
     print("=" * 60)
 
     try:
-        detector = FaceDetector(gpu_id=0)
-        print(f"모델 로드 시작 (GPU 시도)...")
+        detector = FaceDetector()
+        print(f"모델 로드 시작 (CPU 모드)...")
         print(f"⚠️  첫 실행 시 ~100MB 모델 다운로드 (1-2분 소요)")
         print()
 
@@ -69,7 +61,6 @@ def test_initialize():
 
         print(f"✅ 모델 로드 성공")
         print(f"   is_initialized: {detector.is_initialized}")
-        print(f"   실제 사용 모드: {'GPU' if detector.gpu_id >= 0 else 'CPU'}")
         print(f"   로드 시간: {elapsed_time:.3f}초")
         print()
 
