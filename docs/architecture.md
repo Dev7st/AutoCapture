@@ -162,26 +162,22 @@ class ScreenCapture:
 class FaceDetector:
     """
     InsightFace 기반 얼굴 감지 클래스.
-    
+
     Attributes:
-        gpu_id (int): GPU ID (-1=CPU, 0=GPU)
         model: InsightFace 모델 인스턴스
         is_initialized (bool): 초기화 여부
     """
-    
-    def __init__(self, gpu_id: int = 0):
-        """
-        Args:
-            gpu_id: 사용할 GPU ID
-        """
+
+    def __init__(self):
+        """CPU 모드로 FaceDetector를 초기화합니다."""
         pass
-    
+
     def initialize(self) -> None:
         """
-        InsightFace 모델을 로드합니다.
-        
+        InsightFace 모델을 CPU 모드로 로드합니다.
+
         Raises:
-            RuntimeError: GPU 사용 불가 시 CPU로 전환
+            RuntimeError: 모델 로드 실패 시
         """
         pass
     
@@ -220,7 +216,7 @@ class FaceDetector:
         pass
     
     def cleanup(self) -> None:
-        """GPU 메모리를 해제합니다."""
+        """메모리를 해제합니다."""
         pass
 ```
 
@@ -230,11 +226,11 @@ class FaceDetector:
   - Detection score 체크 (가림 감지)
   - 특징점 가시성 체크 (bbox 기반)
   - Zoom 칸 경계 필터링
-- `cleanup()`: GPU 메모리 해제
+- `cleanup()`: 메모리 해제
 
 **의존성:**
 - `insightface`: 얼굴 감지 라이브러리
-- `onnxruntime-gpu`: GPU 가속
+- `onnxruntime`: CPU 기반 추론 런타임
 
 ---
 
@@ -548,7 +544,7 @@ class MainWindow:
         프로그램 종료 시 리소스 정리.
 
         - Scheduler 중지
-        - FaceDetector GPU 메모리 해제
+        - FaceDetector 메모리 해제
         - 기타 리소스 정리
 
         Note:
@@ -724,7 +720,6 @@ class Config:
 CaptureException (기본)
 ├─ ScreenCaptureError (화면 캡처 실패)
 ├─ FaceDetectionError (얼굴 감지 실패)
-│  ├─ GPUNotAvailableError (GPU 사용 불가)
 │  └─ ModelLoadError (모델 로드 실패)
 ├─ FileSaveError (파일 저장 실패)
 └─ SchedulerError (스케줄러 오류)
@@ -751,7 +746,7 @@ except Exception as e:
 
 ### 7.1 메모리 관리
 
-**GPU 메모리:**
+**메모리:**
 - InsightFace 모델: 약 500MB
 - 처리 후 명시적 해제 (`cleanup()`)
 
@@ -764,9 +759,9 @@ except Exception as e:
 | 항목 | 목표 |
 |------|------|
 | 화면 캡처 | 0.5초 이하 |
-| 얼굴 감지 (GPU) | 0.5초 이하 |
+| 얼굴 감지 (CPU) | 약 5초 |
 | 파일 저장 | 0.5초 이하 |
-| **총 처리 시간** | **2초 이하** |
+| **총 처리 시간** | **약 6초** |
 
 ### 7.3 최적화 전략
 
@@ -783,7 +778,7 @@ except Exception as e:
 ```python
 # requirements.txt
 insightface==0.7.3
-onnxruntime-gpu==1.16.3
+onnxruntime==1.16.3
 mss==9.0.1
 Pillow==10.1.0
 numpy==1.24.3
@@ -944,11 +939,12 @@ build.bat
 
 ---
 
-**문서 버전**: 1.3
-**최종 수정일**: 2025-12-22
+**문서 버전**: 1.4
+**최종 수정일**: 2026-01-02
 **주요 변경사항**:
-- FaceDetector.detect() 필터링 로직 상세 설명 추가 (3.2)
-  - Detection score 기반 가림 감지
-  - bbox 기반 특징점 가시성 체크
-  - Zoom 갤러리 뷰 칸 경계 필터링
-- 주요 메서드 설명 업데이트
+- GPU 지원 제거, CPU 전용 모드로 전환
+  - FaceDetector 클래스에서 gpu_id 파라미터 제거
+  - onnxruntime-gpu → onnxruntime 변경
+  - 성능 목표 업데이트 (얼굴 감지 ~5초, 총 처리 ~6초)
+  - GPUNotAvailableError 예외 제거
+  - 모든 GPU 메모리 참조를 일반 메모리로 변경
