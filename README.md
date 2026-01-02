@@ -28,7 +28,7 @@ InsightFace 딥러닝 모델을 사용하여 얼굴을 감지하고, 설정한 �
 
 ### 핵심 기능
 - **자동 얼굴 감지**: InsightFace 딥러닝 모델 (정확도 95~99%)
-- **GPU 가속**: NVIDIA GTX 960 지원 (CPU 자동 fallback)
+- **CPU 기반 추론**: 안정적인 얼굴 감지 (약 5초)
 - **자동 스케줄링**: 교시별 시간대(30~45분) 자동 캡처
 - **듀얼 모니터 지원**: 캡처할 모니터 선택 가능
 - **유연한 인원 감지**: 조명/각도 문제 고려한 유연 모드 (90% 기준)
@@ -52,16 +52,9 @@ InsightFace 딥러닝 모델을 사용하여 얼굴을 감지하고, 설정한 �
 - **OS**: Windows 10 이상
 - **RAM**: 4GB 이상
 - **디스크**: 2GB 이상 여유 공간
-- **GPU** (선택사항):
-  - NVIDIA GTX 960 이상 (권장)
-  - NVIDIA 드라이버만 설치 (CUDA Toolkit 불필요 - EXE에 포함)
-  - GPU 없을 시 CPU 모드 자동 전환
 
 ### Python 소스 실행 시 (개발자용)
 - **Python**: 3.10.11 (필수)
-- **GPU** (선택사항):
-  - NVIDIA 드라이버
-  - CUDA Toolkit 11.x
 - **패키지**: requirements.txt 참조
 
 ---
@@ -82,20 +75,9 @@ InsightFace 딥러닝 모델을 사용하여 얼굴을 감지하고, 설정한 �
    출결관리.exe 더블클릭
    ```
 
-3. **GPU 사용 시 (선택사항)**
-   - NVIDIA GPU 사용 시: [NVIDIA 드라이버 다운로드](https://www.nvidia.com/download/index.aspx)
-   - GPU 없을 시: 자동으로 CPU 모드로 동작 (별도 설치 불필요)
-
 **주의사항:**
 - Python 설치 불필요
-- CUDA Toolkit 설치 불필요 (CUDA 런타임이 EXE에 포함됨)
 - InsightFace 모델 자동 포함 (GitHub 다운로드 불필요)
-
-**GPU 관련 용어 설명:**
-- **NVIDIA 드라이버**: GPU 하드웨어를 운영체제가 인식하고 사용하기 위한 기본 소프트웨어
-- **CUDA Toolkit**: GPU 병렬 연산(딥러닝)을 위한 개발 도구
-  - EXE 사용 시: CUDA 런타임이 `onnxruntime-gpu`에 포함되어 번들링됨 → 드라이버만 설치하면 GPU 사용 가능
-  - Python 소스 사용 시: CUDA Toolkit 별도 설치 필요
 
 ---
 
@@ -109,18 +91,7 @@ InsightFace 딥러닝 모델을 사용하여 얼굴을 감지하고, 설정한 �
 # https://www.python.org/downloads/release/python-31011/
 ```
 
-#### 2. GPU 환경 설정 (선택사항)
-
-**GPU 사용 시:**
-```bash
-# NVIDIA 드라이버 설치
-# https://www.nvidia.com/download/index.aspx
-
-# CUDA Toolkit 11.x 설치
-# https://developer.nvidia.com/cuda-11-8-0-download-archive
-```
-
-#### 3. 가상환경 생성
+#### 2. 가상환경 생성
 
 **conda 사용 시 (권장):**
 ```bash
@@ -134,12 +105,12 @@ python -m venv venv
 venv\Scripts\activate  # Windows
 ```
 
-#### 4. 패키지 설치
+#### 3. 패키지 설치
 ```bash
 pip install -r requirements.txt
 ```
 
-#### 5. 프로그램 실행
+#### 4. 프로그램 실행
 ```bash
 python main.py
 ```
@@ -343,47 +314,7 @@ C:\IBM 비대면/
 
 ---
 
-### 2. GPU 인식 실패
-
-**증상:**
-- "GPU 사용 불가" 경고 알림
-- CPU 모드로 전환됨 (느림)
-
-**원인:**
-- NVIDIA 드라이버 미설치
-- GPU 드라이버 오래됨
-- CUDA 호환 문제
-
-**해결 방법 (EXE 사용 시):**
-```
-1. NVIDIA 드라이버 업데이트
-   - https://www.nvidia.com/download/index.aspx
-   - GTX 960 검색 후 최신 드라이버 다운로드
-   - 설치 후 재부팅
-
-2. CUDA 별도 설치 불필요
-   - EXE에 ONNX Runtime 포함됨
-   - 드라이버만 설치하면 GPU 인식됨
-
-3. CPU 모드 계속 사용
-   - GPU 없어도 정상 동작 (속도만 조금 느림)
-   - 얼굴 감지: 0.5초 (GPU) → 1~2초 (CPU)
-```
-
-**해결 방법 (Python 소스 사용 시):**
-```
-1. CUDA Toolkit 설치
-   - https://developer.nvidia.com/cuda-11-8-0-download-archive
-   - CUDA 11.8 권장
-
-2. onnxruntime-gpu 재설치
-   pip uninstall onnxruntime onnxruntime-gpu
-   pip install onnxruntime-gpu==1.16.3
-```
-
----
-
-### 3. 파일 저장 실패
+### 2. 파일 저장 실패
 
 **증상:**
 - "파일 저장 실패" 에러 알림
@@ -410,7 +341,7 @@ C:\IBM 비대면/
 
 ---
 
-### 4. 프로그램 느림
+### 3. 프로그램 느림
 
 **증상:**
 - 화면 캡처 느림
@@ -418,27 +349,23 @@ C:\IBM 비대면/
 - 프로그램 응답 없음
 
 **원인:**
-- GPU 미사용 (CPU 모드)
 - 메모리 부족
 - 다른 프로그램 과부하
 
 **해결 방법:**
 ```
-1. GPU 사용 확인
-   - 트러블슈팅 2번 참조 (GPU 인식 실패)
-
-2. 메모리 확인
+1. 메모리 확인
    - 작업 관리자에서 메모리 사용률 확인
    - 불필요한 프로그램 종료
 
-3. 프로그램 재시작
+2. 프로그램 재시작
    - 출결관리 프로그램 종료 후 재실행
-   - GPU 메모리 해제됨
+   - 메모리 해제됨
 ```
 
 ---
 
-### 5. InsightFace 모델 오류 (Python 소스 사용 시)
+### 4. InsightFace 모델 오류 (Python 소스 사용 시)
 
 **증상:**
 - "InsightFace 모델 로드 실패"
@@ -473,7 +400,7 @@ C:\IBM 비대면/
 
 ---
 
-### 6. 프로그램 실행 안 됨
+### 5. 프로그램 실행 안 됨
 
 **증상 (EXE):**
 - 더블클릭해도 아무 반응 없음
@@ -516,7 +443,7 @@ C:\IBM 비대면/
 
 ---
 
-### 7. 설정이 저장 안 됨
+### 6. 설정이 저장 안 됨
 
 **증상:**
 - 프로그램 종료 후 재실행 시 설정 초기화
@@ -547,7 +474,7 @@ C:\IBM 비대면/
 
 ---
 
-### 8. CSV 로그 파일 오류
+### 7. CSV 로그 파일 오류
 
 **증상:**
 - CSV 파일을 Excel로 열면 프로그램이 멈춤
@@ -653,7 +580,7 @@ dist/출결관리/
 - **언어**: Python 3.10.11
 - **GUI**: tkinter (Python 내장)
 - **얼굴 감지**: InsightFace 0.7.3 (buffalo_l 모델, det_size=1024x1024)
-- **GPU 가속**: onnxruntime-gpu 1.16.3 (CUDA 11.x)
+- **추론 엔진**: onnxruntime 1.16.3 (CPU)
 - **화면 캡처**: mss 9.0.1
 - **이미지 처리**: Pillow 10.1.0, numpy 1.24.3
 - **배포**: PyInstaller 6.11.0
@@ -670,7 +597,7 @@ dist/출결관리/
 
 ---
 
-**문서 버전**: 1.2
-**최종 수정일**: 2025-12-22
-**주요 변경사항**: 얼굴 필터링 기능 설명 추가 (특징점 가시성, 가림 감지, Zoom 칸 경계 필터링)
-**개발 환경**: Windows 10, Python 3.10.11, NVIDIA GTX 960
+**문서 버전**: 1.3
+**최종 수정일**: 2026-01-02
+**주요 변경사항**: GPU 지원 제거, CPU 전용 모드로 전환
+**개발 환경**: Windows 10, Python 3.10.11
