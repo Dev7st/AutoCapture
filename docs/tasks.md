@@ -310,6 +310,26 @@
 - [x] 최종 버전 태그 생성 (v1.0.0)
 - [x] GitHub Release 작성
 
+### 4.9 GPU 지원 제거 (CPU 전용 모드 전환)
+- [x] 성능 문제 분석 (GTX 960: GPU 24초 vs CPU 5-6초)
+- [x] 코드 수정
+  - [x] requirements.txt: onnxruntime-gpu → onnxruntime
+  - [x] 출결관리.spec: cuDNN DLL 번들링 제거
+  - [x] features/face_detection.py: GPU 코드 제거, CPU 전용
+  - [x] gui/main_window.py: FaceDetector() 호출 및 GPU 참조 제거
+  - [x] visualize_faces.py: FaceDetector() 호출 수정
+  - [x] tests/test_face_detection.py: GPU 테스트 제거
+  - [x] features/exceptions.py: GPU 메모리 참조 제거
+- [x] 문서 업데이트
+  - [x] CLAUDE.md: GPU 관련 내용 제거 (v2.5)
+  - [x] docs/architecture.md: FaceDetector 클래스 설계 CPU 전용 변경 (v1.4)
+  - [x] docs/requirements.md: GPU 요구사항 제거 (v4.4)
+  - [x] docs/rules.md: GPU 예제 코드 및 참조 제거 (v2.1)
+  - [x] README.md: GPU 기능/요구사항/트러블슈팅 제거 (v1.3)
+- [x] 빌드 및 테스트
+  - [x] Clean build 실행
+  - [x] 학원 PC 실제 환경 테스트 (처리 시간 ~5초 확인)
+
 ---
 
 ## 💡 개발 팁
@@ -329,11 +349,11 @@
 
 ---
 
-**문서 버전**: 2.7
-**최종 수정일**: 2025-12-26
+**문서 버전**: 2.8
+**최종 수정일**: 2026-01-02
 **주요 변경사항**:
-- Phase 4.8 릴리스 관리 완료 ✅
-  - v1.0.0 최종 버전 태그 생성
-  - GitHub Release 게시 완료
-  - 출결 관리 자동 캡처 시스템 첫 정식 릴리스
-  - 전체 개발 프로세스 완료
+- Phase 4.9 GPU 지원 제거 완료 ✅
+  - GTX 960 성능 문제 해결 (GPU 24초 → CPU 5초)
+  - 코드 단순화 (7개 파일)
+  - 문서 업데이트 (5개 파일)
+  - CPU 전용 모드로 안정화

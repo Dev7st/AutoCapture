@@ -37,7 +37,7 @@ def visualize_faces(image_path: str, output_path: str = None):
 
     # FaceDetector 초기화
     print("\nFaceDetector 초기화 중...")
-    detector = FaceDetector(gpu_id=0)
+    detector = FaceDetector()
     detector.initialize()
 
     print("\n얼굴 감지 시작...")

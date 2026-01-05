@@ -104,10 +104,10 @@ class MainWindow:
             )
 
         # 2. FaceDetector 인스턴스 생성
-        logger.info("FaceDetector 초기화 (GPU 사용 시도)")
+        logger.info("FaceDetector 초기화 (CPU 모드)")
         self.detector: Optional[FaceDetector] = None
         try:
-            self.detector = FaceDetector(gpu_id=0)
+            self.detector = FaceDetector()
             self.detector.initialize()
             logger.info("FaceDetector 초기화 완료")
         except ModelLoadError as e:
@@ -124,7 +124,7 @@ class MainWindow:
             messagebox.showerror(
                 "초기화 오류",
                 f"얼굴 감지 모듈 초기화에 실패했습니다.\n\n{e}\n\n"
-                f"GPU를 사용할 수 없거나 InsightFace 모델 로드에 실패했습니다."
+                f"InsightFace 모델 로드에 실패했습니다."
             )
 
         # 3. FileManager 인스턴스 생성
@@ -353,7 +353,7 @@ class MainWindow:
         프로그램 종료 시 리소스 정리.
 
         - Scheduler 중지
-        - FaceDetector GPU 메모리 해제
+        - FaceDetector 메모리 해제
         - 기타 리소스 정리
         """
         logger.info("=" * 60)
@@ -369,10 +369,10 @@ class MainWindow:
             except Exception as e:
                 logger.error(f"Scheduler 중지 실패: {e}", exc_info=True)
 
-        # 2. FaceDetector GPU 메모리 해제
+        # 2. FaceDetector 메모리 해제
         if self.detector is not None:
             try:
-                logger.info("FaceDetector GPU 메모리 해제 중...")
+                logger.info("FaceDetector 메모리 해제 중...")
                 self.detector.cleanup()
                 logger.info("FaceDetector 메모리 해제 완료")
             except Exception as e:

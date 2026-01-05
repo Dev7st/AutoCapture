@@ -72,7 +72,7 @@ class FaceDetectionError(CaptureException):
     얼굴 감지 실패 시 발생하는 예외.
 
     InsightFace를 사용한 얼굴 감지 중 오류가 발생했을 때 raise됩니다.
-    이미지 처리 실패, GPU 메모리 부족 등이 원인일 수 있습니다.
+    이미지 처리 실패, 메모리 부족 등이 원인일 수 있습니다.
 
     Raises:
         FaceDetectionError: 얼굴 감지 실패 시
@@ -91,7 +91,7 @@ class ModelLoadError(FaceDetectionError):
     InsightFace 모델 로드 실패 시 발생하는 예외.
 
     InsightFace 라이브러리 미설치, 모델 파일 손상,
-    GPU/CPU 초기화 실패 등이 원인일 수 있습니다.
+    CPU 초기화 실패 등이 원인일 수 있습니다.
 
     사용자 알림 필요: InsightFace 설치 확인 안내
 

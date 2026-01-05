@@ -1,7 +1,7 @@
 """
 얼굴 감지 모듈.
 
-InsightFace 라이브러리를 사용하여 GPU 가속 얼굴 감지 기능을 제공합니다.
+InsightFace 라이브러리를 사용하여 CPU 기반 얼굴 감지 기능을 제공합니다.
 """
 
 # 표준 라이브러리
@@ -24,16 +24,14 @@ class FaceDetector:
     """
     InsightFace 기반 얼굴 감지 클래스.
 
-    GPU를 활용하여 이미지에서 얼굴을 감지하고 개수를 반환합니다.
-    GTX 960 환경에서 최적화되어 있으며, GPU 사용 불가 시 CPU로 자동 전환합니다.
+    CPU를 사용하여 이미지에서 얼굴을 감지하고 개수를 반환합니다.
 
     Attributes:
-        gpu_id: 사용할 GPU ID (0=GPU, -1=CPU)
         model: InsightFace 모델 인스턴스
         is_initialized: 모델 초기화 여부
 
     Example:
-        >>> detector = FaceDetector(gpu_id=0)
+        >>> detector = FaceDetector()
         >>> detector.initialize()
         >>> face_count = detector.detect(image)
         >>> print(face_count)
@@ -41,34 +39,26 @@ class FaceDetector:
         >>> detector.cleanup()
     """
 
-    def __init__(self, gpu_id: int = 0) -> None:
+    def __init__(self) -> None:
         """
         FaceDetector 인스턴스를 초기화합니다.
 
-        생성자에서는 GPU ID만 설정하고, 실제 모델 로드는
+        생성자에서는 속성만 초기화하고, 실제 모델 로드는
         initialize() 메서드에서 수행합니다.
 
-        Args:
-            gpu_id: 사용할 GPU ID
-                   0 = GPU 사용 (기본값, GTX 960)
-                   -1 = CPU 사용
-
         Example:
-            >>> detector = FaceDetector(gpu_id=0)  # GPU 사용
-            >>> detector_cpu = FaceDetector(gpu_id=-1)  # CPU 사용
+            >>> detector = FaceDetector()
         """
-        self.gpu_id: int = gpu_id
         self.model: Optional[any] = None
         self.is_initialized: bool = False
 
-        logger.info(f"FaceDetector 초기화: gpu_id={gpu_id}")
+        logger.info("FaceDetector 초기화: CPU 모드")
 
     def initialize(self) -> None:
         """
         InsightFace 모델을 로드합니다.
 
-        buffalo_l 모델을 로드하고 GPU 또는 CPU로 준비합니다.
-        GPU 사용 실패 시 자동으로 CPU 모드로 전환합니다.
+        buffalo_l 모델을 CPU 모드로 로드하고 준비합니다.
 
         첫 실행 시 ~100MB 모델을 자동 다운로드합니다.
         다운로드 위치: ~/.insightface/models/buffalo_l/
@@ -77,8 +67,8 @@ class FaceDetector:
             RuntimeError: 모델 로드 실패 시
 
         Example:
-            >>> detector = FaceDetector(gpu_id=0)
-            >>> detector.initialize()  # GPU로 모델 로드
+            >>> detector = FaceDetector()
+            >>> detector.initialize()
             >>> print(detector.is_initialized)
             True
         """
@@ -109,22 +99,9 @@ class FaceDetector:
             else:
                 self.model = FaceAnalysis(name='buffalo_l')
 
-            # GPU 사용 시도
-            try:
-                self.model.prepare(ctx_id=self.gpu_id, det_size=(1024, 1024))
-                if self.gpu_id >= 0:
-                    logger.info(f"GPU {self.gpu_id} 모드로 모델 로드 완료")
-                else:
-                    logger.info("CPU 모드로 모델 로드 완료")
-
-            except Exception as gpu_error:
-                # GPU 실패 시 CPU로 전환
-                logger.warning(f"GPU 사용 실패: {gpu_error}")
-                logger.info("CPU 모드로 전환 중...")
-
-                self.gpu_id = -1
-                self.model.prepare(ctx_id=-1, det_size=(1024, 1024))
-                logger.info("CPU 모드로 모델 로드 완료")
+            # CPU 모드로 모델 준비
+            self.model.prepare(ctx_id=-1, det_size=(1024, 1024))
+            logger.info("CPU 모드로 모델 로드 완료")
 
             self.is_initialized = True
             logger.info("FaceDetector 초기화 완료")
@@ -173,7 +150,7 @@ class FaceDetector:
             - 최소 한쪽 입꼬리 보임
 
         Example:
-            >>> detector = FaceDetector(gpu_id=0)
+            >>> detector = FaceDetector()
             >>> detector.initialize()
             >>> image = capturer.capture()  # numpy array
             >>> face_count = detector.detect(image, min_det_score=0.6)
@@ -277,13 +254,13 @@ class FaceDetector:
 
     def cleanup(self) -> None:
         """
-        모델을 정리하고 GPU 메모리를 해제합니다.
+        모델을 정리하고 메모리를 해제합니다.
 
-        InsightFace 모델 인스턴스를 삭제하고 GPU 메모리를 명시적으로 해제합니다.
+        InsightFace 모델 인스턴스를 삭제하고 메모리를 명시적으로 해제합니다.
         애플리케이션 종료 시 또는 모델을 더 이상 사용하지 않을 때 호출하세요.
 
         Example:
-            >>> detector = FaceDetector(gpu_id=0)
+            >>> detector = FaceDetector()
             >>> detector.initialize()
             >>> # ... 얼굴 감지 작업 ...
             >>> detector.cleanup()  # 메모리 해제
@@ -323,7 +300,7 @@ class FaceDetector:
             특징점이 bbox 범위 내에 있으면 True, 아니면 False
 
         Example:
-            >>> detector = FaceDetector(gpu_id=0)
+            >>> detector = FaceDetector()
             >>> landmark = np.array([100, 150])
             >>> bbox = np.array([80, 120, 200, 250])
             >>> is_in = detector._is_in_bbox(landmark, bbox)
@@ -354,7 +331,7 @@ class FaceDetector:
             특징점이 bbox 범위 내에 있으면 True, 아니면 False
 
         Example:
-            >>> detector = FaceDetector(gpu_id=0)
+            >>> detector = FaceDetector()
             >>> landmark = np.array([100, 150])
             >>> bbox = np.array([80, 120, 200, 250])
             >>> is_visible = detector._is_landmark_visible(landmark, bbox)

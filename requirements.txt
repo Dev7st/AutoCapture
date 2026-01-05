@@ -10,7 +10,7 @@ numpy==1.24.3
 
 # 얼굴 감지 (InsightFace)
 insightface==0.7.3
-onnxruntime-gpu==1.16.3
+onnxruntime==1.16.3
 
 # GUI (tkinter는 Python 내장)
 # 스케줄링 (자체 구현)
@@ -18,5 +18,3 @@ onnxruntime-gpu==1.16.3
 
 # 테스트 (개발 시에만 필요)
 pytest==7.4.3
-
-# 참고: CUDA Toolkit 11.x는 별도 설치 필요 (GPU 사용 시)

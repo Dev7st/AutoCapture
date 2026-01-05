@@ -286,15 +286,14 @@ def detect_faces(image: np.ndarray, threshold: float = 0.5) -> int:
 class FaceDetector:
     """
     InsightFace를 사용한 얼굴 감지 클래스.
-    
-    GPU를 활용하여 이미지에서 얼굴을 감지합니다.
-    
+
+    CPU 기반으로 이미지에서 얼굴을 감지합니다.
+
     Attributes:
-        gpu_id (int): 사용할 GPU ID (-1이면 CPU)
         model: InsightFace 모델 인스턴스
-    
+
     Example:
-        >>> detector = FaceDetector(gpu_id=0)
+        >>> detector = FaceDetector()
         >>> count = detector.detect(image)
     """
     pass
@@ -319,7 +318,6 @@ image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 # 함수 시작 부분 (docstring 다음)
 def detect_faces(image):
     """얼굴을 감지합니다."""
-    # TODO: GPU 메모리 부족 시 자동으로 CPU 모드 전환
     # FIXME: 가끔 얼굴 감지가 실패하는 버그 수정 필요
     pass
 
@@ -331,7 +329,6 @@ process(result)
 # 클래스 시작 부분
 class FaceDetector:
     """얼굴 감지 클래스"""
-    # TODO: 다중 GPU 지원 추가
     pass
 ```
 
@@ -437,18 +434,17 @@ class FaceDetectorAndCapture:
 ### 7.2 생성자 규칙
 ```python
 class FaceDetector:
-    def __init__(self, gpu_id: int = 0):
+    def __init__(self):
         """
         생성자에서는 초기화만.
         무거운 작업(모델 로드)은 별도 메서드로.
         """
-        self.gpu_id = gpu_id
         self.model = None  # 아직 로드 안 함
-    
+
     def initialize(self):
         """모델 로드 (무거운 작업)"""
         self.model = FaceAnalysis()
-        self.model.prepare(ctx_id=self.gpu_id)
+        self.model.prepare(ctx_id=-1)  # CPU 모드
 ```
 
 ### 7.3 메서드 순서
@@ -619,11 +615,11 @@ def test_face_detection_with_empty_image():
 
 ## 11. 성능 최적화 규칙
 
-### 11.1 GPU 메모리 관리
+### 11.1 메모리 관리
 ```python
 class FaceDetector:
     def cleanup(self):
-        """GPU 메모리 해제"""
+        """메모리 해제"""
         if self.model is not None:
             del self.model
             self.model = None

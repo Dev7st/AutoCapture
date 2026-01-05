@@ -21,10 +21,21 @@ from pathlib import Path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-# 로깅 설정
+# 로깅 설정 (파일 + 콘솔)
+if getattr(sys, 'frozen', False):
+    # PyInstaller 환경: EXE 파일이 있는 폴더에 저장
+    log_file = Path(sys.executable).parent / 'log.txt'
+else:
+    # Python 소스 환경: main.py가 있는 폴더에 저장
+    log_file = Path(__file__).parent / 'log.txt'
+
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(log_file, mode='w', encoding='utf-8'),
+        logging.StreamHandler(sys.stdout)
+    ]
 )
 
 logger = logging.getLogger(__name__)
